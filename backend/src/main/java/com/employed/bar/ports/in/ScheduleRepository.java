@@ -14,7 +14,8 @@ public interface ScheduleRepository {
     @Query("SELECT s FROM Schedule s")
     List<Schedule> findAll();
 
-    void delete(Schedule schedule);
+    void deleteById(Long id);
+
 
     List<Schedule> findByEmployee(Employee employee);
 }

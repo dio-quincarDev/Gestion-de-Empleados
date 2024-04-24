@@ -23,13 +23,17 @@ public class ScheduleApplicationService {
     public Schedule getScheduleById(Long id){
         return scheduleRepository.findById(id);
     }
-    public List<Schedule> getSchedulesByEmployee() {
-        Employee employee = employeeRepository.findById(employeeId);
-        return scheduleRepository.findByEmployee(employee);
+    public List<Schedule> getSchedulesByEmployee(Long employeeId) {
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if(employee != null) {
+            return scheduleRepository.findByEmployee(employee);
+        }
+        return null;
+
     }
 
-    public void deleteSchedule(Long schedule){
-        (scheduleRepository.delete(Schedule schedule));
+    public void deleteSchedule(Long scheduleId){
+        scheduleRepository.deleteById(scheduleId);
     }
 
     public Schedule updateSchedule(Long id, Schedule updatedSchedule) {

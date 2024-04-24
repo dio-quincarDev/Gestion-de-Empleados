@@ -19,6 +19,7 @@ public class AttendanceRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne
     @JoinColumn(name = "employee_id")
     private Employee employee;
@@ -31,5 +32,8 @@ public class AttendanceRecord {
 
    @Column(name = "exit_time")
     private LocalTime exitTime;
+
+    @Column(name = "status")
+    private String status;
 
 }

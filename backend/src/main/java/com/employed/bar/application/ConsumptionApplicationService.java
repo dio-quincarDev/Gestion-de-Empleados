@@ -27,7 +27,7 @@ public class ConsumptionApplicationService{
 
     public Consumption processConsumption(ConsumptionDto consumptionDto){
         Long employeeId = consumptionDto.getEmployeeId();
-        Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findById(employeeId));
+        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
                 if(optionalEmployee.isPresent()) {
                     Employee employee = optionalEmployee.get();
                     BigDecimal amount = consumptionDto.getAmount();

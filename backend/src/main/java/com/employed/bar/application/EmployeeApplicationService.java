@@ -28,8 +28,12 @@ public class EmployeeApplicationService {
     }
 
     public Employee getEmployeeById(Long id){
-        Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findById(id));
-        return  optionalEmployee.orElseThrow(()-> new EmployeeNotFoundException("Employee Not Found with ID" + id));
+        Optional<Employee> optionalEmployee = employeeRepository.findById(id);
+        if(optionalEmployee.isPresent()){
+            return optionalEmployee.get();
+        }else{
+            throw new EmployeeNotFoundException("Employee Not Found with ID" + id);
+        }
     }
 
     public List<Employee> getEmployees(){

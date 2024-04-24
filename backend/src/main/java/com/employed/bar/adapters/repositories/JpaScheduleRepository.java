@@ -36,8 +36,11 @@ public class JpaScheduleRepository implements ScheduleRepository {
     }
     @Override
     @Modifying
-    public void delete(Schedule schedule){
-        entityManager.remove(schedule);
+    public void deleteById(Long id){
+        Schedule schedule = findById(id);
+        if (schedule != null){
+            entityManager.remove(schedule);
+        }
     }
 
     @Override

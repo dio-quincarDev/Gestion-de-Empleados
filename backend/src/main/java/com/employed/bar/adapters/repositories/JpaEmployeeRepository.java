@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @Transactional
@@ -46,8 +47,9 @@ public class JpaEmployeeRepository implements EmployeeRepository{
     }
 
     @Override
-    public Employee findById(Long id){
-        return entityManager.find(Employee.class, id);
+    public Optional<Employee> findById(Long id){
+        Employee employee = entityManager.find(Employee.class, id);
+        return Optional.ofNullable(employee);
     }
 
     @Override
