@@ -29,5 +29,7 @@ public class Consumption {
     private Employee employee;
 
     public Consumption(Employee employee, BigDecimal amount) {
+        this.employee = employee;
+        this.amount = amount;
     }
 }

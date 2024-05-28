@@ -1,5 +1,8 @@
 package com.employed.bar.domain.servicesImpl;
 
+import com.employed.bar.adapters.dtos.AttendanceReportDto;
+import com.employed.bar.adapters.dtos.ConsumptionReportDto;
+import com.employed.bar.adapters.dtos.ReportDto;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
@@ -12,50 +15,66 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
-public class ReportingServiceImpl implements ReportingService{
+public class ReportingServiceImpl implements ReportingService {
     private final EmployeeRepository employeeRepository;
     private final ConsumptionRepository consumptionRepository;
 
-    public ReportingServiceImpl(EmployeeRepository employeeRepository, ConsumptionRepository consumptionRepository) {
+    public ReportingServiceImpl(EmployeeRepository employeeRepository,ConsumptionRepository consumptionRepository) {
         this.employeeRepository = employeeRepository;
         this.consumptionRepository = consumptionRepository;
     }
 
-
     @Override
-    public byte[] generateEmployeeReport(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
+    public AttendanceReportDto generateEmployeeReport(Employee employee, LocalDateTime startDate, LocalDateTime endDate){
+        validateEmployee(employee);
+        return employeeRepository.findById(employee.getId())
+                .map(employeeData -> {
+                    List<AttendanceRecord> attendanceRecords = filteredAttendanceRecords(employeeData, startDate, endDate);
+                    return new AttendanceReportDto(employeeData, attendanceRecords);
+                })
+                .orElseThrow(()-> new RuntimeException("Not Found Employee"));
 
-        Employee employeeData = employeeRepository.findById(employee.getId())
-                .orElseThrow(()->new RuntimeException("Could not find employee"));
-        //logica de historial de asistencia
-        List<AttendanceRecord> attendanceRecords =  employeeData.getAttendanceRecords().stream()
-                .filter(record -> { LocalDateTime recordDateTime = record.getDate().atTime(record.getEntryTime());
-                     return recordDateTime.isAfter(startDate)&&recordDateTime.isBefore(endDate);})
-                .collect(Collectors.toList());
-
-
-
-        String reportContent = "Employee Report\n\n";
-        reportContent += String.format("Name: %s\n", employeeData.getName());
-        reportContent += "Attendance Records:\n";
-        for (AttendanceRecord attendanceRecord : attendanceRecords) {
-            reportContent += attendanceRecord.getDate() + " " + attendanceRecord.getEntryTime() + "-" + attendanceRecord.getStatus() + "\n";
         }
-        return reportContent.getBytes();
-    }
+
 
     @Override
-    public byte[] generateConsumptionReport(List<Consumption> consumptions, LocalDateTime startDate, LocalDateTime endDate) {
-       List<Consumption>filteredConsumptions = consumptions.stream()
-               .filter(consumption -> consumption.getConsumptionDate().isAfter(startDate) && consumption.getConsumptionDate().isBefore(endDate))
-               .collect(Collectors.toList());
+    public ConsumptionReportDto generateConsumptionReport(List<Consumption> consumptions, LocalDateTime startDate, LocalDateTime endDate) {
+        validateConsumptions(consumptions);
 
-       String reportContent = "Consumption Report\n\n";
-       for (Consumption consumption : filteredConsumptions) {
-           reportContent += consumption.getConsumptionDate()+"-"+consumption.getEmployee().getName()+"-"+consumption.getDescription()+"\n";
-       }
-        return reportContent.getBytes();
+        List<Consumption> filteredConsumptions = filteredConsumptions(consumptions, startDate, endDate);
+        return new ConsumptionReportDto(filteredConsumptions, startDate, endDate);
+    }
+    private static void validateEmployee(Employee employee) {
+        if (employee == null || employee.getId()==null){
+            throw new IllegalArgumentException("Employee Not Found");
+        }
+    }
+    private static void validateConsumptions(List<Consumption> consumptions) {
+        if (consumptions == null || consumptions.isEmpty()){
+            throw new IllegalArgumentException("Consumptions its Empty ");
+        }
+    }
+    private List<AttendanceRecord>filteredAttendanceRecords(Employee employeeData, LocalDateTime startDate, LocalDateTime endDate) {
+        return employeeData.getAttendanceRecords().stream()
+                .filter(record ->{
+                    LocalDateTime recordDateTime = record.getDate().atTime(record.getEntryTime());
+                    return recordDateTime.isAfter(startDate)&&recordDateTime.isBefore(endDate);
+                })
+               .collect(Collectors.toList());
+    }
+    private List<Consumption> filteredConsumptions(List<Consumption> consumptions, LocalDateTime startDate, LocalDateTime endDate) {
+        return consumptions.stream()
+                .filter(consumption -> consumption.getConsumptionDate().isAfter(startDate) && consumption.getConsumptionDate().isBefore(endDate))
+                .collect(Collectors.toList());
     }
 
-}
+    }
+
+
+
+
+
+
+
