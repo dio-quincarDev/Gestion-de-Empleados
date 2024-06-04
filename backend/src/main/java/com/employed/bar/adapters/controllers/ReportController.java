@@ -23,8 +23,8 @@ public class ReportController {
         this.consumptionReportService=consumptionReportService;
     }
     @GetMapping("/attendance")
-    public List<AttendanceReportDto> getAttendanceReports() {
-        return attendanceReportService.generateAttendanceReport();
+    public List<AttendanceReportDto> getAttendanceReports(int year, int month, int day) {
+        return attendanceReportService.generateAttendanceReport(year, month, day);
     }
     @GetMapping("/consumption")
     public List<ConsumptionReportDto> getConsumptionReports() {
