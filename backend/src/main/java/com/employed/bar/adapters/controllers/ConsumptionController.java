@@ -17,6 +17,7 @@ import java.util.Map;
 @RequestMapping("/api/consumptions")
 public class ConsumptionController {
     private final ConsumptionApplicationService consumptionApplicationService;
+
     public ConsumptionController(ConsumptionApplicationService consumptionApplicationService) {
         this.consumptionApplicationService = consumptionApplicationService;
     }

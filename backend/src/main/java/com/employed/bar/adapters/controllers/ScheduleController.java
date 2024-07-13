@@ -22,8 +22,8 @@ public class ScheduleController {
         return ResponseEntity.ok(schedule);
     }
     @GetMapping
-    public ResponseEntity<List<Schedule>>getSchedules(){
-        List<Schedule>schedules = scheduleApplicationService.getSchedulesByEmployee();
+    public ResponseEntity<List<Schedule>>getSchedules(@PathVariable Long employeeId) {
+        List<Schedule>schedules = scheduleApplicationService.getSchedulesByEmployee(employeeId);
         return ResponseEntity.ok(schedules);
     }
 

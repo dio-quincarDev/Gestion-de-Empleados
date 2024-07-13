@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -20,16 +21,22 @@ public class ScheduleApplicationService {
     public Schedule createSchedule(Schedule schedule){
         return scheduleRepository.save(schedule);
     }
+
     public Schedule getScheduleById(Long id){
-        return scheduleRepository.findById(id);
+        return scheduleRepository.findById(id).orElse(null);
+
     }
-    public List<Schedule> getSchedulesByEmployee() {
-        Employee employee = employeeRepository.findById(employeeId);
-        return scheduleRepository.findByEmployee(employee);
+    public List<Schedule> getSchedulesByEmployee(Long employeeId) {
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if(employee != null) {
+            return scheduleRepository.findByEmployee(employee);
+        }
+        return Collections.emptyList();
+
     }
 
-    public void deleteSchedule(Long schedule){
-        (scheduleRepository.delete(Schedule schedule));
+    public void deleteSchedule(Long scheduleId){
+        scheduleRepository.deleteById(scheduleId);
     }
 
     public Schedule updateSchedule(Long id, Schedule updatedSchedule) {
