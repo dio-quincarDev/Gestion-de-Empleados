@@ -36,4 +36,5 @@ public class AttendanceRecord {
     @Column(name = "status")
     private String status;
 
+
 }

@@ -19,6 +19,7 @@ public class AttendanceReportDto {
     private String employeeName;
     private LocalDate date;
     private LocalTime entryTime;
+    private double attendancePercentage;
     private LocalTime exitTime;
 
     private Employee employee;

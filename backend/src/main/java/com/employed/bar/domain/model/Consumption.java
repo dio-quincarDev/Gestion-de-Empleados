@@ -32,4 +32,44 @@ public class Consumption {
         this.employee = employee;
         this.amount = amount;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getConsumptionDate() {
+        return consumptionDate;
+    }
+
+    public void setConsumptionDate(LocalDateTime consumptionDate) {
+        this.consumptionDate = consumptionDate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
+    }
 }

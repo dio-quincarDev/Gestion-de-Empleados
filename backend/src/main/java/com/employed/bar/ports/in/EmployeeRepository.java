@@ -3,23 +3,16 @@ package com.employed.bar.ports.in;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.model.Schedule;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface EmployeeRepository {
-    Employee save(Employee employee);
+public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    List<AttendanceRecord> findAttendanceRecordsByEmployeeAndDate(Employee employee, int year, int month, int day);
 
-    Optional<Employee> findById(Long id);
+    Optional<Employee> findByName(String name);
+    Optional<Employee> findByRole(String role);
+    List<Employee> findByStatus(String status);
 
-    List<Employee> findAll();
-
-    void delete(Employee employee);
-
-    Schedule findByEmployeeAndDate(Employee employee, int year, int month, int day);
-
-    List<AttendanceRecord> findAttendanceRecords(int year, int month, int day);
 }

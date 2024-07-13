@@ -12,8 +12,6 @@ import java.util.List;
 @Service
 public interface ConsumptionCalculationService {
     BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate);
-
     List<Consumption> getConsumptionsByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate);
-
     List<Consumption> getConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate);
 }

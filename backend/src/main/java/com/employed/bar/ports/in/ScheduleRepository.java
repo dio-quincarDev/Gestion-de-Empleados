@@ -2,20 +2,12 @@ package com.employed.bar.ports.in;
 
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.model.Schedule;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 
-public interface ScheduleRepository {
-    Schedule save(Schedule schedule);
-
-    Schedule findById(Long id);
-
-    @Query("SELECT s FROM Schedule s")
-    List<Schedule> findAll();
-
-    void deleteById(Long id);
-
-
+public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findByEmployee(Employee employee);
+    Schedule findByEmployeeAndDate(Employee employee, LocalDate date);
 }
