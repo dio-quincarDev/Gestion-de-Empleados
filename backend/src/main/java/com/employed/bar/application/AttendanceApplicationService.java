@@ -4,10 +4,10 @@ import com.employed.bar.adapters.dtos.AttendanceDto;
 import com.employed.bar.adapters.dtos.AttendanceReportDto;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.services.AttendanceService;
 import com.employed.bar.ports.in.EmployeeRepository;
-import com.employed.bar.ports.in.InputAttendanceCalculationService;
-import com.employed.bar.ports.in.AttendanceRepository;
-import com.employed.bar.ports.out.AttendanceReportService;
+import com.employed.bar.ports.out.AttendanceRepository;
+import com.employed.bar.domain.services.AttendanceReportService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -16,18 +16,17 @@ import java.util.List;
 @Service
 public class AttendanceApplicationService  {
     private final EmployeeRepository employeeRepository;
-    private final InputAttendanceCalculationService attendanceCalculationService;
     private final AttendanceReportService AttendanceReportService;
     private final AttendanceRepository attendanceRepository;
+    private final AttendanceService attendanceService;
 
 
     public AttendanceApplicationService(EmployeeRepository employeeRepository,
-                                        InputAttendanceCalculationService attendanceCalculationService,
-                                        AttendanceReportService AttendanceReportService, AttendanceRepository attendanceRepository) {
+                                        AttendanceReportService AttendanceReportService, AttendanceRepository attendanceRepository, AttendanceService attendanceService) {
         this.employeeRepository = employeeRepository;
-        this.attendanceCalculationService = attendanceCalculationService;
         this.AttendanceReportService = AttendanceReportService;
         this.attendanceRepository = attendanceRepository;
+        this.attendanceService = attendanceService;
     }
     @Transactional
     public AttendanceRecord registerAttendance(AttendanceDto attendanceDto) {
@@ -48,6 +47,6 @@ public class AttendanceApplicationService  {
         return AttendanceReportService.generateAttendanceReport(year, month, day);
     }
     public double calculateAttendancePercentage(Employee employee, int year, int month, int day){
-        return attendanceCalculationService.calculateAttendancePercentage(employee, year, month, day);
+        return attendanceService.calculateAttendancePercentage(employee, year, month, day);
     }
 }

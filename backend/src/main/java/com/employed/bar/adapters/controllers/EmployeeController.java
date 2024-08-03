@@ -20,20 +20,24 @@ public class EmployeeController {
     public EmployeeController(EmployeeApplicationService employeeApplicationService) {
         this.employeeApplicationService = employeeApplicationService;
     }
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<Employee> createEmployee(@RequestBody @Valid EmployeeDto employeeDto){
-        Employee createdEmployee = employeeApplicationService.createEmployee(employeeDto);
-        return ResponseEntity.ok(createdEmployee);
+        try{
+            Employee createdEmployee = employeeApplicationService.createEmployee(employeeDto);
+            return ResponseEntity.ok(createdEmployee);
+        }catch(Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Employee>getEmployeeById(@PathVariable Long id){
-     try{
-         Employee employee = employeeApplicationService.getEmployeeById(id);
-         return ResponseEntity.ok(employee);
-     }catch(EmployeeNotFoundException ex){
-         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-     }
+        try{
+            Employee employee = employeeApplicationService.getEmployeeById(id);
+            return ResponseEntity.ok(employee);
+        }catch(EmployeeNotFoundException ex){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @GetMapping
@@ -65,8 +69,8 @@ public class EmployeeController {
 
     @GetMapping("/{search}")
     public ResponseEntity<?>getEmployeeByStatus(@RequestParam(required = false)String status,
-                                                             @RequestParam(required = false)String name,
-                                                             @RequestParam(required = false)String role){
+                                                @RequestParam(required = false)String name,
+                                                @RequestParam(required = false)String role){
         if(status != null){
             List<Employee> employees = employeeApplicationService.getEmployeeByStatus(status);
             return ResponseEntity.ok(employees);

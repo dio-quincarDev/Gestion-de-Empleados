@@ -15,26 +15,31 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/attendances")
 public class AttendanceController {
-    private AttendanceApplicationService attendanceApplicationService;
+    private final AttendanceApplicationService attendanceApplicationService;
     private final EmployeeRepository employeeRepository;
+
     public AttendanceController(AttendanceApplicationService attendanceApplicationService, EmployeeRepository employeeRepository) {
         this.attendanceApplicationService = attendanceApplicationService;
         this.employeeRepository = employeeRepository;
     }
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<AttendanceRecord>registerAttendance(@RequestBody AttendanceDto attendanceDto){
        AttendanceRecord attendanceRecord = attendanceApplicationService.registerAttendance(attendanceDto);
         return ResponseEntity.ok(attendanceRecord);
     }
     @GetMapping("/report")
-    public ResponseEntity <List<AttendanceReportDto>>generateAttendanceReport(@RequestParam int year, int month, int day){
+    public ResponseEntity <List<AttendanceReportDto>>generateAttendanceReport(@RequestParam int year,
+                                                                              @RequestParam int month,
+                                                                              @RequestParam int day){
         List<AttendanceReportDto> report = attendanceApplicationService.generateAttendanceReport(year, month, day);
         return ResponseEntity.ok(report);
     }
 
-    @GetMapping("/percentege")
+    @GetMapping("/percentage")
     public ResponseEntity<Double>calculateAttendancePercentage(@RequestParam Long employeeId,
-                                                               @RequestParam int year, @RequestParam int month, @RequestParam int day){
+                                                               @RequestParam int year,
+                                                               @RequestParam int month,
+                                                               @RequestParam int day){
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(()-> new IllegalArgumentException("Employee Not Found"));
         double percentage = attendanceApplicationService.calculateAttendancePercentage(employee, year, month, day);

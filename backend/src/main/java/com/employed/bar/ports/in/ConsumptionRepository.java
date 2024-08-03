@@ -16,6 +16,7 @@ public interface ConsumptionRepository extends JpaRepository <Consumption, Long>
     List<Consumption> findByEmployeeAndDateTimeBetween(@Param("employee")Employee employee,
                                                        @Param("startDate") LocalDateTime startDate,
                                                        @Param("endDate") LocalDateTime endDate);
+
     List<Consumption>findByEmployee(Employee employee);
 
     @Query("SELECT SUM(c.amount) FROM Consumption c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate")

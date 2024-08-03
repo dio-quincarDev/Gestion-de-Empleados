@@ -1,5 +1,6 @@
 package com.employed.bar.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "consumption")
 public class Consumption {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,58 +20,19 @@ public class Consumption {
     @Column(name = "consumption_date")
     private LocalDateTime consumptionDate;
 
-    @Column(name="description")
+    @Column(name = "description")
     private String description;
 
-    @Column(name="amount")
+    @Column(name = "amount")
     private BigDecimal amount;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
+    @JsonBackReference
     private Employee employee;
 
     public Consumption(Employee employee, BigDecimal amount) {
         this.employee = employee;
         this.amount = amount;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getConsumptionDate() {
-        return consumptionDate;
-    }
-
-    public void setConsumptionDate(LocalDateTime consumptionDate) {
-        this.consumptionDate = consumptionDate;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public Employee getEmployee() {
-        return employee;
-    }
-
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
     }
 }
