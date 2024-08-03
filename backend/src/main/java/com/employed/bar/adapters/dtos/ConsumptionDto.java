@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class ConsumptionDto {
@@ -13,25 +15,12 @@ public class ConsumptionDto {
     private Long employeeId;
 
     @NotNull
+    private LocalDateTime date;
+
+    @NotNull
     @Positive
     private BigDecimal amount;
 
-    // Getters y setters
 
-    public Long getEmployeeId() {
-        return employeeId;
-    }
-
-    public void setEmployeeId(Long employeeId) {
-        this.employeeId = employeeId;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
 }
 

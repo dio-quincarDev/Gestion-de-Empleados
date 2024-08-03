@@ -1,5 +1,6 @@
 package com.employed.bar.application;
 
+import com.employed.bar.adapters.dtos.ScheduleDto;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.model.Schedule;
 import com.employed.bar.ports.in.EmployeeRepository;
@@ -18,7 +19,15 @@ public class ScheduleApplicationService {
     private final ScheduleRepository scheduleRepository;
     private final EmployeeRepository employeeRepository;
 
-    public Schedule createSchedule(Schedule schedule){
+    public Schedule createSchedule(ScheduleDto scheduleDto){
+        Employee employee = employeeRepository.findById(scheduleDto.getEmployeeId())
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+
+        Schedule schedule = new Schedule();
+        schedule.setStartTime(scheduleDto.getStartTime());
+        schedule.setEndTime(scheduleDto.getEndTime());
+        schedule.setEmployee(employee);
+
         return scheduleRepository.save(schedule);
     }
 

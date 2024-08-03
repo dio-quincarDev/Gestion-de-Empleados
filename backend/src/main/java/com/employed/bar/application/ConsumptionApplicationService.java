@@ -4,8 +4,8 @@ import com.employed.bar.adapters.dtos.ConsumptionDto;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.services.ConsumptionCalculationService;
 import com.employed.bar.domain.services.ConsumptionService;
-import com.employed.bar.ports.in.ConsumptionCalculationService;
 import com.employed.bar.ports.in.ConsumptionRepository;
 import com.employed.bar.ports.in.EmployeeRepository;
 import jakarta.transaction.Transactional;
@@ -31,16 +31,16 @@ public class ConsumptionApplicationService {
 
 
     public Consumption processConsumption(ConsumptionDto consumptionDto) {
-        Long employeeId = consumptionDto.getEmployeeId();
-        Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
-        if (optionalEmployee.isPresent()) {
-            Employee employee = optionalEmployee.get();
-            BigDecimal amount = consumptionDto.getAmount();
-            Consumption consumption = new Consumption(employee, amount);
-            return createConsumption(consumption);
-        } else {
-            throw new EmployeeNotFoundException("Employee not found with id " + employeeId);
-        }
+        Employee employee = employeeRepository.findById(consumptionDto.getEmployeeId())
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id " + consumptionDto.getEmployeeId()));
+
+        // Mapea los datos del DTO a la entidad Consumption
+        Consumption consumption = new Consumption();
+        consumption.setEmployee(employee);
+        consumption.setAmount(consumptionDto.getAmount());
+        consumption.setConsumptionDate(consumptionDto.getDate());
+
+        return consumptionRepository.save(consumption);
     }
 
     public Consumption createConsumption(Consumption consumption) {

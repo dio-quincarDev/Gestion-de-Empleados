@@ -1,4 +1,4 @@
-package com.employed.bar.ports.out;
+package com.employed.bar.domain.services;
 
 import com.employed.bar.adapters.dtos.AttendanceReportDto;
 import java.util.List;

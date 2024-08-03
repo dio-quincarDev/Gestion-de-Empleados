@@ -26,7 +26,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Optional<Employee> getEmployeeById(Long id) {
-        return Optional.ofNullable(employeeRepository.findById(id).orElse(null));
+        return employeeRepository.findById(id);
     }
 
     @Override
@@ -51,9 +51,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void deleteEmployee(Long id) {
-        employeeRepository.findById(id).ifPresent(employee -> {
-            employeeRepository.delete(employee);
-        });
+        employeeRepository.findById(id).ifPresent(employeeRepository::delete);
     }
 
     @Override

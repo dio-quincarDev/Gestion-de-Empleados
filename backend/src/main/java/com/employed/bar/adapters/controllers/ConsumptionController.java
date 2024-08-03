@@ -21,7 +21,7 @@ public class ConsumptionController {
     public ConsumptionController(ConsumptionApplicationService consumptionApplicationService) {
         this.consumptionApplicationService = consumptionApplicationService;
     }
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<Consumption>calculateConsumption(@RequestBody @Valid ConsumptionDto consumptionDto){
         try{
             Consumption consumption = consumptionApplicationService.processConsumption(consumptionDto);
