@@ -1,4 +1,4 @@
-package com.employed.bar.adapters.jpaRepositories;
+package com.employed.bar.adapters.jpa;
 
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;

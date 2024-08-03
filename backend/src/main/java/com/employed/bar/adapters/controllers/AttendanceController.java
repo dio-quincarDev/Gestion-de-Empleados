@@ -7,6 +7,7 @@ import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.ports.in.EmployeeRepository;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,8 +16,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/attendances")
 public class AttendanceController {
-    private AttendanceApplicationService attendanceApplicationService;
+    private final AttendanceApplicationService attendanceApplicationService;
     private final EmployeeRepository employeeRepository;
+    @Autowired
     public AttendanceController(AttendanceApplicationService attendanceApplicationService, EmployeeRepository employeeRepository) {
         this.attendanceApplicationService = attendanceApplicationService;
         this.employeeRepository = employeeRepository;
@@ -32,7 +34,7 @@ public class AttendanceController {
         return ResponseEntity.ok(report);
     }
 
-    @GetMapping("/percentege")
+    @GetMapping("/percentage")
     public ResponseEntity<Double>calculateAttendancePercentage(@RequestParam Long employeeId,
                                                                @RequestParam int year, @RequestParam int month, @RequestParam int day){
         Employee employee = employeeRepository.findById(employeeId)
