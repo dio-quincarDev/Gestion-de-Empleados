@@ -2,7 +2,7 @@ package com.employed.bar.adapters.controllers;
 
 import com.employed.bar.adapters.dtos.AttendanceReportDto;
 import com.employed.bar.adapters.dtos.ConsumptionReportDto;
-import com.employed.bar.ports.out.AttendanceReportService;
+import com.employed.bar.domain.services.AttendanceReportService;
 import com.employed.bar.ports.out.ConsumptionReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

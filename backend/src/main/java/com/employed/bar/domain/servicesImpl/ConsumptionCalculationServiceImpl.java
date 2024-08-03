@@ -2,7 +2,7 @@ package com.employed.bar.domain.servicesImpl;
 
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.ports.in.ConsumptionCalculationService;
+import com.employed.bar.domain.services.ConsumptionCalculationService;
 import com.employed.bar.ports.in.ConsumptionRepository;
 import org.springframework.stereotype.Service;
 

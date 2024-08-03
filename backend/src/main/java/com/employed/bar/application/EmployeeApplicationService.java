@@ -3,7 +3,7 @@ package com.employed.bar.application;
 import com.employed.bar.adapters.dtos.EmployeeDto;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.ports.in.InputAttendanceCalculationService;
+import com.employed.bar.domain.services.AttendanceService;
 import com.employed.bar.ports.in.EmployeeRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -16,11 +16,11 @@ import java.util.Optional;
 @Transactional
 public class EmployeeApplicationService {
     private final EmployeeRepository employeeRepository;
-    private final InputAttendanceCalculationService attendanceCalculationService;
+    private final AttendanceService attendanceService;
 
-    public EmployeeApplicationService(EmployeeRepository employeeRepository, InputAttendanceCalculationService attendanceCalculationService) {
+    public EmployeeApplicationService(EmployeeRepository employeeRepository, AttendanceService attendanceService) {
         this.employeeRepository = employeeRepository;
-        this.attendanceCalculationService = attendanceCalculationService;
+        this.attendanceService = attendanceService;
     }
 
     public Employee createEmployee(@Valid EmployeeDto employeeDto) {
@@ -59,7 +59,7 @@ public class EmployeeApplicationService {
     }
 
     public double calculateAttendancePercentage(Employee employee, int year, int month, int day) {
-        return attendanceCalculationService.calculateAttendancePercentage(employee, year, month, day);
+        return attendanceService.calculateAttendancePercentage(employee, year, month, day);
     }
 
     public Employee updateEmployee(Long id, EmployeeDto employeeDto) {

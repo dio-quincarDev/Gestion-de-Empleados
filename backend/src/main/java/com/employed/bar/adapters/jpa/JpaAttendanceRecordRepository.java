@@ -1,8 +1,8 @@
-package com.employed.bar.adapters.jpaRepositories;
+package com.employed.bar.adapters.jpa;
 
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.ports.in.AttendanceRepository;
+import com.employed.bar.ports.out.AttendanceRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,6 +16,10 @@ public interface JpaAttendanceRecordRepository extends AttendanceRepository {
     @Override
     @Query("SELECT ar FROM AttendanceRecord ar WHERE ar.employee = :employee AND ar.date = :date")
     List<AttendanceRecord> findByEmployeeAndDate(@Param("employee") Employee employee, @Param("date") LocalDate date);
+
+    @Override
+    @Query("SELECT ar FROM AttendanceRecord ar WHERE ar.employee = :employee AND YEAR(ar.date) = :year AND MONTH(ar.date) = :month AND DAY(ar.date) = :day")
+    List<AttendanceRecord> findAttendanceRecordsByEmployeeAndDate(@Param("employee") Employee employee, @Param("year") int year, @Param("month") int month, @Param("day") int day);
 
     @Override
     @Query("SELECT ar FROM AttendanceRecord ar WHERE ar.date = :date")

@@ -1,11 +1,9 @@
-package com.employed.bar.adapters.jpaRepositories;
+package com.employed.bar.adapters.jpa;
 
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.ports.in.EmployeeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.NoArgsConstructor;
-import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +16,9 @@ public class JpaEmployeeRepository extends SimpleJpaRepository<Employee,Long> im
     @PersistenceContext
     private EntityManager entityManager;
 
-    public JpaEmployeeRepository(JpaEntityInformation<Employee, ?> entityInformation, EntityManager entityManager) {
-        super(entityInformation, entityManager);
+    public JpaEmployeeRepository( EntityManager entityManager) {
+        super(Employee.class, entityManager);
+        this.entityManager = entityManager;
     }
 
 
