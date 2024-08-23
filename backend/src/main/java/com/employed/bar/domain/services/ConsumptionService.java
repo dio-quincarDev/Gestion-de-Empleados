@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ConsumptionService {
+
     Consumption createConsumption(Consumption consumption);
 
     Optional<Consumption> getConsumptionById(Long id);

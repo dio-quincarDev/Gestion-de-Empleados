@@ -4,7 +4,6 @@ import com.employed.bar.adapters.dtos.ConsumptionDto;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.domain.services.ConsumptionCalculationService;
 import com.employed.bar.domain.services.ConsumptionService;
 import com.employed.bar.ports.in.ConsumptionRepository;
 import com.employed.bar.ports.in.EmployeeRepository;
@@ -24,9 +23,6 @@ public class ConsumptionApplicationService {
 
     private final ConsumptionService consumptionService;
     private final EmployeeRepository employeeRepository;
-    private final ConsumptionCalculationService consumptionCalculationService;
-    private final ConsumptionRepository consumptionRepository;
-
 
 
 
@@ -39,12 +35,13 @@ public class ConsumptionApplicationService {
         consumption.setEmployee(employee);
         consumption.setAmount(consumptionDto.getAmount());
         consumption.setConsumptionDate(consumptionDto.getDate());
+        consumption.setDescription(consumptionDto.getDescription());
 
-        return consumptionRepository.save(consumption);
+        return consumptionService.createConsumption(consumption);
     }
 
     public Consumption createConsumption(Consumption consumption) {
-        return consumptionRepository.save(consumption);
+        return consumptionService.createConsumption(consumption);
     }
 
     public Optional<Consumption> getConsumptionById(Long id) {
@@ -52,14 +49,14 @@ public class ConsumptionApplicationService {
     }
 
     public List<Consumption> getConsumptionsByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionCalculationService.getConsumptionsByEmployee(employee, startDate, endDate);
+        return consumptionService.getConsumptionByEmployee(employee, startDate, endDate);
     }
 
     public BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionCalculationService.calculateTotalConsumptionByEmployee(employee, startDate, endDate);
+        return consumptionService.calculateTotalConsumptionByEmployee(employee, startDate, endDate);
     }
 
     public void deleteConsumption(Long id) {
-        consumptionRepository.deleteById(id);
+        consumptionService.deleteConsumption(id);
     }
 }

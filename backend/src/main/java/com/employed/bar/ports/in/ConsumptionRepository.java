@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,10 +18,8 @@ public interface ConsumptionRepository extends JpaRepository <Consumption, Long>
                                                        @Param("startDate") LocalDateTime startDate,
                                                        @Param("endDate") LocalDateTime endDate);
 
-    List<Consumption>findByEmployee(Employee employee);
-
     @Query("SELECT SUM(c.amount) FROM Consumption c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate")
-    Double sumConsumptionByEmployeeAndDateRange(@Param("employee")Employee employee,
-                                                @Param("startDate") LocalDateTime startDate,
-                                                @Param("endDate") LocalDateTime endDate);
+    BigDecimal sumConsumptionByEmployeeAndDateRange(@Param("employee")Employee employee,
+                                                    @Param("startDate") LocalDateTime startDate,
+                                                    @Param("endDate") LocalDateTime endDate);
 }

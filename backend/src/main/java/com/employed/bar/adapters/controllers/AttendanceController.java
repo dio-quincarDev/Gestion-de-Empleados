@@ -6,7 +6,8 @@ import com.employed.bar.application.AttendanceApplicationService;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.ports.in.EmployeeRepository;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,13 +25,18 @@ public class AttendanceController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<AttendanceRecord>registerAttendance(@RequestBody AttendanceDto attendanceDto){
-        if (attendanceDto.getEmployeeId() == null) {
-            throw new IllegalArgumentException("Employee ID is required");
+    public ResponseEntity<?> registerAttendance(@RequestBody AttendanceDto attendanceDto) {
+        try {
+            if (attendanceDto.getEmployeeId() == null) {
+                return ResponseEntity.badRequest().body("Employee ID is required");
+            }
+            AttendanceRecord attendanceRecord = attendanceApplicationService.registerAttendance(attendanceDto);
+            return ResponseEntity.ok(attendanceRecord);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
-       AttendanceRecord attendanceRecord = attendanceApplicationService.registerAttendance(attendanceDto);
-        return ResponseEntity.ok(attendanceRecord);
     }
+
     @GetMapping("/report")
     public ResponseEntity <List<AttendanceReportDto>>generateAttendanceReport(@RequestParam int year,
                                                                               @RequestParam int month,

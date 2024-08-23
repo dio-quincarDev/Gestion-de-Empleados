@@ -2,7 +2,6 @@ package com.employed.bar.domain.servicesImpl;
 
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.domain.services.ConsumptionCalculationService;
 import com.employed.bar.domain.services.ConsumptionService;
 import com.employed.bar.ports.in.ConsumptionRepository;
 import com.employed.bar.ports.in.EmployeeRepository;
@@ -17,16 +16,9 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ConsumptionServiceImpl implements ConsumptionService {
     private final ConsumptionRepository consumptionRepository;
-    private final EmployeeRepository employeeRepository;
-    private final ConsumptionCalculationService consumptionCalculationService;
-
-    public ConsumptionServiceImpl(ConsumptionRepository consumptionRepository, EmployeeRepository employeeRepository, ConsumptionCalculationService consumptionCalculationService) {
-        this.consumptionRepository = consumptionRepository;
-        this.employeeRepository = employeeRepository;
-        this.consumptionCalculationService = consumptionCalculationService;
-    }
 
     @Override
     public Consumption createConsumption(Consumption consumption) {
@@ -40,12 +32,17 @@ public class ConsumptionServiceImpl implements ConsumptionService {
 
     @Override
     public List<Consumption> getConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate){
-        return consumptionCalculationService.getConsumptionByEmployee(employee, startDate, endDate);
+        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate);
     }
 
     @Override
     public BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate){
-        return consumptionCalculationService.calculateTotalConsumptionByEmployee(employee, startDate, endDate);
+       BigDecimal totalConsumption = BigDecimal.ZERO;
+       List<Consumption> consumptions = getConsumptionByEmployee(employee, startDate, endDate);
+       for (Consumption consumption : consumptions) {
+           totalConsumption = totalConsumption.add(consumption.getAmount());
+       }
+        return totalConsumption;
     }
 
     @Override
