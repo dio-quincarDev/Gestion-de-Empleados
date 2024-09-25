@@ -4,7 +4,7 @@ import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.ConsumptionService;
 import com.employed.bar.ports.in.ConsumptionRepository;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.adapters.dtos.ConsumptionReportDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -26,27 +27,31 @@ public class ConsumptionServiceImpl implements ConsumptionService {
     }
 
     @Override
-    public Optional<Consumption> getConsumptionById(Long id){
+    public Optional<Consumption> getConsumptionById(Long id) {
         return consumptionRepository.findById(id);
     }
 
     @Override
-    public List<Consumption> getConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate){
-        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate);
+    public List<ConsumptionReportDto> getConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
+        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate)
+                .stream()
+                .map(consumption -> new ConsumptionReportDto(
+                        consumption.getEmployee().getName(),
+                        consumption.getConsumptionDate(),
+                        consumption.getAmount()))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate){
-       BigDecimal totalConsumption = BigDecimal.ZERO;
-       List<Consumption> consumptions = getConsumptionByEmployee(employee, startDate, endDate);
-       for (Consumption consumption : consumptions) {
-           totalConsumption = totalConsumption.add(consumption.getAmount());
-       }
-        return totalConsumption;
+    public BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
+        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate)
+                .stream()
+                .map(Consumption::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
-    public void deleteConsumption(Long id){
+    public void deleteConsumption(Long id) {
         consumptionRepository.deleteById(id);
     }
 }

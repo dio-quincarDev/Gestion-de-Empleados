@@ -1,5 +1,6 @@
 package com.employed.bar.domain.services;
 
+import com.employed.bar.adapters.dtos.ConsumptionReportDto;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
 
@@ -14,7 +15,7 @@ public interface ConsumptionService {
 
     Optional<Consumption> getConsumptionById(Long id);
 
-    List<Consumption> getConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate);
+    List<ConsumptionReportDto> getConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate);
 
     BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate);
 

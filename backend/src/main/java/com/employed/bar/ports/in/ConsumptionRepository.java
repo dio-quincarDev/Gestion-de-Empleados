@@ -10,11 +10,11 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+
 @Repository
 public interface ConsumptionRepository extends JpaRepository <Consumption, Long> {
     @Query("SELECT c FROM Consumption c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate ")
-    List<Consumption> findByEmployeeAndDateTimeBetween(@Param("employee")Employee employee,
+    List<Consumption> findByEmployeeAndDateTimeBetween(@Param("employee") Employee employee,
                                                        @Param("startDate") LocalDateTime startDate,
                                                        @Param("endDate") LocalDateTime endDate);
 

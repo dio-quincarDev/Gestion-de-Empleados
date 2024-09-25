@@ -1,33 +1,38 @@
 package com.employed.bar.adapters.controllers;
 
-import com.employed.bar.adapters.dtos.AttendanceReportDto;
-import com.employed.bar.adapters.dtos.ConsumptionReportDto;
-import com.employed.bar.domain.services.AttendanceReportService;
-import com.employed.bar.ports.out.ConsumptionReportService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.employed.bar.adapters.dtos.ReportDto;
+import com.employed.bar.domain.services.ReportingService;
+import com.employed.bar.ports.in.ReportingPort;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/reports")
 public class ReportController {
-    private final AttendanceReportService attendanceReportService;
-    private final ConsumptionReportService consumptionReportService;
 
-    @Autowired
-    public ReportController(AttendanceReportService attendanceReportService, ConsumptionReportService consumptionReportService) {
-        this.attendanceReportService=attendanceReportService;
-        this.consumptionReportService=consumptionReportService;
+    private final ReportingService reportingService;
+
+    public ReportController(ReportingService reportingService) {
+        this.reportingService = reportingService;
     }
-    @GetMapping("/attendance")
-    public List<AttendanceReportDto> getAttendanceReports(int year, int month, int day) {
-        return attendanceReportService.generateAttendanceReport(year, month, day);
-    }
-    @GetMapping("/consumption")
-    public List<ConsumptionReportDto> getConsumptionReports() {
-        return consumptionReportService.generateConsumptionReport();
+
+
+    @GetMapping("/complete")
+    public ResponseEntity<ReportDto> getCompleteReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam( required = false) Long employeeId) {
+        if (date == null ) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        ReportDto report = reportingService.generateCompleteReport(date, employeeId);
+        return ResponseEntity.ok(report);
     }
 }

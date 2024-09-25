@@ -45,7 +45,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .orElseThrow(() -> new InvalidAttendanceDataException("Employee Not Found"));
 
         AttendanceRecord attendanceRecord = new AttendanceRecord(
-               null,
+                null,
                 employee,
                 attendanceDto.getDate(),
                 attendanceDto.getEntryTime(),
@@ -78,7 +78,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         if (year < 1 || month > 12 || day < 1 || day > 31) {
             throw new IllegalArgumentException("Invalid date");
         }
-        List<AttendanceRecord> records = attendanceRepository.findAttendanceRecords( year, month, day);
+        List<AttendanceRecord> records = attendanceRepository.findAttendanceRecords(year, month, day);
         long totalWorkingMinutes = 0;
         for (AttendanceRecord record : records) {
             long entryMinute = record.getEntryTime().getHour() * 60 + record.getEntryTime().getMinute();
@@ -107,6 +107,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return (double) totalWorkingMinutes / scheduleMinutes * 100;
     }
+
     @Override
     public long calculateTotalWorkingMinutes(@NotNull List<Schedule> schedules) {
         return schedules.stream()
@@ -137,6 +138,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public List<AttendanceReportDto> generateAttendanceReport(int year, int month, int day) {
+        LocalDate reportDate = LocalDate.of(year, month, day);
         List<AttendanceRecord> attendanceRecords = attendanceRepository.findAttendanceRecords(year, month, day);
 
         Map<Employee, List<AttendanceRecord>> recordsByEmployee = attendanceRecords.stream()
@@ -148,33 +150,26 @@ public class AttendanceServiceImpl implements AttendanceService {
             Employee employee = entry.getKey();
             List<AttendanceRecord> records = entry.getValue();
 
-            long totalWorkingMinutes = records.stream()
-                    .mapToLong(record -> Duration.between(record.getEntryTime(), record.getExitTime()).toMinutes())
-                    .sum();
+            AttendanceReportDto dto = new AttendanceReportDto(employee, records);
 
-            Schedule schedule = (Schedule) scheduleRepository.findByEmployeeAndDate(employee,
+            // Si necesitas añadir información del horario, puedes hacerlo aquí
+            Schedule schedule = scheduleRepository.findByEmployeeAndDate(employee,
                     LocalDateTime.of(year, month, day, 0, 0),
-                    LocalDateTime.of(year, month, day, 23, 59));
-            if (schedule == null) {
-                continue;
-            }
+                    LocalDateTime.of(year, month, day, 23, 59)).stream().findFirst().orElse(null);
 
+            if (schedule != null) {
                 long scheduleMinutes = Duration.between(schedule.getStartTime(), schedule.getEndTime()).toMinutes();
-
-            double attendancePercentage = (double) totalWorkingMinutes / scheduleMinutes * 100;
-
-            AttendanceReportDto dto = new AttendanceReportDto();
-            dto.setEmployeeName(employee.getName());
-            dto.setDate(LocalDate.of(year, month, day));
-            dto.setEntryTime(records.get(0).getEntryTime());
-            dto.setExitTime(records.get(records.size() - 1).getExitTime());
-            dto.setAttendancePercentage(attendancePercentage);
+                long totalWorkingMinutes = records.stream()
+                        .mapToLong(record -> Duration.between(record.getEntryTime(), record.getExitTime()).toMinutes())
+                        .sum();
+                double attendancePercentage = (double) totalWorkingMinutes / scheduleMinutes * 100;
+                dto.setAttendancePercentage(attendancePercentage);
+            }
 
             report.add(dto);
         }
 
         return report;
     }
-
-    }
+}
 

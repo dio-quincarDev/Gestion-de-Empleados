@@ -1,16 +1,15 @@
 package com.employed.bar.adapters.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
+@Data
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class ReportDto {
-    private List<AttendanceReportDto> attendanceReports;
-    private List<ConsumptionReportDto> consumptionReports;
+    private final List<AttendanceReportDto> attendanceReports;
+    private final List<ConsumptionReportDto> individualConsumptionReports;
+
+
 }

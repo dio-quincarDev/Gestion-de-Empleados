@@ -1,11 +1,11 @@
 package com.employed.bar.application;
 
 import com.employed.bar.adapters.dtos.ConsumptionDto;
+import com.employed.bar.adapters.dtos.ConsumptionReportDto;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.ConsumptionService;
-import com.employed.bar.ports.in.ConsumptionRepository;
 import com.employed.bar.ports.in.EmployeeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class ConsumptionApplicationService {
         return consumptionService.getConsumptionById(id);
     }
 
-    public List<Consumption> getConsumptionsByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<ConsumptionReportDto> getConsumptionsByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
         return consumptionService.getConsumptionByEmployee(employee, startDate, endDate);
     }
 

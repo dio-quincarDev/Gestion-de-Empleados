@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -38,10 +40,15 @@ public class AttendanceController {
     }
 
     @GetMapping("/report")
-    public ResponseEntity <List<AttendanceReportDto>>generateAttendanceReport(@RequestParam int year,
+    public ResponseEntity <List<AttendanceReportDto>>generateAttendanceReport(@RequestParam Long employeeId,
+                                                                              @RequestParam int year,
                                                                               @RequestParam int month,
                                                                               @RequestParam int day){
-        List<AttendanceReportDto> report = attendanceApplicationService.generateAttendanceReport(year, month, day);
+        LocalDate date = LocalDate.of(year, month, day);
+        LocalDateTime startDate = LocalDateTime.of(year, month, day, 0, 0);
+        LocalDateTime endDate = LocalDateTime.of(year, month, day, 23, 59);
+
+        List<AttendanceReportDto> report = attendanceApplicationService.generateAttendanceReport(year, month, day, employeeId);
         return ResponseEntity.ok(report);
     }
 

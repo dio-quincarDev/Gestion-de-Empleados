@@ -39,4 +39,10 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
     // Consulta por rango de fechas
     @Query("SELECT ar FROM AttendanceRecord ar WHERE ar.date BETWEEN :startDate AND :endDate")
     List<AttendanceRecord> findByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT ar FROM AttendanceRecord ar WHERE ar.employee = :employee AND ar.date BETWEEN :startDate AND :endDate")
+    List<AttendanceRecord> findByEmployeeAndDateRange(
+            @Param("employee") Employee employee,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
 }
