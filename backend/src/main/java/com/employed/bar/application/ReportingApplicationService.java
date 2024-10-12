@@ -28,5 +28,8 @@ public class ReportingApplicationService {
 
         return reportingService.generateCompleteReport( startDate.toLocalDate(), employeeId);
     }
+    public void sendWeeklyReports() {
+        reportingService.sendWeeklyReports();
+    }
 }
 

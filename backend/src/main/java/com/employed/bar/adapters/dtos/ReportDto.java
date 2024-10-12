@@ -11,5 +11,4 @@ public class ReportDto {
     private final List<AttendanceReportDto> attendanceReports;
     private final List<ConsumptionReportDto> individualConsumptionReports;
 
-
 }

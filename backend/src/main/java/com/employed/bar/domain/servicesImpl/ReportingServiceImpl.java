@@ -3,6 +3,7 @@ package com.employed.bar.domain.servicesImpl;
 import com.employed.bar.adapters.dtos.AttendanceReportDto;
 import com.employed.bar.adapters.dtos.ConsumptionReportDto;
 import com.employed.bar.adapters.dtos.ReportDto;
+import com.employed.bar.adapters.integrations.EmailService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.ReportGenerationException;
 import com.employed.bar.domain.model.AttendanceRecord;
@@ -15,7 +16,8 @@ import com.employed.bar.ports.out.AttendanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -30,11 +32,14 @@ public class ReportingServiceImpl implements ReportingService {
     private final ConsumptionRepository consumptionRepository;
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
+    private final EmailService emailService;
 
-    public ReportingServiceImpl(ConsumptionRepository consumptionRepository, AttendanceRepository attendanceRepository, EmployeeRepository employeeRepository) {
+    public ReportingServiceImpl(ConsumptionRepository consumptionRepository, AttendanceRepository attendanceRepository,
+                                EmployeeRepository employeeRepository, EmailService emailService){
         this.consumptionRepository = consumptionRepository;
         this.attendanceRepository = attendanceRepository;
         this.employeeRepository = employeeRepository;
+        this.emailService = emailService;
     }
 
 
@@ -55,15 +60,28 @@ public class ReportingServiceImpl implements ReportingService {
             logger.error("Error retrieving employees", e);
             throw new ReportGenerationException("Error retrieving employees");
         }
-        // Convertir LocalDate a un rango de LocalDateTime
-        //LocalDateTime startDate = date.atStartOfDay(); // 00:00 del día especificado
-        //LocalDateTime endDate = date.atTime(LocalTime.MAX); // 23:59:59.999999999 del mismo día
+
 
         List<AttendanceReportDto> attendanceReports = generateAttendanceReports(employees, date);
         List<ConsumptionReportDto> consumptionReports = generateConsumptionReports(employees, date);
 
         logger.info("Report generation completed successfully");
         return new ReportDto(attendanceReports, consumptionReports);
+    }
+
+    @Override
+    public void sendWeeklyReports() {
+        List<Employee> employees = employeeRepository.findAll();
+
+        for (Employee employee : employees) {
+            ReportDto report = generateCompleteReport(LocalDate.now(), employee.getId());
+
+
+            String emailBody = emailService.generateEmailBody(report, employee);
+            String emailSubject = "Weekly Report for " + employee.getName();
+
+            emailService.sendHtmlMessage(employee.getEmail(), emailSubject, emailBody);
+        }
     }
 
     private List<AttendanceReportDto> generateAttendanceReports(List<Employee> employees, LocalDate date) {
@@ -137,4 +155,5 @@ public class ReportingServiceImpl implements ReportingService {
         // Redondeamos a dos decimales
         return Math.round(percentage * 100.0) / 100.0;
     }
+
 }
