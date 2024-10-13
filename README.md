@@ -3,18 +3,14 @@
 ## Descripción
 API para la gestión integral de empleados, diseñada con una arquitectura hexagonal para garantizar la modularidad y mantenibilidad del código.
 
-## Tecnologías
+## Tecnologías y Herramientas
 
-* **Backend:** Java 17, Spring Boot, MySQL
-* **Herramientas:** Postman, Swagger, Git
-
-[![Java](https://img.shields.io/badge/java-17-orange.svg)](https://www.java.com/)
-[![Spring Boot](https://img.shields.io/badge/spring%20boot-3.1.x-green.svg)](https://spring.io/projects/spring-boot/)
-[![MySQL](https://img.shields.io/badge/mysql-8.0-blue.svg)](https://www.mysql.com/)
-[![Spring](https://img.shields.io/badge/spring-framework-green.svg)](https://spring.io/)
-[![Postman](https://img.shields.io/badge/postman-API%20testing-orange.svg)](https://www.postman.com/)
-[![Swagger](https://img.shields.io/badge/swagger-API%20documentation-85EA2D.svg)](https://swagger.io/)
-[![Git](https://img.shields.io/badge/git-version%20control-F05032.svg)](https://git-scm.com/)
+[![Java](https://img.shields.io/badge/-Java-007396?style=flat-square&logo=java&logoColor=white)](https://www.java.com/)
+[![Spring](https://img.shields.io/badge/-Spring-6DB33F?style=flat-square&logo=spring&logoColor=white)](https://spring.io/)
+[![MySQL](https://img.shields.io/badge/-MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Git](https://img.shields.io/badge/-Git-F05032?style=flat-square&logo=git&logoColor=white)](https://git-scm.com/)
+[![Postman](https://img.shields.io/badge/-Postman-FF6C37?style=flat-square&logo=postman&logoColor=white)](https://www.postman.com/)
+[![Swagger](https://img.shields.io/badge/-Swagger-85EA2D?style=flat-square&logo=swagger&logoColor=black)](https://swagger.io/)
 
 ## Arquitectura
 
@@ -38,17 +34,14 @@ API para la gestión integral de empleados, diseñada con una arquitectura hexag
 
 - Java Development Kit (JDK) 17
 - MySQL 8.0
-- Git (para control de versiones)
-
+- Git
 
 
 ## Documentación API
 
 La documentación de la API está disponible a través de Swagger UI. Una vez que la aplicación esté en ejecución, puedes acceder a ella en:
 
-```
-http://localhost:8080/swagger-ui.html
-```
+
 
 ## Contribución
 
@@ -57,4 +50,3 @@ http://localhost:8080/swagger-ui.html
 3. Realiza tus cambios y haz commit (`git commit -am 'Añadir nueva funcionalidad'`)
 4. Haz push a la rama (`git push origin feature/nueva-funcionalidad`)
 5. Crea un nuevo Pull Request
-
