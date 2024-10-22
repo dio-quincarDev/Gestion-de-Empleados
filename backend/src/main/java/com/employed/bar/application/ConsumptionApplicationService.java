@@ -48,8 +48,9 @@ public class ConsumptionApplicationService {
         return consumptionService.getConsumptionById(id);
     }
 
-    public List<ConsumptionReportDto> getConsumptionsByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionService.getConsumptionByEmployee(employee, startDate, endDate);
+    public List<ConsumptionReportDto> getConsumptionsByEmployee(Employee employee, LocalDateTime startDate,
+                                                                LocalDateTime endDate, String description) {
+        return consumptionService.getConsumptionByEmployee(employee, startDate, endDate, description);
     }
 
     public BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {

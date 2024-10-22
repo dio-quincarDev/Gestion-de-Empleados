@@ -16,14 +16,15 @@ import com.employed.bar.ports.out.AttendanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class ReportingServiceImpl implements ReportingService {
@@ -84,6 +85,56 @@ public class ReportingServiceImpl implements ReportingService {
         }
     }
 
+    @Override
+    public void sendTestEmail() {
+        List<Employee> employees = employeeRepository.findAll();
+        for (Employee employee : employees) {
+            ReportDto report = generateCompleteReport(LocalDate.now(), employee.getId());
+            System.out.println("Report for employee " + employee.getName() + ": " + report.toString());
+            String emailBody = emailService.generateEmailBody(report, employee);
+            System.out.println("Email body for employee " + employee.getName() + ": " + emailBody);
+            String emailSubject = "Test Email for " + employee.getName();
+            emailService.sendHtmlMessage(employee.getEmail(), emailSubject, emailBody);
+
+        }
+    }
+
+    @Override
+    public void sendBulkEmails(List<Employee> employees, List<ReportDto> reports) {
+        if (employees.size() != reports.size()) {
+            throw new IllegalArgumentException("Number of employees and reports must be equal");
+        }
+        List<CompletableFuture<Void>> futures = IntStream.range(0, employees.size())
+                .mapToObj(i -> CompletableFuture.runAsync(() ->{
+                    try{
+                        Employee employee = employees.get(i);
+                        ReportDto report = reports.get(i);
+                        String emailBody = emailService.generateEmailBody(report, employee);
+                        emailService.sendHtmlMessage(employee.getEmail(), "Weekly Report", emailBody);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }))
+                .collect(Collectors.toList());
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+    }
+
+    @Override
+    public void sendTestBulkEmails() {
+        List<Employee> employees = employeeRepository.findAll().subList(0, 5);  // Por ejemplo, seleccionar los primeros 5 empleados para la prueba.
+        List<ReportDto> reports = employees.stream()
+                .map(employee -> generateCompleteReport(LocalDate.now(), employee.getId()))
+                .collect(Collectors.toList());
+
+        employees.forEach(employee -> logger.info("Sending test email to " + employee.getEmail()));
+        sendBulkEmails(employees, reports);  // Reutilizando el mismo método
+    }
+
+
+
+
     private List<AttendanceReportDto> generateAttendanceReports(List<Employee> employees, LocalDate date) {
         logger.debug("Generating attendance reports for {} employees", employees.size());
         return employees.stream()
@@ -115,12 +166,13 @@ public class ReportingServiceImpl implements ReportingService {
         return employees.stream()
                 .flatMap(employee -> {
                     try {
-                        List<Consumption> consumptions = consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startOfDay, endOfDay);
+                        List<Consumption> consumptions = consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startOfDay, endOfDay, null);
                         return consumptions.stream()
                                 .map(consumption -> new ConsumptionReportDto(
                                         employee.getName(),
                                         consumption.getConsumptionDate(),
-                                        consumption.getAmount()
+                                        consumption.getAmount(),
+                                        consumption.getDescription()
                                 ));
                     } catch (Exception e) {
                         logger.error("Error generating consumption report for employee {}", employee.getId(), e);

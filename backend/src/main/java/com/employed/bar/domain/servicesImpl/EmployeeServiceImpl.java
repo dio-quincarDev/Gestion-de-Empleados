@@ -1,5 +1,7 @@
 package com.employed.bar.domain.servicesImpl;
 
+
+import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.EmployeeService;
@@ -21,6 +23,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Employee createEmployee(Employee employee) {
+        if (employeeRepository.findByEmail(employee.getEmail()).isPresent()){
+            throw new EmailAlreadyExistException("Este Email ya existe" + employee.getEmail());
+        }
         return employeeRepository.save(employee);
     }
 
@@ -58,12 +63,23 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Employee updateEmployee(Long id, Employee updatedEmployee) {
         return employeeRepository.findById(id)
                .map(employee -> {
+                   if (!employee.getEmail().equals(updatedEmployee.getEmail()) &&
+                           employeeRepository.findByEmail(updatedEmployee.getEmail()).isPresent()) {
+                       throw new EmailAlreadyExistException("Email already in use: " + updatedEmployee.getEmail());
+                   }
                    employee.setName(updatedEmployee.getName());
                    employee.setRole(updatedEmployee.getRole());
                    employee.setStatus(updatedEmployee.getStatus());
+                   employee.setEmail(updatedEmployee.getEmail());
                    return employeeRepository.save(employee);
                })
                 .orElseThrow(()-> new EmployeeNotFoundException("Employee not Found with ID" + id));
     }
+
+    @Override
+    public Optional<Employee> findByEmail(String email) {
+        return employeeRepository.findByEmail(email);
+    }
+
 
 }

@@ -1,74 +1,51 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Report</title>
+    <title>Reporte Semanal</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        h1 {
-            color: #333;
-        }
-        .report-table {
-            width: 100%;
+        table {
             border-collapse: collapse;
+            width: 100%;
         }
-        .report-table, .report-table th, .report-table td {
-            border: 1px solid #ddd;
-        }
-        .report-table th, .report-table td {
+        th, td {
+            border: 1px solid black;
             padding: 8px;
             text-align: left;
         }
-        .report-table th {
+        th {
             background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
-<h1>Weekly Report for [[${employeeName}]]</h1>
-<p>Hello [[${employeeName}]],</p>
-<p>Here is your weekly report:</p>
+<h1>Reporte Semanal para <span th:text="${employeeName}"></span></h1>
 
-<h2>Attendance Records</h2>
-<table class="report-table">
-    <thead>
+<h2>Reporte de Asistencia</h2>
+<table>
     <tr>
-        <th>Date</th>
-        <th>Entry Time</th>
-        <th>Exit Time</th>
-        <th>Attendance Percentage</th>
+        <th>Fecha</th>
+        <th>Hora de Entrada</th>
+        <th>Hora de Salida</th>
     </tr>
-    </thead>
-    <tbody>
-    <tr th:each="attendance : ${attendanceRecords}">
-        <td th:text="${#temporals.format(attendance.attendanceDate, 'yyyy-MM-dd')}"></td>
+    <tr th:each="attendance : ${attendanceReports}">
+        <td th:text="${#temporals.format(attendance.attendanceDate, 'dd-MM-yyyy')}"></td>
         <td th:text="${#temporals.format(attendance.entryTime, 'HH:mm')}"></td>
         <td th:text="${#temporals.format(attendance.exitTime, 'HH:mm')}"></td>
-        <td th:text="${attendance.attendancePercentage} + '%'"></td>
     </tr>
-    </tbody>
 </table>
 
-<h2>Consumption Records</h2>
-<table class="report-table">
-    <thead>
+<h2>Reporte de Consumo Individual</h2>
+<table>
     <tr>
-        <th>Date</th>
-        <th>Amount</th>
+        <th>Fecha</th>
+        <th>Descripcion</th>
+        <th>Monto</th>
     </tr>
-    </thead>
-    <tbody>
-    <tr th:each="consumption : ${consumptionRecords}">
-        <td th:text="${#temporals.format(consumption.consumptionDate, 'yyyy-MM-dd HH:mm')}"></td>
-        <td th:text="${consumption.amount}"></td>
+    <tr th:each="consumption : ${consumptionReports}">
+        <td th:text="${#temporals.format(consumption.consumptionDate, 'dd-MM-yyyy HH:mm')}"></td>
+        <td th:text="${consumption.description}"></td>
+        <td th:text="${'$' + #numbers.formatDecimal(consumption.amount, 1, 2)}"></td>
     </tr>
-    </tbody>
 </table>
-
-<p>Best regards,</p>
-<p>The HR Team</p>
 </body>
 </html>

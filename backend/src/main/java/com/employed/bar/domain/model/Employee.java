@@ -26,7 +26,7 @@ public class Employee {
     private String name;
 
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
 

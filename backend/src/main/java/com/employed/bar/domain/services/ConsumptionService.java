@@ -15,7 +15,8 @@ public interface ConsumptionService {
 
     Optional<Consumption> getConsumptionById(Long id);
 
-    List<ConsumptionReportDto> getConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate);
+    List<ConsumptionReportDto> getConsumptionByEmployee(Employee employee, LocalDateTime startDate,
+                                                        LocalDateTime endDate, String description);
 
     BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate);
 
