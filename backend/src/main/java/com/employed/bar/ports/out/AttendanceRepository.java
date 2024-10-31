@@ -45,4 +45,7 @@ public interface AttendanceRepository extends JpaRepository<AttendanceRecord, Lo
             @Param("employee") Employee employee,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+
+
 }

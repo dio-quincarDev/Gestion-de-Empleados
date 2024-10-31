@@ -5,7 +5,6 @@ import com.employed.bar.adapters.dtos.ConsumptionReportDto;
 import com.employed.bar.adapters.dtos.ReportDto;
 import com.employed.bar.adapters.integrations.EmailService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.exceptions.ReportGenerationException;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
@@ -17,9 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import java.util.concurrent.CompletableFuture;
@@ -36,7 +37,7 @@ public class ReportingServiceImpl implements ReportingService {
     private final EmailService emailService;
 
     public ReportingServiceImpl(ConsumptionRepository consumptionRepository, AttendanceRepository attendanceRepository,
-                                EmployeeRepository employeeRepository, EmailService emailService){
+                                EmployeeRepository employeeRepository, EmailService emailService) {
         this.consumptionRepository = consumptionRepository;
         this.attendanceRepository = attendanceRepository;
         this.employeeRepository = employeeRepository;
@@ -45,37 +46,43 @@ public class ReportingServiceImpl implements ReportingService {
 
 
     @Override
-    public ReportDto generateCompleteReport(LocalDate date, Long employeeId) {
-        logger.info("Generating complete report for dates {} to {}, employee ID: {}", date, employeeId);
+    public ReportDto generateCompleteReport(LocalDate startDate, LocalDate endDate, Long employeeId) {
+        logger.info("Generating complete report for dates {} to {}, employee ID: {}", startDate, endDate, employeeId);
 
-        List<Employee> employees;
-        try {
-            if (employeeId != null) {
-                Employee employee = employeeRepository.findById(employeeId)
-                        .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + employeeId));
-                employees = List.of(employee);
-            } else {
-                employees = employeeRepository.findAll();
-            }
-        } catch (Exception e) {
-            logger.error("Error retrieving employees", e);
-            throw new ReportGenerationException("Error retrieving employees");
+        List<Employee> employees = getEmployees(employeeId);
+        List<AttendanceReportDto> attendanceReports = new ArrayList<>();
+        List<ConsumptionReportDto> consumptionReports = new ArrayList<>();
+        LocalDate currentDate = startDate;
+
+        while (!currentDate.isAfter(endDate)) {
+            attendanceReports.addAll(generateAttendanceReports(employees, currentDate));
+            consumptionReports.addAll(generateConsumptionReports(employees, currentDate));
+            currentDate = currentDate.plusDays(1);
         }
 
+        double totalAttendancePercentage = attendanceReports.stream().mapToDouble(AttendanceReportDto::getAttendancePercentage).sum();
+        double totalConsumption = consumptionReports.stream().mapToDouble(report -> report.getAmount().doubleValue()).sum();
 
-        List<AttendanceReportDto> attendanceReports = generateAttendanceReports(employees, date);
-        List<ConsumptionReportDto> consumptionReports = generateConsumptionReports(employees, date);
+        return new ReportDto(attendanceReports, consumptionReports, totalAttendancePercentage, totalConsumption);
 
-        logger.info("Report generation completed successfully");
-        return new ReportDto(attendanceReports, consumptionReports);
     }
+
+    private List<Employee> getEmployees(Long employeeId) {
+        if (employeeId != null) {
+            Employee employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + employeeId));
+            return List.of(employee);
+        }
+        return employeeRepository.findAll();
+    }
+
 
     @Override
     public void sendWeeklyReports() {
         List<Employee> employees = employeeRepository.findAll();
 
         for (Employee employee : employees) {
-            ReportDto report = generateCompleteReport(LocalDate.now(), employee.getId());
+            ReportDto report = generateCompleteReport(LocalDate.now(), null, employee.getId());
 
 
             String emailBody = emailService.generateEmailBody(report, employee);
@@ -89,7 +96,7 @@ public class ReportingServiceImpl implements ReportingService {
     public void sendTestEmail() {
         List<Employee> employees = employeeRepository.findAll();
         for (Employee employee : employees) {
-            ReportDto report = generateCompleteReport(LocalDate.now(), employee.getId());
+            ReportDto report = generateCompleteReport(LocalDate.now(), null, employee.getId());
             System.out.println("Report for employee " + employee.getName() + ": " + report.toString());
             String emailBody = emailService.generateEmailBody(report, employee);
             System.out.println("Email body for employee " + employee.getName() + ": " + emailBody);
@@ -105,8 +112,8 @@ public class ReportingServiceImpl implements ReportingService {
             throw new IllegalArgumentException("Number of employees and reports must be equal");
         }
         List<CompletableFuture<Void>> futures = IntStream.range(0, employees.size())
-                .mapToObj(i -> CompletableFuture.runAsync(() ->{
-                    try{
+                .mapToObj(i -> CompletableFuture.runAsync(() -> {
+                    try {
                         Employee employee = employees.get(i);
                         ReportDto report = reports.get(i);
                         String emailBody = emailService.generateEmailBody(report, employee);
@@ -125,7 +132,7 @@ public class ReportingServiceImpl implements ReportingService {
     public void sendTestBulkEmails() {
         List<Employee> employees = employeeRepository.findAll().subList(0, 5);  // Por ejemplo, seleccionar los primeros 5 empleados para la prueba.
         List<ReportDto> reports = employees.stream()
-                .map(employee -> generateCompleteReport(LocalDate.now(), employee.getId()))
+                .map(employee -> generateCompleteReport(LocalDate.now(), null, employee.getId()))
                 .collect(Collectors.toList());
 
         employees.forEach(employee -> logger.info("Sending test email to " + employee.getEmail()));
@@ -133,31 +140,62 @@ public class ReportingServiceImpl implements ReportingService {
     }
 
 
-
-
     private List<AttendanceReportDto> generateAttendanceReports(List<Employee> employees, LocalDate date) {
         logger.debug("Generating attendance reports for {} employees", employees.size());
         return employees.stream()
-                .flatMap(employee -> {
-                    try {
-                        List<AttendanceRecord> records = attendanceRepository.findByEmployeeAndDate(employee, date);
-                        return  records.stream().map(record -> new AttendanceReportDto(
-                                employee.getName(),
-                                date,
-                                record.getEntryTime(),
-                                record.getExitTime(),
-                                calculateAttendancePercentage(record)
-
-                        ));
-
-                    } catch (Exception e) {
-                        logger.error("Error generating attendance report for employee {}", employee.getId(), e);
-                        return null;
-                    }
-                })
-                .filter(report -> report != null)
+                .flatMap(employee -> attendanceRepository.findByEmployeeAndDate(employee, date).stream()
+                        .map(record -> {
+                            double workedHours = calculateWorkedHours(record);
+                            double attendancePercentage = calculateAttendancePercentage(record);
+                            return new AttendanceReportDto(
+                                    employee.getName(),
+                                    record.getDate(),
+                                    record.getEntryTime(),
+                                    record.getExitTime(),
+                                    workedHours,
+                                    attendancePercentage
+                            );
+                        }))
                 .collect(Collectors.toList());
     }
+
+    private double calculateWorkedHours(AttendanceRecord record) {
+        LocalTime entryTime = record.getEntryTime();
+        LocalTime exitTime = record.getExitTime();
+
+        // Si no hay hora de salida, asumimos que el empleado sigue trabajando y tomamos la hora actual.
+        if (exitTime == null) {
+            exitTime = LocalTime.now();
+        }
+
+        LocalDate entryDate = record.getDate();
+        LocalDateTime entryDateTime = entryDate.atTime(entryTime);
+        LocalDateTime exitDateTime = entryDate.atTime(exitTime);
+
+        // Si `exitTime` es antes de `entryTime`, significa que el turno cruza la medianoche.
+        if (exitTime.isBefore(entryTime)) {
+            exitDateTime = exitDateTime.plusDays(1);
+        }
+
+        // Calcula la duración y convierte a horas decimales.
+        Duration duration = Duration.between(entryDateTime, exitDateTime);
+        double hours = duration.toHours() + (duration.toMinutesPart() / 60.0); // Horas decimales
+
+        logger.debug("Calculated worked hours for entry: {}, exit: {} is {}", entryDateTime, exitDateTime, hours);
+        return hours;
+    }
+
+private double calculateAttendancePercentage(AttendanceRecord record) {
+
+        final double FULL_WORKDAY_HOURS = 8.0;
+        double workedHours = calculateWorkedHours(record);
+
+        workedHours = Math.min(workedHours,FULL_WORKDAY_HOURS );
+        double percentage = (workedHours / FULL_WORKDAY_HOURS) * 100;
+
+            return Math.round(percentage * 100.0) / 100.0;
+        }
+
 
     private List<ConsumptionReportDto> generateConsumptionReports(List<Employee> employees, LocalDate date) {
         logger.debug("Generating consumption reports for {} employees", employees.size());
@@ -181,31 +219,6 @@ public class ReportingServiceImpl implements ReportingService {
                 })
                 .filter(report -> report != null)
                 .collect(Collectors.toList());
-    }
-
-    private double calculateAttendancePercentage(AttendanceRecord record) {
-        // Definimos la duración de una jornada laboral completa en minutos (8 horas)
-        final int FULL_WORKDAY_MINUTES = 8 * 60;
-
-        LocalTime entryTime = record.getEntryTime();
-        LocalTime exitTime = record.getExitTime();
-
-        // Si no hay hora de salida, asumimos que el empleado aún está trabajando
-        if (exitTime == null) {
-            exitTime = LocalTime.now();
-        }
-
-        // Calculamos la duración de la presencia en minutos
-        long minutesPresent = java.time.Duration.between(entryTime, exitTime).toMinutes();
-
-        // Limitamos el máximo a FULL_WORKDAY_MINUTES para no exceder el 100%
-        minutesPresent = Math.min(minutesPresent, FULL_WORKDAY_MINUTES);
-
-        // Calculamos el porcentaje
-        double percentage = (double) minutesPresent / FULL_WORKDAY_MINUTES * 100;
-
-        // Redondeamos a dos decimales
-        return Math.round(percentage * 100.0) / 100.0;
     }
 
 }

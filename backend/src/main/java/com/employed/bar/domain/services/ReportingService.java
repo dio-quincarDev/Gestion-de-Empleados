@@ -9,7 +9,7 @@ import java.util.List;
 
 
 public interface ReportingService {
-    ReportDto generateCompleteReport(LocalDate date, Long employeeId);
+    ReportDto generateCompleteReport(LocalDate startDate,LocalDate endDate, Long employeeId);
     void sendWeeklyReports();
     void sendTestEmail();
     void sendBulkEmails(List<Employee> employees, List<ReportDto> reports );

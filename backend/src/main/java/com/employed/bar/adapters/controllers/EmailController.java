@@ -39,7 +39,7 @@ public class EmailController {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("No se encontro Empleado con ID" + employeeId));
 
-        ReportDto report = reportingService.generateCompleteReport(date, employeeId);
+        ReportDto report = reportingService.generateCompleteReport(date, date, employeeId);
             System.out.println("Report for employee " + employee.getName() + " : " + report.toString());
 
         String emailBody = emailService.generateEmailBody(report, employee);
@@ -54,7 +54,9 @@ public class EmailController {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(()-> new EmployeeNotFoundException("No se encontro Empleado con ID" + employeeId));
 
-        ReportDto report = reportingService.generateCompleteReport(date, employeeId);
+        LocalDate startDateParsed = LocalDate.parse(startDate);
+        LocalDate endDateParsed = LocalDate.parse(endDate);
+        ReportDto report = reportingService.generateCompleteReport(startDateParsed,endDateParsed, employeeId);
         String emailBody = emailService.generateEmailBody(report, employee);
         emailService.sendHtmlMessage(employee.getEmail(), "Weekly Report", emailBody);
 
@@ -66,7 +68,7 @@ public class EmailController {
     public ResponseEntity<String> sendBulkEmails() {
         List<Employee> employees = employeeRepository.findAll();
         List<ReportDto> reports = employees.stream()
-                .map(employee -> reportingService.generateCompleteReport(LocalDate.now(), employee.getId()))
+                .map(employee -> reportingService.generateCompleteReport(LocalDate.now(),LocalDate.now(), employee.getId()))
                 .collect(Collectors.toList());
 
         reportingService.sendBulkEmails(employees, reports);

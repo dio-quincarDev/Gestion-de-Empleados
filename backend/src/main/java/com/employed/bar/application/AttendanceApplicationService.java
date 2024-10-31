@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,26 +56,25 @@ public class AttendanceApplicationService  {
         attendanceRecord.setEntryTime(attendanceDto.getEntryTime());
         attendanceRecord.setExitTime(attendanceDto.getExitTime());
         attendanceRecord.setStatus(attendanceDto.getStatus());
-
         return attendanceRepository.save(attendanceRecord);
     }
+
+
     public List<AttendanceReportDto> generateAttendanceReport(int year, int month, int day, Long employeeId) {
-
-        // Obtener empleados y consumos desde los repositorios (usando employeeRepository y consumptionRepository)
-        List<Employee> employees = employeeRepository.findAll();
-        List<Consumption> consumptions = consumptionRepository.findAll();
-
-        // Crear objetos LocalDateTime con los valores proporcionados (year, month, day)
         LocalDate date = LocalDate.of(year, month, day);
-
-        // Llamar al método generateCompleteReport con los argumentos correctos
-        ReportDto report = reportingService.generateCompleteReport(date, employeeId );
-
-        // Retornar la lista de AttendanceReportDto desde el ReportDto
+        LocalDate startDate = date.atStartOfDay().toLocalDate();
+        LocalDate endDate = date.atTime(LocalTime.MAX).toLocalDate();
+        ReportDto report = reportingService.generateCompleteReport( startDate, endDate, employeeId);
         return report.getAttendanceReports();
     }
 
+
+
     public double calculateAttendancePercentage(Employee employee, int year, int month, int day){
         return attendanceService.calculateAttendancePercentage(employee, year, month, day);
+    }
+
+    public List<AttendanceRecord>getAttendanceListByEmployeeAndDateRange(Employee employee, LocalDate startDate, LocalDate endDate){
+        return attendanceService.getAttendanceListByEmployeeAndDateRange(employee, startDate, endDate);
     }
 }

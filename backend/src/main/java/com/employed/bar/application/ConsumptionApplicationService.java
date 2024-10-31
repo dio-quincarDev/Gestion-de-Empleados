@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -50,11 +51,30 @@ public class ConsumptionApplicationService {
 
     public List<ConsumptionReportDto> getConsumptionsByEmployee(Employee employee, LocalDateTime startDate,
                                                                 LocalDateTime endDate, String description) {
-        return consumptionService.getConsumptionByEmployee(employee, startDate, endDate, description);
+                return consumptionService.getConsumptionByEmployee(employee, startDate, endDate, description);
     }
 
     public BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
         return consumptionService.calculateTotalConsumptionByEmployee(employee, startDate, endDate);
+    }
+
+    // Calcular el consumo total de un empleado
+    public BigDecimal calculateTotalConsumptionByEmployee(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        return consumptionService.calculateTotalConsumptionByEmployee(employee, startDateTime, endDateTime);
+    }
+
+    // Calcular el consumo total de todos los empleados
+    public BigDecimal calculateTotalConsumptionForAllEmployees(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        return consumptionService.calculateTotalConsumptionForAllEmployees(startDateTime, endDateTime);
     }
 
     public void deleteConsumption(Long id) {

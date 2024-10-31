@@ -19,7 +19,7 @@ public class ReportingAdapter implements ReportingPort {
 
     @Override
     public ReportDto generateReport(LocalDateTime startDate, LocalDateTime endDate, Long employeeId) {
-        return reportingService.generateCompleteReport(startDate.toLocalDate(), employeeId);
+        return reportingService.generateCompleteReport(startDate.toLocalDate(),endDate.toLocalDate(), employeeId);
     }
 
     @Override

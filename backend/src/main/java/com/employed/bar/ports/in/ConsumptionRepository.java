@@ -24,4 +24,9 @@ public interface ConsumptionRepository extends JpaRepository <Consumption, Long>
     BigDecimal sumConsumptionByEmployeeAndDateRange(@Param("employee")Employee employee,
                                                     @Param("startDate") LocalDateTime startDate,
                                                     @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT SUM(c.amount) FROM Consumption c WHERE c.consumptionDate BETWEEN :startDate AND :endDate")
+    BigDecimal sumTotalConsumptionByDateRange(@Param("startDate") LocalDateTime startDate,
+                                              @Param("endDate") LocalDateTime endDate);
+
 }

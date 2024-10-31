@@ -4,11 +4,13 @@ import lombok.*;
 
 import java.util.List;
 @Data
-@Getter
-@Setter
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class ReportDto {
     private final List<AttendanceReportDto> attendanceReports;
     private final List<ConsumptionReportDto> individualConsumptionReports;
+
+    private double totalAttendanceMinutes;
+    private double totalConsumptionAmount;
 
 }

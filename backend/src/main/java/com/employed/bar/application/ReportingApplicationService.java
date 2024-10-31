@@ -28,7 +28,7 @@ public class ReportingApplicationService {
         List<Employee> employees = employeeRepository.findAll();
         List<Consumption> consumptions = consumptionRepository.findAll();
 
-        return reportingService.generateCompleteReport( startDate.toLocalDate(), employeeId);
+        return reportingService.generateCompleteReport( startDate.toLocalDate(), endDate.toLocalDate(), employeeId);
     }
     public void sendWeeklyReports() {
         reportingService.sendWeeklyReports();
@@ -43,7 +43,7 @@ public class ReportingApplicationService {
 
         // 2. Generar reportes para cada empleado
         List<ReportDto> reports = employees.stream()
-                .map(employee -> reportingService.generateCompleteReport(LocalDate.now(), employee.getId()))
+                .map(employee -> reportingService.generateCompleteReport(LocalDate.now(),null, employee.getId()))
                 .collect(Collectors.toList());
 
         // 3. Pasar las listas de empleados y reportes al método sendBulkEmails
