@@ -26,26 +26,36 @@
         <th>Fecha</th>
         <th>Hora de Entrada</th>
         <th>Hora de Salida</th>
+        <th>Horas Trabajadas</th>
+       <!-- <th>Porcentaje de Asistencia</th>-->
     </tr>
     <tr th:each="attendance : ${attendanceReports}">
         <td th:text="${#temporals.format(attendance.attendanceDate, 'dd-MM-yyyy')}"></td>
         <td th:text="${#temporals.format(attendance.entryTime, 'HH:mm')}"></td>
         <td th:text="${#temporals.format(attendance.exitTime, 'HH:mm')}"></td>
+        <td th:text="${attendance.workedHours}"></td>
+      <!-- <td th:text="${attendance.attendancePercentage + '%'}"></td>-->
     </tr>
 </table>
+<!-- Total de Horas Trabajadas -->
+<h3 th:if="${totalAttendanceHours != null}">Total de Horas Trabajadas: <span th:text="${totalAttendanceHours}"></span> horas</h3>
 
 <h2>Reporte de Consumo Individual</h2>
 <table>
     <tr>
         <th>Fecha</th>
-        <th>Descripcion</th>
+        <th>Descripción</th>
         <th>Monto</th>
     </tr>
-    <tr th:each="consumption : ${consumptionReports}">
+    <tr th:each="consumption : ${individualConsumptionReports}">
         <td th:text="${#temporals.format(consumption.consumptionDate, 'dd-MM-yyyy HH:mm')}"></td>
         <td th:text="${consumption.description}"></td>
         <td th:text="${'$' + #numbers.formatDecimal(consumption.amount, 1, 2)}"></td>
     </tr>
 </table>
+
+<!-- Consumo Total -->
+<h3 th:if="${totalConsumptionAmount != null}">Consumo Total: <span th:text="${totalConsumptionAmount}"></span> $</h3>
+
 </body>
 </html>

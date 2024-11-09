@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Service
 public class ReportingServiceImpl implements ReportingService {
@@ -60,10 +60,10 @@ public class ReportingServiceImpl implements ReportingService {
             currentDate = currentDate.plusDays(1);
         }
 
-        double totalAttendancePercentage = attendanceReports.stream().mapToDouble(AttendanceReportDto::getAttendancePercentage).sum();
+        double totalWorkedHours = attendanceReports.stream().mapToDouble(AttendanceReportDto::getWorkedHours).sum();
         double totalConsumption = consumptionReports.stream().mapToDouble(report -> report.getAmount().doubleValue()).sum();
 
-        return new ReportDto(attendanceReports, consumptionReports, totalAttendancePercentage, totalConsumption);
+        return new ReportDto(attendanceReports, consumptionReports, totalWorkedHours, totalConsumption);
 
     }
 
@@ -108,35 +108,115 @@ public class ReportingServiceImpl implements ReportingService {
 
     @Override
     public void sendBulkEmails(List<Employee> employees, List<ReportDto> reports) {
-        if (employees.size() != reports.size()) {
-            throw new IllegalArgumentException("Number of employees and reports must be equal");
+        if (employees== null || reports==null) {
+            throw new IllegalArgumentException("Employees and Reports cant be null");
         }
-        List<CompletableFuture<Void>> futures = IntStream.range(0, employees.size())
-                .mapToObj(i -> CompletableFuture.runAsync(() -> {
-                    try {
-                        Employee employee = employees.get(i);
-                        ReportDto report = reports.get(i);
-                        String emailBody = emailService.generateEmailBody(report, employee);
-                        emailService.sendHtmlMessage(employee.getEmail(), "Weekly Report", emailBody);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }))
-                .collect(Collectors.toList());
+        if (employees.isEmpty() || reports.isEmpty()) {
+            logger.warn("No employees or reports provided for bulk email");
+            return;
+        }
+        if(employees.size() != reports.size()) {
+            throw new IllegalArgumentException(
+                    String.format("Employees (%d) and reports (%d) must be equal", employees.size(), reports.size()));
+        }
+        int batchSize =10;
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+               for(int i = 0; i < employees.size(); i += batchSize){
+                   int endIndex = Math.min(i + batchSize, employees.size());
+                   List<Employee> batchEmployees = employees.subList(i, endIndex);
+                   List<ReportDto> batchReports = reports.subList(i, endIndex);
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                   for(int j = 0; j < batchEmployees.size(); j++){
+                       final int employeeIndex = j;
+                       CompletableFuture<Void> future = CompletableFuture.runAsync(()-> {
+                           Employee employee = batchEmployees.get(employeeIndex);
+                           ReportDto report = batchReports.get(employeeIndex);
+                           try{
+                               sendEmailToEmployee(employee, report);
+                           }catch(Exception e){
+                               logger.error("Error sending email to employee {}: {}", employee.getName(), e.getMessage());
+                               throw new CompletionException(e);
+                           }
+                       });
+                       futures.add(future);
+                   }
+                   try{
+                       CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                               .exceptionally(throwable -> {
+                                   logger.error("Batch processing failed: {}", throwable.getMessage());
+                                   return null;
+                               })
+                               .join();
+                       futures.clear();
+                   }catch(Exception e){
+                       logger.error("Error processing email batch: {}", e.getMessage());
+                   }
+               }
 
+    }
+
+    private void sendEmailToEmployee(Employee employee, ReportDto report){
+        logger.info("Preparing to Sending email to employee: {}", employee.getEmail());
+        try {
+            String emailBody = emailService.generateEmailBody(report, employee);
+            String emailSubject = "Weekly Report for " + employee.getName();
+            emailService.sendHtmlMessage(employee.getEmail(), emailSubject, emailBody);
+            logger.info("Email sent to employee: {}", employee.getEmail());
+        }catch(Exception e){
+            logger.error("Error sending email to employee {}: {}", employee.getEmail(), e.getMessage());
+            throw e;
+        }
     }
 
     @Override
     public void sendTestBulkEmails() {
-        List<Employee> employees = employeeRepository.findAll().subList(0, 5);  // Por ejemplo, seleccionar los primeros 5 empleados para la prueba.
-        List<ReportDto> reports = employees.stream()
-                .map(employee -> generateCompleteReport(LocalDate.now(), null, employee.getId()))
-                .collect(Collectors.toList());
+        try {
+            int testBatchSize = 5; // Número de empleados para prueba
+            List<Employee> employees = employeeRepository.findAll();
 
-        employees.forEach(employee -> logger.info("Sending test email to " + employee.getEmail()));
-        sendBulkEmails(employees, reports);  // Reutilizando el mismo método
+            if (employees.isEmpty()) {
+                logger.warn("No employees found for test bulk emails");
+                return;
+            }
+
+            // Tomar solo los primeros testBatchSize empleados para la prueba
+            List<Employee> testEmployees = employees.stream()
+                    .limit(testBatchSize)
+                    .collect(Collectors.toList());
+
+            logger.info("Preparing to send test emails to {} employees", testEmployees.size());
+
+            // Generar reportes para cada empleado
+            List<ReportDto> testReports = testEmployees.stream()
+                    .map(employee -> {
+                        try {
+                            return generateCompleteReport(
+                                    LocalDate.now().minusDays(7), // Última semana
+                                    LocalDate.now(),
+                                    employee.getId()
+                            );
+                        } catch (Exception e) {
+                            logger.error("Failed to generate report for employee {}: {}",
+                                    employee.getId(), e.getMessage(), e);
+                            return null;
+                        }
+                    })
+                    .filter(report -> report != null)
+                    .collect(Collectors.toList());
+
+            if (testReports.isEmpty()) {
+                logger.error("No reports could be generated for test bulk emails");
+                return;
+            }
+
+            logger.info("Starting test bulk email sending for {} employees", testEmployees.size());
+            sendBulkEmails(testEmployees, testReports);
+            logger.info("Completed test bulk email sending");
+
+        } catch (Exception e) {
+            logger.error("Failed to execute test bulk emails: {}", e.getMessage(), e);
+            throw new RuntimeException("Test bulk email sending failed", e);
+        }
     }
 
 

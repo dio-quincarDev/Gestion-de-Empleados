@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @RestController
@@ -65,21 +67,54 @@ public class EmailController {
     }
 
     @PostMapping("/send-bulk-emails")
-    public ResponseEntity<String> sendBulkEmails() {
+    public ResponseEntity<String> sendBulkEmails(@RequestParam int batchSize) {
         List<Employee> employees = employeeRepository.findAll();
-        List<ReportDto> reports = employees.stream()
-                .map(employee -> reportingService.generateCompleteReport(LocalDate.now(),LocalDate.now(), employee.getId()))
-                .collect(Collectors.toList());
+        if (employees.isEmpty()) {
+            return ResponseEntity.badRequest().body("No employees found.");
+        }
 
-        reportingService.sendBulkEmails(employees, reports);
-        return ResponseEntity.ok("Bulk emails sent successfully");
+        List<CompletableFuture<Void>> batchFutures = new ArrayList<>();
+        for (int i = 0; i < employees.size(); i += batchSize) {
+            List<Employee> batchEmployees = employees.subList(i, Math.min(i + batchSize, employees.size()));
+            batchFutures.add(sendEmailsInBatch(batchEmployees));
+        }
+
+        CompletableFuture.allOf(batchFutures.toArray(new CompletableFuture[0])).join();
+        return ResponseEntity.ok("Bulk emails sent successfully in batches.");
+    }
+
+    private CompletableFuture<Void> sendEmailsInBatch(List<Employee> employees) {
+        List<CompletableFuture<Void>> futures = employees.stream()
+                .map(employee -> {
+                    ReportDto report = reportingService.generateCompleteReport(
+                            LocalDate.now().minusWeeks(1), LocalDate.now(), employee.getId());
+                    return emailService.sendEmailAsync(employee, report);
+                })
+                .collect(Collectors.toList());
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
 
+
     @PostMapping("/send-test-bulk-emails")
-    public ResponseEntity<String> sendTestBulkEmails() {
-        reportingService.sendTestBulkEmails();
-        return ResponseEntity.ok("Test bulk emails sent successfully");
+    public ResponseEntity<String> sendTestBulkEmails(@RequestParam(defaultValue = "5") int testBatchSize) {
+        List<Employee> employees = employeeRepository.findAll()
+                .stream()
+                .limit(testBatchSize)
+                .collect(Collectors.toList());
+
+        if (employees.isEmpty()){
+            return ResponseEntity.badRequest().body("Not Employee for test bulk emails");
+        }
+        List<CompletableFuture<Void>> emailFutures = employees.stream()
+                .map(employee -> {
+                    LocalDate date = LocalDate.parse("2024-10-10");
+                    ReportDto report = reportingService.generateCompleteReport(date, date, employee.getId());
+                    return emailService.sendEmailAsync(employee, report);
+                })
+                .collect(Collectors.toList());
+        CompletableFuture.allOf(emailFutures.toArray(new CompletableFuture[0])).join();
+        return ResponseEntity.ok("Test bulk emails sent successfully.");
     }
 
 
