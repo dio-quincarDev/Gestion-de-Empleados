@@ -13,13 +13,20 @@ import java.util.List;
 
 @Repository
 public interface ConsumptionRepository extends JpaRepository <Consumption, Long> {
-    @Query("SELECT c FROM Consumption c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate ")
+    @Query("SELECT c FROM Consumption c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate AND (:description IS NULL OR c.description LIKE %:description%)")
     List<Consumption> findByEmployeeAndDateTimeBetween(@Param("employee") Employee employee,
                                                        @Param("startDate") LocalDateTime startDate,
-                                                       @Param("endDate") LocalDateTime endDate);
+                                                       @Param("endDate") LocalDateTime endDate,
+                                                       @Param("description") String description);
+
 
     @Query("SELECT SUM(c.amount) FROM Consumption c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate")
     BigDecimal sumConsumptionByEmployeeAndDateRange(@Param("employee")Employee employee,
                                                     @Param("startDate") LocalDateTime startDate,
                                                     @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT SUM(c.amount) FROM Consumption c WHERE c.consumptionDate BETWEEN :startDate AND :endDate")
+    BigDecimal sumTotalConsumptionByDateRange(@Param("startDate") LocalDateTime startDate,
+                                              @Param("endDate") LocalDateTime endDate);
+
 }

@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -23,9 +26,15 @@ public class EmailService {
 
     public String generateEmailBody(ReportDto report, Employee employee) {
         Context context = new Context();
-        context.setVariable("employeeName", employee.getName());
-        context.setVariable("attendanceReports", report.getAttendanceReports());
-        context.setVariable("consumptionReports", report.getIndividualConsumptionReports());
+        // Coloca todos los datos del reporte en el contexto de Thymeleaf
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("employeeName", employee.getName());
+        dataMap.put("attendanceReports", report.getAttendanceReports());
+        dataMap.put("individualConsumptionReports", report.getIndividualConsumptionReports());
+        dataMap.put("totalAttendanceHours", report.getTotalAttendanceHours());
+        dataMap.put("totalConsumptionAmount", report.getTotalConsumptionAmount());
+
+        context.setVariables(dataMap);  // Pasa todo el Map a Thymeleaf
 
         // Procesar la plantilla con Thymeleaf
         return templateEngine.process("weekly-report", context);
@@ -55,6 +64,18 @@ public class EmailService {
         } catch(MessagingException e){
             throw new EmailSendingException("Error al Enviar Correo",e);
         }
+    }
+
+    public CompletableFuture<Void>sendEmailAsync(Employee employee, ReportDto reportDto){
+        return CompletableFuture.runAsync(() -> {
+            try{
+                String emailBody = generateEmailBody(reportDto, employee);
+                String emailSubject = "Weekly Report " + employee.getName();
+                sendHtmlMessage(employee.getEmail(), emailSubject, emailBody);
+            }catch(Exception e){
+                throw new EmailSendingException("Error al Enviar Correo asincrónico a " + employee.getEmail(), e);
+            }
+        });
     }
 
 }

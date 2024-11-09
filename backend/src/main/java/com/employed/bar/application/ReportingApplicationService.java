@@ -10,8 +10,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -26,10 +28,26 @@ public class ReportingApplicationService {
         List<Employee> employees = employeeRepository.findAll();
         List<Consumption> consumptions = consumptionRepository.findAll();
 
-        return reportingService.generateCompleteReport( startDate.toLocalDate(), employeeId);
+        return reportingService.generateCompleteReport( startDate.toLocalDate(), endDate.toLocalDate(), employeeId);
     }
     public void sendWeeklyReports() {
         reportingService.sendWeeklyReports();
+    }
+    public void sendTestEmail(){
+        reportingService.sendTestEmail();
+    }
+
+    public void sendBulkEmails() {
+        // 1. Obtener lista de empleados
+        List<Employee> employees = employeeRepository.findAll();
+
+        // 2. Generar reportes para cada empleado
+        List<ReportDto> reports = employees.stream()
+                .map(employee -> reportingService.generateCompleteReport(LocalDate.now(),null, employee.getId()))
+                .collect(Collectors.toList());
+
+        // 3. Pasar las listas de empleados y reportes al método sendBulkEmails
+        reportingService.sendBulkEmails(employees, reports);
     }
 }
 

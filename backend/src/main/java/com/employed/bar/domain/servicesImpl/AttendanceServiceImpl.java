@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -108,12 +109,6 @@ public class AttendanceServiceImpl implements AttendanceService {
         return (double) totalWorkingMinutes / scheduleMinutes * 100;
     }
 
-    @Override
-    public long calculateTotalWorkingMinutes(@NotNull List<Schedule> schedules) {
-        return schedules.stream()
-                .mapToLong(this::calculateWorkingMinutesForSchedule)
-                .sum();
-    }
 
     private long calculateWorkingMinutesForSchedule(@NotNull Schedule schedule) {
         LocalDateTime start = schedule.getStartTime();
@@ -122,18 +117,6 @@ public class AttendanceServiceImpl implements AttendanceService {
             throw new InvalidScheduleException("End time must be after start time");
         }
         return Duration.between(start, end).toMinutes();
-    }
-
-    @Override
-    public boolean isOnSchedule(@NotNull Employee employee, @NotNull LocalDateTime dateTime) {
-        List<Schedule> schedules = scheduleRepository.findByEmployee(employee);
-        return schedules.stream()
-                .anyMatch(schedule -> isWithinSchedule(schedule, dateTime));
-    }
-
-    @Override
-    public boolean isWithinSchedule(@NotNull Schedule schedule, @NotNull LocalDateTime dateTime) {
-        return !dateTime.isBefore(schedule.getStartTime()) && !dateTime.isAfter(schedule.getEndTime());
     }
 
     @Override
@@ -150,19 +133,24 @@ public class AttendanceServiceImpl implements AttendanceService {
             Employee employee = entry.getKey();
             List<AttendanceRecord> records = entry.getValue();
 
-            AttendanceReportDto dto = new AttendanceReportDto(employee, records);
+            AttendanceReportDto dto = new AttendanceReportDto();
+            dto.setEmployeeName(employee.getName());
+            dto.setAttendanceDate(reportDate);
 
+            double totalWorkingHours = records.stream()
+                    .mapToDouble(record -> calculateWorkedHours(record))
+                    .sum();
+
+            dto.setWorkedHours(totalWorkingHours);
             // Si necesitas añadir información del horario, puedes hacerlo aquí
             Schedule schedule = scheduleRepository.findByEmployeeAndDate(employee,
                     LocalDateTime.of(year, month, day, 0, 0),
                     LocalDateTime.of(year, month, day, 23, 59)).stream().findFirst().orElse(null);
 
             if (schedule != null) {
-                long scheduleMinutes = Duration.between(schedule.getStartTime(), schedule.getEndTime()).toMinutes();
-                long totalWorkingMinutes = records.stream()
-                        .mapToLong(record -> Duration.between(record.getEntryTime(), record.getExitTime()).toMinutes())
-                        .sum();
-                double attendancePercentage = (double) totalWorkingMinutes / scheduleMinutes * 100;
+                Duration scheduleDuration = Duration.between(schedule.getStartTime(), schedule.getEndTime());
+                double scheduleHours = scheduleDuration.toHours() + (scheduleDuration.toMinutesPart() / 60.0);
+                double attendancePercentage = (totalWorkingHours / scheduleHours) * 100;
                 dto.setAttendancePercentage(attendancePercentage);
             }
 
@@ -171,5 +159,35 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return report;
     }
+
+
+    // Cambia el método para calcular horas trabajadas en horas decimales
+    private double calculateWorkedHours(AttendanceRecord record) {
+        LocalTime entryTime = record.getEntryTime();
+        LocalTime exitTime = record.getExitTime();
+
+        // Maneja caso de salida nula o igual a medianoche
+        if (exitTime == null) {
+            exitTime = LocalTime.MIDNIGHT; // Ajusta a fin de día para simplificar el cálculo
+        }
+        LocalDate entryDate = record.getDate();
+        LocalDateTime entryDateTime = entryDate.atTime(entryTime);
+        LocalDateTime exitDateTime = entryDate.atTime(exitTime);
+
+        if (exitTime.isBefore(entryTime)) {
+            // Ajuste para manejar el cruce de medianoche
+            exitDateTime = exitDateTime.plusDays(1);
+        }
+
+        Duration duration = Duration.between(entryTime, exitTime);
+        double hours = duration.toHours() + (duration.toMinutesPart() / 60.0); // Convierte a horas decimales
+        return hours;
+    }
+
+    @Override
+    public List<AttendanceRecord> getAttendanceListByEmployeeAndDateRange(Employee employee, LocalDate startDate, LocalDate endDate) {
+        return attendanceRepository.findByEmployeeAndDateRange(employee, startDate, endDate);
+    }
+
 }
 

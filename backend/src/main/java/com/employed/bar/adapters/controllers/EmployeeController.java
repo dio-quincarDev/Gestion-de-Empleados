@@ -2,6 +2,7 @@ package com.employed.bar.adapters.controllers;
 
 import com.employed.bar.adapters.dtos.EmployeeDto;
 import com.employed.bar.application.EmployeeApplicationService;
+import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Employee;
 import jakarta.validation.Valid;
@@ -25,7 +26,9 @@ public class EmployeeController {
         try{
             Employee createdEmployee = employeeApplicationService.createEmployee(employeeDto);
             return ResponseEntity.ok(createdEmployee);
-        }catch(Exception e){
+        } catch(EmailAlreadyExistException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        } catch(Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }

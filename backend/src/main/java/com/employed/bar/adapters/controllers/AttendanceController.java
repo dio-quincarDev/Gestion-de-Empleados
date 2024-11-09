@@ -6,6 +6,7 @@ import com.employed.bar.application.AttendanceApplicationService;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.ports.in.EmployeeRepository;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,5 +63,19 @@ public class AttendanceController {
         double percentage = attendanceApplicationService.calculateAttendancePercentage(employee, year, month, day);
         return ResponseEntity.ok(percentage);
     }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<AttendanceRecord>> getAttendanceListByEmployeeAndDateRange(
+            @RequestParam Long employeeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+
+        List<AttendanceRecord> attendanceRecords = attendanceApplicationService.getAttendanceListByEmployeeAndDateRange(employee, startDate, endDate);
+        return ResponseEntity.ok(attendanceRecords);
+    }
+
 
 }
