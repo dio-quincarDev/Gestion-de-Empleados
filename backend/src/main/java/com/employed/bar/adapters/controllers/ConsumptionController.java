@@ -7,12 +7,15 @@ import com.employed.bar.domain.exceptions.InvalidConsumptionDataException;
 import com.employed.bar.domain.model.Consumption;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 @RequiredArgsConstructor
@@ -41,6 +44,26 @@ public class ConsumptionController {
 
     }
 
+    @GetMapping("/total")
+    public ResponseEntity<BigDecimal>getTotalConsumptionByEmployee(
+            @RequestParam Long employeeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+        BigDecimal total = consumptionApplicationService.calculateTotalConsumptionByEmployee(employeeId, startDate, endDate);
+        return ResponseEntity.ok(total);
+
+    }
+
+    @GetMapping("/total/all")
+    public ResponseEntity<BigDecimal>getTotalConsumptionForAllEmployees(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+
+        BigDecimal total = consumptionApplicationService.calculateTotalConsumptionForAllEmployees(startDate, endDate);
+        return ResponseEntity.ok(total);
+    }
+
+
     @ExceptionHandler(EmployeeNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<String> handleEmployeeNotFoundException(EmployeeNotFoundException ex) {
@@ -52,4 +75,6 @@ public class ConsumptionController {
     public ResponseEntity<String> handleInvalidConsumptionDataException(InvalidConsumptionDataException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
+
+
 }

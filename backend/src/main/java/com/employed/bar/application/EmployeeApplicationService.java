@@ -1,6 +1,7 @@
 package com.employed.bar.application;
 
 import com.employed.bar.adapters.dtos.EmployeeDto;
+import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.AttendanceService;
@@ -24,6 +25,9 @@ public class EmployeeApplicationService {
     }
 
     public Employee createEmployee(@Valid EmployeeDto employeeDto) {
+        if (employeeRepository.findByEmail(employeeDto.getEmail()).isPresent()) {
+            throw new EmailAlreadyExistException("El email ya está registrado: " + employeeDto.getEmail());
+        }
         Employee employee = mapToEntity(employeeDto);
         return employeeRepository.save(employee);
     }
@@ -65,6 +69,10 @@ public class EmployeeApplicationService {
     public Employee updateEmployee(Long id, EmployeeDto employeeDto) {
         return employeeRepository.findById(id)
                 .map(employee -> {
+                    if (!employee.getEmail().equals(employeeDto.getEmail()) &&
+                            employeeRepository.findByEmail(employeeDto.getEmail()).isPresent()) {
+                        throw new EmailAlreadyExistException("El email ya está registrado: " + employeeDto.getEmail());
+                    }
                     mapToEntity(employeeDto, employee);
                     return employeeRepository.save(employee);
                 })

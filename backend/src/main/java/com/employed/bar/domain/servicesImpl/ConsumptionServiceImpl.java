@@ -32,23 +32,30 @@ public class ConsumptionServiceImpl implements ConsumptionService {
     }
 
     @Override
-    public List<ConsumptionReportDto> getConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate)
+    public List<ConsumptionReportDto> getConsumptionByEmployee(Employee employee, LocalDateTime startDate,
+                                                               LocalDateTime endDate, String description) {
+
+        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate, description)
                 .stream()
                 .map(consumption -> new ConsumptionReportDto(
                         consumption.getEmployee().getName(),
                         consumption.getConsumptionDate(),
-                        consumption.getAmount()))
+                        consumption.getAmount(),
+                        consumption.getDescription()))
+
                 .collect(Collectors.toList());
     }
 
     @Override
     public BigDecimal calculateTotalConsumptionByEmployee(Employee employee, LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate)
-                .stream()
-                .map(Consumption::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return consumptionRepository.sumConsumptionByEmployeeAndDateRange(employee, startDate, endDate);
     }
+
+    @Override
+    public BigDecimal calculateTotalConsumptionForAllEmployees(LocalDateTime startDate, LocalDateTime endDate) {
+        return consumptionRepository.sumTotalConsumptionByDateRange(startDate, endDate);
+    }
+
 
     @Override
     public void deleteConsumption(Long id) {

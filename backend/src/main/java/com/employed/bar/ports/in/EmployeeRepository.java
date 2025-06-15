@@ -18,4 +18,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     @Query("SELECT e FROM Employee e WHERE e.status = :status")
     List<Employee> findByStatus(@Param("status") String status);
+
+    Optional<Employee> findByEmail(@Param("email") String email);
+
 }
