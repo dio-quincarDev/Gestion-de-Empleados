@@ -7,7 +7,7 @@ import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.model.Schedule;
 import com.employed.bar.domain.services.AttendanceService;
-import com.employed.bar.ports.out.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.ports.in.ScheduleRepository;
 import com.employed.bar.ports.out.AttendanceRepository;
@@ -26,12 +26,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class AttendanceServiceImpl implements AttendanceService {
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepository attendanceRepository;
     private final ScheduleRepository scheduleRepository;
 
 
-    public AttendanceServiceImpl(EmployeeRepository employeeRepository,
+    public AttendanceServiceImpl(EmployeeRepositoryPort employeeRepository,
                                  AttendanceRepository attendanceRepository,
                                  ScheduleRepository scheduleRepository) {
         this.employeeRepository = employeeRepository;

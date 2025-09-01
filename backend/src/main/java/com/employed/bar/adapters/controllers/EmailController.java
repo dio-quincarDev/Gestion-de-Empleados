@@ -5,7 +5,7 @@ import com.employed.bar.adapters.integrations.EmailService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.ReportingService;
-import com.employed.bar.ports.out.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepositoryPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,9 +30,9 @@ public class EmailController {
 
     private final EmailService emailService;
     private final ReportingService reportingService;
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeRepositoryPort employeeRepository;
 
-    public EmailController(EmailService emailService, ReportingService reportingService, EmployeeRepository employeeRepository) {
+    public EmailController(EmailService emailService, ReportingService reportingService, EmployeeRepositoryPort employeeRepository) {
         this.emailService = emailService;
         this.reportingService = reportingService;
         this.employeeRepository = employeeRepository;

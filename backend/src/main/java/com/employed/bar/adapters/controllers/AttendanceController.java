@@ -5,7 +5,7 @@ import com.employed.bar.adapters.dtos.AttendanceReportDto;
 import com.employed.bar.application.AttendanceApplicationService;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.ports.out.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepositoryPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -28,10 +28,10 @@ import java.util.List;
 @Tag(name = "3. Gestión de Asistencia", description = "Endpoints para el registro y consulta de asistencia del personal")
 public class AttendanceController {
     private final AttendanceApplicationService attendanceApplicationService;
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeRepositoryPort employeeRepository;
 
     public AttendanceController(AttendanceApplicationService attendanceApplicationService,
-                                EmployeeRepository employeeRepository) {
+                                EmployeeRepositoryPort employeeRepository) {
         this.attendanceApplicationService = attendanceApplicationService;
         this.employeeRepository = employeeRepository;
     }

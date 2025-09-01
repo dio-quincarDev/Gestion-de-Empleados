@@ -3,7 +3,7 @@ package com.employed.bar.application;
 import com.employed.bar.adapters.dtos.ScheduleDto;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.model.Schedule;
-import com.employed.bar.ports.out.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepositoryPort;
 import com.employed.bar.ports.in.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ScheduleApplicationService {
     private final ScheduleRepository scheduleRepository;
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeRepositoryPort employeeRepository;
 
     public Schedule createSchedule(ScheduleDto scheduleDto){
         Employee employee = employeeRepository.findById(scheduleDto.getEmployeeId())

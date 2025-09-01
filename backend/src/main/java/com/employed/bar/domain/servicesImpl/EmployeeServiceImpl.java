@@ -5,7 +5,7 @@ import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.EmployeeService;
-import com.employed.bar.ports.out.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +15,9 @@ import java.util.Optional;
 @Service
 @Transactional
 public class EmployeeServiceImpl implements EmployeeService {
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeRepositoryPort employeeRepository;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository) {
+    public EmployeeServiceImpl(EmployeeRepositoryPort employeeRepository) {
         this.employeeRepository = employeeRepository;
     }
 

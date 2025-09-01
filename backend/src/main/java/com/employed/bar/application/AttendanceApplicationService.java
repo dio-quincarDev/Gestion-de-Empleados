@@ -8,7 +8,7 @@ import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.AttendanceService;
 import com.employed.bar.domain.services.ReportingService;
 import com.employed.bar.ports.in.ConsumptionRepository;
-import com.employed.bar.ports.out.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepositoryPort;
 import com.employed.bar.ports.out.AttendanceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -19,14 +19,14 @@ import java.util.List;
 
 @Service
 public class AttendanceApplicationService  {
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepository attendanceRepository;
     private final AttendanceService attendanceService;
     private final ReportingService reportingService;
     private final ConsumptionRepository consumptionRepository;
 
 
-    public AttendanceApplicationService(EmployeeRepository employeeRepository,
+    public AttendanceApplicationService(EmployeeRepositoryPort employeeRepository,
                                         AttendanceRepository attendanceRepository,
                                         AttendanceService attendanceService,
                                         ReportingService reportingService,

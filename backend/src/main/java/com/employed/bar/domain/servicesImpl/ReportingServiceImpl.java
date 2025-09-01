@@ -10,7 +10,7 @@ import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.ReportingService;
 import com.employed.bar.ports.in.ConsumptionRepository;
-import com.employed.bar.ports.out.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepositoryPort;
 import com.employed.bar.ports.out.AttendanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +33,11 @@ public class ReportingServiceImpl implements ReportingService {
 
     private final ConsumptionRepository consumptionRepository;
     private final AttendanceRepository attendanceRepository;
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeRepositoryPort employeeRepository;
     private final EmailService emailService;
 
     public ReportingServiceImpl(ConsumptionRepository consumptionRepository, AttendanceRepository attendanceRepository,
-                                EmployeeRepository employeeRepository, EmailService emailService) {
+                                EmployeeRepositoryPort employeeRepository, EmailService emailService) {
         this.consumptionRepository = consumptionRepository;
         this.attendanceRepository = attendanceRepository;
         this.employeeRepository = employeeRepository;

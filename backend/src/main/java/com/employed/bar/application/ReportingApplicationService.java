@@ -5,7 +5,7 @@ import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.ReportingService;
 import com.employed.bar.ports.in.ConsumptionRepository;
-import com.employed.bar.ports.out.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReportingApplicationService {
     private final ReportingService reportingService;
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeRepositoryPort employeeRepository;
     private final ConsumptionRepository consumptionRepository;
 
     public ReportDto generateReport(LocalDateTime startDate, LocalDateTime endDate, Long employeeId) {
