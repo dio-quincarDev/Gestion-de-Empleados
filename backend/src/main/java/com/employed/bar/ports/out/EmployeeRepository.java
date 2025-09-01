@@ -1,4 +1,4 @@
-package com.employed.bar.ports.in;
+package com.employed.bar.ports.out;
 import com.employed.bar.domain.model.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

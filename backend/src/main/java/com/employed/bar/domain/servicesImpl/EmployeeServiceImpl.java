@@ -5,7 +5,7 @@ import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.EmployeeService;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

@@ -5,7 +5,7 @@ import com.employed.bar.adapters.dtos.AttendanceReportDto;
 import com.employed.bar.application.AttendanceApplicationService;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;

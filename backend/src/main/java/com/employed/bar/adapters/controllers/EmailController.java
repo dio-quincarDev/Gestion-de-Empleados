@@ -5,15 +5,13 @@ import com.employed.bar.adapters.integrations.EmailService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.ReportingService;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

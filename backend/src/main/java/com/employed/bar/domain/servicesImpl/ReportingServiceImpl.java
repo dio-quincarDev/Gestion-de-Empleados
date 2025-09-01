@@ -10,7 +10,7 @@ import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.ReportingService;
 import com.employed.bar.ports.in.ConsumptionRepository;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepository;
 import com.employed.bar.ports.out.AttendanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -6,7 +6,7 @@ import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.ConsumptionService;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

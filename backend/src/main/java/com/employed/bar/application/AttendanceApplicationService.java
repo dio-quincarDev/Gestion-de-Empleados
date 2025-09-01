@@ -4,20 +4,17 @@ import com.employed.bar.adapters.dtos.AttendanceDto;
 import com.employed.bar.adapters.dtos.AttendanceReportDto;
 import com.employed.bar.adapters.dtos.ReportDto;
 import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.services.AttendanceService;
 import com.employed.bar.domain.services.ReportingService;
 import com.employed.bar.ports.in.ConsumptionRepository;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepository;
 import com.employed.bar.ports.out.AttendanceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

@@ -7,7 +7,7 @@ import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.model.Schedule;
 import com.employed.bar.domain.services.AttendanceService;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepository;
 import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.ports.in.ScheduleRepository;
 import com.employed.bar.ports.out.AttendanceRepository;

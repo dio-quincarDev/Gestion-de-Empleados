@@ -3,7 +3,7 @@ package com.employed.bar.application;
 import com.employed.bar.adapters.dtos.ScheduleDto;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.model.Schedule;
-import com.employed.bar.ports.in.EmployeeRepository;
+import com.employed.bar.ports.out.EmployeeRepository;
 import com.employed.bar.ports.in.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
