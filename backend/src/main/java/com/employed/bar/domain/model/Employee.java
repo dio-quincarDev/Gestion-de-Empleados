@@ -1,5 +1,6 @@
 package com.employed.bar.domain.model;
 
+import com.employed.bar.domain.enums.EmployeeRole;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -12,10 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Employee {
-        private Long id;
+    private Long id;
     private String name;
     private String email;
-    private String role;
+    private EmployeeRole role;
     private BigDecimal salary;
     private String status;
     private List<Schedule> schedules = new ArrayList<>();

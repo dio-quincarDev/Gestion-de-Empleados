@@ -1,0 +1,182 @@
+package com.employed.bar.infrastructure.adapter.in.web;
+
+import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
+import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.ports.in.service.EmployeeUseCase;
+import com.employed.bar.infrastructure.adapter.out.persistence.mapper.EmployeeMapper;
+import com.employed.bar.infrastructure.constants.ApiPathConstants;
+import com.employed.bar.infrastructure.dtos.EmployeeDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.EMPLOYEE_ROUTE)
+@Tag(name = "1. Gestión de Empleados", description = "Endpoints para la administración del personal")
+public class EmployeeController {
+    private final EmployeeUseCase employeeUseCase;
+
+    public EmployeeController(EmployeeUseCase employeeUseCase) {
+        this.employeeUseCase = employeeUseCase;
+    }
+
+    @Operation(
+            summary = "Crear nuevo empleado",
+            description = "Registra un nuevo empleado en el sistema",
+            operationId = "createEmployee"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Empleado creado exitosamente",
+                    content = @Content(schema = @Schema(implementation = EmployeeDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Datos de entrada inválidos"
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "El email ya está registrado"
+            )
+    })
+    @PostMapping
+    public ResponseEntity<EmployeeDto> createEmployee(@RequestBody @Valid EmployeeDto employeeDto) {
+        try {
+            Employee createdEmployee = employeeUseCase.createEmployee(EmployeeMapper.toDomain(employeeDto));
+            return new ResponseEntity<>(EmployeeMapper.toDto(createdEmployee), HttpStatus.CREATED);
+        } catch (EmailAlreadyExistException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
+    @Operation(
+            summary = "Obtener empleado por ID",
+            description = "Recupera la información completa de un empleado específico",
+            operationId = "getEmployeeById"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Empleado encontrado",
+                    content = @Content(schema = @Schema(implementation = EmployeeDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Empleado no encontrado"
+            )
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable Long id) {
+        return employeeUseCase.getEmployeeById(id)
+                .map(employee -> ResponseEntity.ok(EmployeeMapper.toDto(employee)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Operation(
+            summary = "Listar todos los empleados",
+            description = "Obtiene una lista completa de todos los empleados registrados",
+            operationId = "getAllEmployees"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Lista de empleados obtenida exitosamente",
+            content = @Content(array = @ArraySchema(schema = @Schema(implementation = EmployeeDto.class)))
+    )
+    @GetMapping
+    public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
+        List<EmployeeDto> employees = employeeUseCase.getEmployees().stream()
+                .map(EmployeeMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(employees);
+    }
+
+    @Operation(
+            summary = "Actualizar empleado",
+            description = "Modifica la información de un empleado existente",
+            operationId = "updateEmployee"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Empleado actualizado exitosamente",
+                    content = @Content(schema = @Schema(implementation = EmployeeDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Empleado no encontrado"
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "El nuevo email ya está registrado"
+            )
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable Long id, @RequestBody @Valid EmployeeDto employeeDto) {
+        Employee updatedEmployee = employeeUseCase.updateEmployee(id, EmployeeMapper.toDomain(employeeDto));
+        return ResponseEntity.ok(EmployeeMapper.toDto(updatedEmployee));
+    }
+
+    @Operation(
+            summary = "Eliminar empleado",
+            description = "Remueve un empleado del sistema",
+            operationId = "deleteEmployee"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Empleado eliminado exitosamente"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Empleado no encontrado"
+            )
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+        employeeUseCase.deleteEmployee(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Buscar empleados",
+            description = "Busca empleados por diferentes criterios (estado, nombre o rol)",
+            operationId = "searchEmployees"
+    )
+    @GetMapping("/search")
+    public ResponseEntity<?> searchEmployees(
+            @Parameter(description = "Estado del empleado (ej. 'ACTIVE', 'INACTIVE')") @RequestParam(required = false) String status,
+            @Parameter(description = "Nombre completo o parcial del empleado") @RequestParam(required = false) String name,
+            @Parameter(description = "Rol del empleado") @RequestParam(required = false) EmployeeRole role) {
+
+        if (status != null) {
+            List<EmployeeDto> employees = employeeUseCase.getEmployeeByStatus(status).stream()
+                    .map(EmployeeMapper::toDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(employees);
+        } else if (name != null) {
+            return employeeUseCase.getEmployeeByName(name)
+                    .map(employee -> ResponseEntity.ok(EmployeeMapper.toDto(employee)))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } else if (role != null) {
+            return employeeUseCase.getEmployeeByRole(role)
+                    .map(employee -> ResponseEntity.ok(EmployeeMapper.toDto(employee)))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+}
