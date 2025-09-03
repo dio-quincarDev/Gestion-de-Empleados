@@ -22,6 +22,8 @@ public class EmployeeApiMapper {
         domain.setRole(dto.getRole());
         domain.setHourlyRate(dto.getHourlyRate());
         domain.setStatus(dto.getStatus());
+        domain.setPaysOvertime(dto.isPaysOvertime());
+        domain.setOvertimeRateType(dto.getOvertimeRateType());
         domain.setPaymentMethod(toDomain(dto.getPaymentMethod()));
         return domain;
     }

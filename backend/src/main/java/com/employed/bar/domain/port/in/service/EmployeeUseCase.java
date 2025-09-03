@@ -17,4 +17,5 @@ public interface EmployeeUseCase {
     Employee updateEmployee(Long id, Employee updatedEmployee);
     Optional<Employee> findByEmail(String email);
     Employee updateHourlyRate(Long employeeId, java.math.BigDecimal newRate);
+    java.math.BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours);
 }

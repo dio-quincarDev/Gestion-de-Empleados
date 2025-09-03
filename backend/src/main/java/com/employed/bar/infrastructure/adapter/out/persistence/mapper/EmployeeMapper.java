@@ -21,6 +21,8 @@ public class EmployeeMapper {
         entity.setRole(domain.getRole());
         entity.setHourlyRate(domain.getHourlyRate());
         entity.setStatus(domain.getStatus());
+        entity.setPaysOvertime(domain.isPaysOvertime());
+        entity.setOvertimeRateType(domain.getOvertimeRateType());
 
         if (domain.getPaymentMethod() != null) {
             entity.setPaymentMethodType(domain.getPaymentMethod().getType());

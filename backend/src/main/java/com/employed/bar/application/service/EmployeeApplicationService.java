@@ -1,6 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.payment.AchPaymentMethod;
@@ -14,6 +15,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -104,6 +106,21 @@ public class EmployeeApplicationService implements EmployeeUseCase {
 
     public double calculateAttendancePercentage(Employee employee, int year, int month, int day) {
         return attendanceUseCase.calculateAttendancePercentage(employee, year, month, day);
+    }
+
+    @Override
+    public BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours) {
+      Employee employee = employeeRepositoryPort.findById(employeeId)
+              .orElseThrow(()-> new EmployeeNotFoundException("Employee Not Found"));
+      BigDecimal hourlyRate = employee.getHourlyRate();
+      boolean paysOvertime = employee.isPaysOvertime();
+      OvertimeRateType overtimeRateType = employee.getOvertimeRateType();
+      return paymentCalculationUseCase.calculateTotalPay(
+              hourlyRate,
+              paysOvertime,
+              regularHours,
+              overtimeHours
+      );
     }
 
     private void validatePaymentMethod(PaymentMethod paymentMethod) {

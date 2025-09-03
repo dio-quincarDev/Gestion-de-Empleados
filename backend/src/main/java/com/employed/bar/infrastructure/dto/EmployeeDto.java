@@ -37,6 +37,11 @@ public class EmployeeDto {
     @NotBlank(message = "El estado no puede estar en blanco")
     private String status;
 
+    @NotNull(message = "Pays overtime is required")
+    private boolean paysOvertime;
+
+    private OvertimeRateType overtimeRateType;
+
     @Valid // This annotation ensures that the nested PaymentMethodDto is also validated.
     @NotNull(message = "Payment method is required")
     private PaymentMethodDto paymentMethod;
