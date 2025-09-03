@@ -1,5 +1,5 @@
 package com.employed.bar.infrastructure.integrations;
-import com.employed.bar.infrastructure.dtos.ReportDto;
+import com.employed.bar.infrastructure.dto.ReportDto;
 import com.employed.bar.domain.exceptions.EmailSendingException;
 import com.employed.bar.domain.model.Employee;
 import jakarta.mail.MessagingException;

@@ -1,12 +1,12 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.infrastructure.dtos.ConsumptionDto;
-import com.employed.bar.infrastructure.dtos.ConsumptionReportDto;
+import com.employed.bar.infrastructure.dto.ConsumptionDto;
+import com.employed.bar.infrastructure.dto.ConsumptionReportDto;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.domain.ports.in.service.ConsumptionUseCase;
-import com.employed.bar.domain.ports.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.port.in.service.ConsumptionUseCase;
+import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

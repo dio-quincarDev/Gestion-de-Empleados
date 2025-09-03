@@ -1,9 +1,9 @@
 package com.employed.bar.infrastructure.config;
 
-import com.employed.bar.infrastructure.dtos.ReportDto;
+import com.employed.bar.infrastructure.dto.ReportDto;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.domain.ports.in.service.ReportingUseCase;
-import com.employed.bar.domain.ports.out.ReportingPort;
+import com.employed.bar.domain.port.in.service.ReportingUseCase;
+import com.employed.bar.domain.port.out.ReportingPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;

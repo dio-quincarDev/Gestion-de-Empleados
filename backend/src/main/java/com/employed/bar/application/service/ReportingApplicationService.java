@@ -1,11 +1,11 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.infrastructure.dtos.ReportDto;
+import com.employed.bar.infrastructure.dto.ReportDto;
 import com.employed.bar.domain.model.Consumption;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.domain.ports.in.service.ReportingUseCase;
-import com.employed.bar.domain.ports.out.ConsumptionRepository;
-import com.employed.bar.domain.ports.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.port.in.service.ReportingUseCase;
+import com.employed.bar.domain.port.out.ConsumptionRepository;
+import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

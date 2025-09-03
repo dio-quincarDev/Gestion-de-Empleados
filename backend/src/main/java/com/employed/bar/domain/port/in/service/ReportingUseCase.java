@@ -1,0 +1,19 @@
+package com.employed.bar.domain.port.in.service;
+
+
+import com.employed.bar.infrastructure.dto.ReportDto;
+import com.employed.bar.domain.model.Employee;
+
+import java.time.LocalDate;
+import java.util.List;
+
+
+public interface ReportingUseCase {
+    ReportDto generateCompleteReport(LocalDate startDate,LocalDate endDate, Long employeeId);
+    void sendWeeklyReports();
+    void sendTestEmail();
+    void sendBulkEmails(List<Employee> employees, List<ReportDto> reports );
+
+    void sendTestBulkEmails();
+}
+

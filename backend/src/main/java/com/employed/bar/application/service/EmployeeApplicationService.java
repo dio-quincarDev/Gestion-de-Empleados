@@ -3,12 +3,16 @@ package com.employed.bar.application.service;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.model.payment.AchPaymentMethod;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.domain.ports.in.service.AttendanceUseCase;
-import com.employed.bar.domain.ports.in.service.EmployeeUseCase;
-import com.employed.bar.domain.ports.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.model.payment.PaymentMethod;
+import com.employed.bar.domain.model.payment.YappyPaymentMethod;
+import com.employed.bar.domain.port.in.service.AttendanceUseCase;
+import com.employed.bar.domain.port.in.service.EmployeeUseCase;
+import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +33,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
         if (employeeRepositoryPort.findByEmail(employee.getEmail()).isPresent()){
             throw new EmailAlreadyExistException("Este Email ya existe: " + employee.getEmail());
         }
+        validatePaymentMethod(employee.getPaymentMethod());
         return employeeRepositoryPort.save(employee);
     }
 
@@ -64,6 +69,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
 
     @Override
     public Employee updateEmployee(Long id, Employee updatedEmployee) {
+        validatePaymentMethod(updatedEmployee.getPaymentMethod());
         return employeeRepositoryPort.findById(id)
                 .map(employee -> {
                     if (!employee.getEmail().equals(updatedEmployee.getEmail()) &&
@@ -74,10 +80,21 @@ public class EmployeeApplicationService implements EmployeeUseCase {
                     employee.setRole(updatedEmployee.getRole());
                     employee.setStatus(updatedEmployee.getStatus());
                     employee.setEmail(updatedEmployee.getEmail());
-                    employee.setSalary(updatedEmployee.getSalary());
+                    employee.setHourlyRate(updatedEmployee.getHourlyRate());
+                    employee.setPaymentMethod(updatedEmployee.getPaymentMethod());
                     return employeeRepositoryPort.save(employee);
                 })
                 .orElseThrow(()-> new EmployeeNotFoundException("Employee not Found with ID: " + id));
+    }
+
+    @Override
+    public Employee updateHourlyRate(Long employeeId, java.math.BigDecimal newRate) {
+        return employeeRepositoryPort.findById(employeeId)
+                .map(employee -> {
+                    employee.setHourlyRate(newRate);
+                    return employeeRepositoryPort.save(employee);
+                })
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not Found with ID: " + employeeId));
     }
 
     @Override
@@ -87,5 +104,27 @@ public class EmployeeApplicationService implements EmployeeUseCase {
 
     public double calculateAttendancePercentage(Employee employee, int year, int month, int day) {
         return attendanceUseCase.calculateAttendancePercentage(employee, year, month, day);
+    }
+
+    private void validatePaymentMethod(PaymentMethod paymentMethod) {
+        if (paymentMethod == null) {
+            throw new IllegalArgumentException("Payment method cannot be null.");
+        }
+        if (paymentMethod instanceof AchPaymentMethod ach) {
+            if (!StringUtils.hasText(ach.getBankName())) {
+                throw new IllegalArgumentException("Bank name is required for ACH payment method.");
+            }
+            if (!StringUtils.hasText(ach.getAccountNumber())) {
+                throw new IllegalArgumentException("Account number is required for ACH payment method.");
+            }
+            if (ach.getBankAccountType() == null) {
+                throw new IllegalArgumentException("Bank account type is required for ACH payment method.");
+            }
+        } else if (paymentMethod instanceof YappyPaymentMethod yappy) {
+            if (!StringUtils.hasText(yappy.getPhoneNumber())) {
+                throw new IllegalArgumentException("Phone number is required for Yappy payment method.");
+            }
+        }
+        // No validation needed for CashPaymentMethod
     }
 }

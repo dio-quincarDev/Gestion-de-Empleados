@@ -1,6 +1,7 @@
 package com.employed.bar.domain.model;
 
 import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.model.payment.PaymentMethod;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -17,7 +18,8 @@ public class Employee {
     private String name;
     private String email;
     private EmployeeRole role;
-    private BigDecimal salary;
+    private BigDecimal hourlyRate;
+    private PaymentMethod paymentMethod;
     private String status;
     private List<Schedule> schedules = new ArrayList<>();
     private List<AttendanceRecord> attendanceRecords = new ArrayList<>();

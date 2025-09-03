@@ -1,15 +1,15 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.infrastructure.dtos.AttendanceDto;
-import com.employed.bar.infrastructure.dtos.AttendanceReportDto;
-import com.employed.bar.infrastructure.dtos.ReportDto;
+import com.employed.bar.infrastructure.dto.AttendanceDto;
+import com.employed.bar.infrastructure.dto.AttendanceReportDto;
+import com.employed.bar.infrastructure.dto.ReportDto;
 import com.employed.bar.domain.model.AttendanceRecord;
 import com.employed.bar.domain.model.Employee;
-import com.employed.bar.domain.ports.in.service.AttendanceUseCase;
-import com.employed.bar.domain.ports.in.service.ReportingUseCase;
-import com.employed.bar.domain.ports.out.ConsumptionRepository;
-import com.employed.bar.domain.ports.out.EmployeeRepositoryPort;
-import com.employed.bar.domain.ports.out.AttendanceRepository;
+import com.employed.bar.domain.port.in.service.AttendanceUseCase;
+import com.employed.bar.domain.port.in.service.ReportingUseCase;
+import com.employed.bar.domain.port.out.ConsumptionRepository;
+import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.port.out.AttendanceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

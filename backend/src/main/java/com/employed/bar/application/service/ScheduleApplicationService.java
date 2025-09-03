@@ -1,10 +1,10 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.infrastructure.dtos.ScheduleDto;
+import com.employed.bar.infrastructure.dto.ScheduleDto;
 import com.employed.bar.domain.model.Employee;
 import com.employed.bar.domain.model.Schedule;
-import com.employed.bar.domain.ports.out.EmployeeRepositoryPort;
-import com.employed.bar.domain.ports.out.ScheduleRepository;
+import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.port.out.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

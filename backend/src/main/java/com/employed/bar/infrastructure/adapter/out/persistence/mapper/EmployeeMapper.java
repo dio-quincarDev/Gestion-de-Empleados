@@ -1,12 +1,16 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.mapper;
 
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.*;
+import com.employed.bar.domain.model.payment.AchPaymentMethod;
+import com.employed.bar.domain.model.payment.CashPaymentMethod;
+import com.employed.bar.domain.model.payment.YappyPaymentMethod;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEntity;
-import com.employed.bar.infrastructure.dtos.EmployeeDto;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EmployeeMapper {
 
-    public static EmployeeEntity toEntity(Employee domain) {
+    public EmployeeEntity toEntity(Employee domain) {
         if (domain == null) {
             return null;
         }
@@ -15,14 +19,24 @@ public class EmployeeMapper {
         entity.setName(domain.getName());
         entity.setEmail(domain.getEmail());
         entity.setRole(domain.getRole());
-        entity.setSalary(domain.getSalary());
+        entity.setHourlyRate(domain.getHourlyRate());
         entity.setStatus(domain.getStatus());
-        // Relationships (schedules, attendanceRecords, consumptions) will need separate mappers or handling
-        // For now, we'll keep it simple.
+
+        if (domain.getPaymentMethod() != null) {
+            entity.setPaymentMethodType(domain.getPaymentMethod().getType());
+            if (domain.getPaymentMethod() instanceof AchPaymentMethod ach) {
+                entity.setBankName(ach.getBankName());
+                entity.setAccountNumber(ach.getAccountNumber());
+                entity.setBankAccountType(ach.getBankAccountType());
+            } else if (domain.getPaymentMethod() instanceof YappyPaymentMethod yappy) {
+                entity.setPhoneNumber(yappy.getPhoneNumber());
+            }
+        }
+
         return entity;
     }
 
-    public static Employee toDomain(EmployeeEntity entity) {
+    public Employee toDomain(EmployeeEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -31,38 +45,27 @@ public class EmployeeMapper {
         domain.setName(entity.getName());
         domain.setEmail(entity.getEmail());
         domain.setRole(entity.getRole());
-        domain.setSalary(entity.getSalary());
+        domain.setHourlyRate(entity.getHourlyRate());
         domain.setStatus(entity.getStatus());
-        // Relationships (schedules, attendanceRecords, consumptions) will need separate mappers or handling
-        // For now, we'll keep it simple.
-        return domain;
-    }
 
-    public static Employee toDomain(EmployeeDto dto) {
-        if (dto == null) {
-            return null;
+        if (entity.getPaymentMethodType() != null) {
+            switch (entity.getPaymentMethodType()) {
+                case ACH:
+                    domain.setPaymentMethod(new AchPaymentMethod(
+                            entity.getBankName(),
+                            entity.getAccountNumber(),
+                            entity.getBankAccountType()
+                    ));
+                    break;
+                case YAPPY:
+                    domain.setPaymentMethod(new YappyPaymentMethod(entity.getPhoneNumber()));
+                    break;
+                case CASH:
+                    domain.setPaymentMethod(new CashPaymentMethod());
+                    break;
+            }
         }
-        Employee domain = new Employee();
-        domain.setId(dto.getId());
-        domain.setName(dto.getName());
-        domain.setEmail(dto.getEmail());
-        domain.setRole(dto.getRole());
-        domain.setSalary(dto.getSalary());
-        domain.setStatus(dto.getStatus());
-        return domain;
-    }
 
-    public static EmployeeDto toDto(Employee domain) {
-        if (domain == null) {
-            return null;
-        }
-        EmployeeDto dto = new EmployeeDto();
-        dto.setId(domain.getId());
-        dto.setName(domain.getName());
-        dto.setEmail(domain.getEmail());
-        dto.setRole(domain.getRole());
-        dto.setSalary(domain.getSalary());
-        dto.setStatus(domain.getStatus());
-        return dto;
+        return domain;
     }
 }
