@@ -1,5 +1,6 @@
 package com.employed.bar.application.service;
 
+import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.infrastructure.dto.AttendanceDto;
 import com.employed.bar.infrastructure.dto.AttendanceReportDto;
 import com.employed.bar.infrastructure.dto.ReportDto;
@@ -9,7 +10,6 @@ import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.ConsumptionRepository;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
-import com.employed.bar.domain.port.out.AttendanceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -20,19 +20,19 @@ import java.util.List;
 @Service
 public class AttendanceApplicationService  {
     private final EmployeeRepositoryPort employeeRepository;
-    private final AttendanceRepository attendanceRepository;
+    private final AttendanceRepositoryPort attendanceRepositoryPort;
     private final AttendanceUseCase attendanceUseCase;
     private final ReportingUseCase reportingUseCase;
     private final ConsumptionRepository consumptionRepository;
 
 
     public AttendanceApplicationService(EmployeeRepositoryPort employeeRepository,
-                                        AttendanceRepository attendanceRepository,
+                                         AttendanceRepositoryPort attendanceRepositoryPort,
                                         AttendanceUseCase attendanceUseCase,
                                         ReportingUseCase reportingUseCase,
                                         ConsumptionRepository consumptionRepository) {
         this.employeeRepository = employeeRepository;
-        this.attendanceRepository = attendanceRepository;
+        this.attendanceRepositoryPort = attendanceRepositoryPort;
         this.attendanceUseCase = attendanceUseCase;
         this.reportingUseCase = reportingUseCase;
         this.consumptionRepository = consumptionRepository;
@@ -53,7 +53,7 @@ public class AttendanceApplicationService  {
         attendanceRecord.setEntryTime(attendanceDto.getEntryTime());
         attendanceRecord.setExitTime(attendanceDto.getExitTime());
         attendanceRecord.setStatus(attendanceDto.getStatus());
-        return attendanceRepository.save(attendanceRecord);
+        return attendanceRepositoryPort.save(attendanceRecord);
     }
 
 

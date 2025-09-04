@@ -1,10 +1,10 @@
 package com.employed.bar.domain.exceptions;
 
-import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 
-@AllArgsConstructor
-public class ReportGenerationException extends RuntimeException {
+
+public class ReportGenerationException extends BaseDomainException {
     public ReportGenerationException(String message) {
-        super(message);
+        super(message, HttpStatus.INTERNAL_SERVER_ERROR, "REPORT_GENERATION_FAILED");
     }
 }

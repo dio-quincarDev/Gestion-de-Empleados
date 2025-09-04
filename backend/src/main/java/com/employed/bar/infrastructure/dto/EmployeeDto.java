@@ -1,6 +1,7 @@
 package com.employed.bar.infrastructure.dto;
 
 import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.enums.OvertimeRateType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,7 +1,9 @@
 package com.employed.bar.domain.exceptions;
 
-public class EmailAlreadyExistException extends RuntimeException{
+import org.springframework.http.HttpStatus;
+
+public class EmailAlreadyExistException extends BaseDomainException {
     public EmailAlreadyExistException(String message){
-        super(message);
+        super(message, HttpStatus.CONFLICT, "EMAIL_ALREADY_EXISTS");
     }
 }

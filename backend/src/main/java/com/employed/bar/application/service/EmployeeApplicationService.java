@@ -10,6 +10,7 @@ import com.employed.bar.domain.model.payment.PaymentMethod;
 import com.employed.bar.domain.model.payment.YappyPaymentMethod;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.EmployeeUseCase;
+import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,12 @@ import java.util.Optional;
 public class EmployeeApplicationService implements EmployeeUseCase {
     private final EmployeeRepositoryPort employeeRepositoryPort;
     private final AttendanceUseCase attendanceUseCase;
+    private final PaymentCalculationUseCase paymentCalculationUseCase;
 
-    public EmployeeApplicationService(EmployeeRepositoryPort employeeRepositoryPort, AttendanceUseCase attendanceUseCase) {
+    public EmployeeApplicationService(EmployeeRepositoryPort employeeRepositoryPort, AttendanceUseCase attendanceUseCase, PaymentCalculationUseCase paymentCalculationUseCase) {
         this.employeeRepositoryPort = employeeRepositoryPort;
         this.attendanceUseCase = attendanceUseCase;
+        this.paymentCalculationUseCase = paymentCalculationUseCase;
     }
 
     @Override
@@ -118,6 +121,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
       return paymentCalculationUseCase.calculateTotalPay(
               hourlyRate,
               paysOvertime,
+              overtimeRateType,
               regularHours,
               overtimeHours
       );
