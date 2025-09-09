@@ -1,57 +1,69 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.infrastructure.dto.ScheduleDto;
-import com.employed.bar.domain.model.Employee;
-import com.employed.bar.domain.model.Schedule;
+import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.ScheduleClass;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
-import com.employed.bar.domain.port.out.ScheduleRepository;
+import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
+import com.employed.bar.domain.port.in.service.ScheduleUseCase;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ScheduleApplicationService {
-    private final ScheduleRepository scheduleRepository;
+public class ScheduleApplicationService implements ScheduleUseCase {
+    private final ScheduleRepositoryPort scheduleRepositoryPort;
     private final EmployeeRepositoryPort employeeRepository;
 
-    public Schedule createSchedule(ScheduleDto scheduleDto){
-        Employee employee = employeeRepository.findById(scheduleDto.getEmployeeId())
+    @Override
+    public ScheduleClass createSchedule(ScheduleDto scheduleDto){
+        EmployeeClass employee = employeeRepository.findById(scheduleDto.getEmployeeId())
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
 
-        Schedule schedule = new Schedule();
+        ScheduleClass schedule = new ScheduleClass();
         schedule.setStartTime(scheduleDto.getStartTime());
         schedule.setEndTime(scheduleDto.getEndTime());
         schedule.setEmployee(employee);
 
-        return scheduleRepository.save(schedule);
+        return scheduleRepositoryPort.save(schedule);
     }
 
-    public Schedule getScheduleById(Long id){
-        return scheduleRepository.findById(id).orElse(null);
+    @Override
+    public ScheduleClass getScheduleById(Long id){
+        Optional<ScheduleClass> scheduleOptional =scheduleRepositoryPort.findById(id);
+        if (scheduleOptional.isPresent()){
+            return scheduleOptional.get();
+        }else{
+            return null;
+        }
 
     }
-    public List<Schedule> getSchedulesByEmployee(Long employeeId) {
-        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+    @Override
+    public List<ScheduleClass> getSchedulesByEmployee(Long employeeId) {
+        EmployeeClass employee = employeeRepository.findById(employeeId).orElse(null);
         if(employee != null) {
-            return scheduleRepository.findByEmployee(employee);
+            return scheduleRepositoryPort.findByEmployee(employee);
         }
         return Collections.emptyList();
 
     }
 
+    @Override
     public void deleteSchedule(Long scheduleId){
-        scheduleRepository.deleteById(scheduleId);
+        scheduleRepositoryPort.deleteById(scheduleId);
     }
 
-    public Schedule updateSchedule(Long id, Schedule updatedSchedule) {
-        Schedule existingSchedule = getScheduleById(id);
+    @Override
+    public ScheduleClass updateSchedule(Long id, ScheduleClass updatedSchedule) {
+        ScheduleClass existingSchedule = getScheduleById(id);
         existingSchedule.setStartTime(updatedSchedule.getStartTime());
         existingSchedule.setEndTime(updatedSchedule.getEndTime());
-        return scheduleRepository.save(existingSchedule);
+        return scheduleRepositoryPort.save(existingSchedule);
     }
 }

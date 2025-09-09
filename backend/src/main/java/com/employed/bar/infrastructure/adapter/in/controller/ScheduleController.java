@@ -1,9 +1,10 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
+import com.employed.bar.domain.model.ScheduleClass;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.dto.ScheduleDto;
-import com.employed.bar.application.service.ScheduleApplicationService;
-import com.employed.bar.domain.model.Schedule;
+import com.employed.bar.domain.port.in.service.ScheduleUseCase;
+import com.employed.bar.infrastructure.adapter.in.mapper.ScheduleApiMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -17,15 +18,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE)
 @Tag(name = "2. Gestión de Horarios", description = "Endpoints para la administración de horarios del personal")
 public class ScheduleController {
-    private final ScheduleApplicationService scheduleApplicationService;
+    private final ScheduleUseCase scheduleUseCase;
+    private final ScheduleApiMapper scheduleApiMapper;
 
-    public ScheduleController(ScheduleApplicationService scheduleApplicationService) {
-        this.scheduleApplicationService = scheduleApplicationService;
+    public ScheduleController(ScheduleUseCase scheduleUseCase, ScheduleApiMapper scheduleApiMapper) {
+        this.scheduleUseCase = scheduleUseCase;
+        this.scheduleApiMapper = scheduleApiMapper;
     }
 
     @Operation(
@@ -37,7 +41,7 @@ public class ScheduleController {
             @ApiResponse(
                     responseCode = "201",
                     description = "Horario creado exitosamente",
-                    content = @Content(schema = @Schema(implementation = Schedule.class))
+                    content = @Content(schema = @Schema(implementation = ScheduleClass.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -51,15 +55,15 @@ public class ScheduleController {
             )
     })
     @PostMapping("/")
-    public ResponseEntity<Schedule> createSchedule(
+    public ResponseEntity<ScheduleDto> createSchedule(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos del horario a registrar",
                     required = true,
                     content = @Content(schema = @Schema(implementation = ScheduleDto.class)))
             @RequestBody ScheduleDto scheduleDto) {
 
-        Schedule createdSchedule = scheduleApplicationService.createSchedule(scheduleDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdSchedule);
+        ScheduleClass createdSchedule = scheduleUseCase.createSchedule(scheduleDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleApiMapper.toDto(createdSchedule));
     }
 
     @Operation(
@@ -71,7 +75,7 @@ public class ScheduleController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Horario encontrado",
-                    content = @Content(schema = @Schema(implementation = Schedule.class))
+                    content = @Content(schema = @Schema(implementation = ScheduleClass.class))
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -80,12 +84,12 @@ public class ScheduleController {
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Schedule> getSchedule(
+    public ResponseEntity<ScheduleDto> getSchedule(
             @Parameter(description = "ID del horario", required = true, example = "1")
             @PathVariable Long id) {
 
-        Schedule schedule = scheduleApplicationService.getScheduleById(id);
-        return ResponseEntity.ok(schedule);
+        ScheduleClass schedule = scheduleUseCase.getScheduleById(id);
+        return ResponseEntity.ok(scheduleApiMapper.toDto(schedule));
     }
 
     @Operation(
@@ -97,7 +101,7 @@ public class ScheduleController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Lista de horarios obtenida exitosamente",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = Schedule.class)))
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ScheduleClass.class)))
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -106,12 +110,12 @@ public class ScheduleController {
             )
     })
     @GetMapping("/employee/{employeeId}")
-    public ResponseEntity<List<Schedule>> getSchedules(
+    public ResponseEntity<List<ScheduleDto>> getSchedules(
             @Parameter(description = "ID del empleado", required = true, example = "1")
             @PathVariable Long employeeId) {
 
-        List<Schedule> schedules = scheduleApplicationService.getSchedulesByEmployee(employeeId);
-        return ResponseEntity.ok(schedules);
+        List<ScheduleClass> schedules = scheduleUseCase.getSchedulesByEmployee(employeeId);
+        return ResponseEntity.ok(schedules.stream().map(scheduleApiMapper::toDto).collect(Collectors.toList()));
     }
 
     @Operation(
@@ -123,7 +127,7 @@ public class ScheduleController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Horario actualizado exitosamente",
-                    content = @Content(schema = @Schema(implementation = Schedule.class))
+                    content = @Content(schema = @Schema(implementation = ScheduleClass.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -137,18 +141,19 @@ public class ScheduleController {
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Schedule> updateSchedule(
+    public ResponseEntity<ScheduleDto> updateSchedule(
             @Parameter(description = "ID del horario a actualizar", required = true, example = "1")
             @PathVariable Long id,
 
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos actualizados del horario",
                     required = true,
-                    content = @Content(schema = @Schema(implementation = Schedule.class)))
-            @RequestBody Schedule schedule) {
+                    content = @Content(schema = @Schema(implementation = ScheduleClass.class)))
+            @RequestBody ScheduleDto scheduleDto) {
 
-        Schedule updatedSchedule = scheduleApplicationService.updateSchedule(id, schedule);
-        return ResponseEntity.ok(updatedSchedule);
+        ScheduleClass schedule = scheduleApiMapper.toDomain(scheduleDto);
+        ScheduleClass updatedSchedule = scheduleUseCase.updateSchedule(id, schedule);
+        return ResponseEntity.ok(scheduleApiMapper.toDto(updatedSchedule));
     }
 
     @Operation(
@@ -172,7 +177,7 @@ public class ScheduleController {
             @Parameter(description = "ID del horario a eliminar", required = true, example = "1")
             @PathVariable Long id) {
 
-        scheduleApplicationService.deleteSchedule(id);
+        scheduleUseCase.deleteSchedule(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

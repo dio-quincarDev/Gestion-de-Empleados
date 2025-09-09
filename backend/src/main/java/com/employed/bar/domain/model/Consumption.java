@@ -29,9 +29,9 @@ public class Consumption {
     @ManyToOne
     @JoinColumn(name = "employee_id")
     @JsonBackReference
-    private Employee employee;
+    private EmployeeClass employee;
 
-    public Consumption(Employee employee, BigDecimal amount) {
+    public Consumption(EmployeeClass employee, BigDecimal amount) {
         this.employee = employee;
         this.amount = amount;
     }

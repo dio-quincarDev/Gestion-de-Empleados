@@ -1,0 +1,18 @@
+package com.employed.bar.infrastructure.adapter.in.mapper;
+
+import com.employed.bar.domain.model.ScheduleClass;
+import com.employed.bar.infrastructure.dto.ScheduleDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+
+@Mapper(componentModel = "spring")
+public interface ScheduleApiMapper {
+    ScheduleApiMapper INSTANCE = Mappers.getMapper(ScheduleApiMapper.class);
+
+    @Mapping(target = "employeeId", source = "employee.id")
+    ScheduleDto toDto(ScheduleClass scheduleClass);
+
+    @Mapping(target = "employee", ignore = true) // Employee will be set by the application service
+    ScheduleClass toDomain(ScheduleDto scheduleDto);
+}

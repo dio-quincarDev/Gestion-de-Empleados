@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.config;
 
 import com.employed.bar.infrastructure.dto.ReportDto;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.ReportingPort;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class ReportingAdapter implements ReportingPort {
     }
 
     @Override
-    public void sendBulkEmails(List<Employee> employees, List<ReportDto> reports) {
+    public void sendBulkEmails(List<EmployeeClass> employees, List<ReportDto> reports) {
         reportingUseCase.sendBulkEmails(employees, reports);
     }
 

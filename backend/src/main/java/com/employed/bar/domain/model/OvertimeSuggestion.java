@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Getter
 @AllArgsConstructor
 public class OvertimeSuggestion {
-    private final Employee employee;
+    private final EmployeeClass employee;
     private final LocalDate date;
     private final long extraMinutesWorked;
 }

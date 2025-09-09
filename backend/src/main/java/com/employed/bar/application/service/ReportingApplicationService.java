@@ -2,7 +2,7 @@ package com.employed.bar.application.service;
 
 import com.employed.bar.infrastructure.dto.ReportDto;
 import com.employed.bar.domain.model.Consumption;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.ConsumptionRepository;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
@@ -25,7 +25,7 @@ public class ReportingApplicationService {
     private final ConsumptionRepository consumptionRepository;
 
     public ReportDto generateReport(LocalDateTime startDate, LocalDateTime endDate, Long employeeId) {
-        List<Employee> employees = employeeRepository.findAll();
+        List<EmployeeClass> employees = employeeRepository.findAll();
         List<Consumption> consumptions = consumptionRepository.findAll();
 
         return reportingUseCase.generateCompleteReport( startDate.toLocalDate(), endDate.toLocalDate(), employeeId);
@@ -39,7 +39,7 @@ public class ReportingApplicationService {
 
     public void sendBulkEmails() {
         // 1. Obtener lista de empleados
-        List<Employee> employees = employeeRepository.findAll();
+        List<EmployeeClass> employees = employeeRepository.findAll();
 
         // 2. Generar reportes para cada empleado
         List<ReportDto> reports = employees.stream()

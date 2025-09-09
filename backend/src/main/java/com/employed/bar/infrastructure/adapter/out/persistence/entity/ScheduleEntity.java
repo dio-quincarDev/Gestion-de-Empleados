@@ -1,4 +1,4 @@
-package com.employed.bar.domain.model;
+package com.employed.bar.infrastructure.adapter.out.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "schedule")
-public class Schedule {
+public class ScheduleEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,7 +25,7 @@ public class Schedule {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
     @JsonBackReference
-    private Employee employee;
+    private EmployeeEntity employee;
 
 
 }

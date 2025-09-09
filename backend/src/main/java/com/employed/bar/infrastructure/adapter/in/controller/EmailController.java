@@ -3,7 +3,7 @@ package com.employed.bar.infrastructure.adapter.in.controller;
 import com.employed.bar.infrastructure.dto.ReportDto;
 import com.employed.bar.infrastructure.integrations.EmailService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,7 +54,7 @@ public class EmailController {
             @Parameter(description = "ID único del empleado al que se enviará el correo de prueba.", required = true, example = "1")
             @RequestParam Long employeeId) {
         LocalDate date = LocalDate.parse("2024-10-10"); // NOTA: Esta fecha es fija en el código.
-        Employee employee = employeeRepository.findById(employeeId)
+        EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("No se encontro Empleado con ID" + employeeId));
 
         ReportDto report = reportingUseCase.generateCompleteReport(date, date, employeeId);
@@ -93,7 +93,7 @@ public class EmailController {
             @Parameter(description = "Fecha de fin del periodo del reporte semanal. Formato YYYY-MM-DD. **Obligatorio.**", required = true, example = "2024-06-07")
             @RequestParam String endDate) {
 
-        Employee employee = employeeRepository.findById(employeeId)
+        EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(()-> new EmployeeNotFoundException("No se encontro Empleado con ID" + employeeId));
 
         LocalDate startDateParsed = LocalDate.parse(startDate);
@@ -119,14 +119,14 @@ public class EmailController {
     public ResponseEntity<String> sendBulkEmails(
             @Parameter(description = "Tamaño del lote de empleados a procesar en cada envío asíncrono.", required = true, example = "10")
             @RequestParam int batchSize) {
-        List<Employee> employees = employeeRepository.findAll();
+        List<EmployeeClass> employees = employeeRepository.findAll();
         if (employees.isEmpty()) {
             return ResponseEntity.badRequest().body("No employees found.");
         }
 
         List<CompletableFuture<Void>> batchFutures = new ArrayList<>();
         for (int i = 0; i < employees.size(); i += batchSize) {
-            List<Employee> batchEmployees = employees.subList(i, Math.min(i + batchSize, employees.size()));
+            List<EmployeeClass> batchEmployees = employees.subList(i, Math.min(i + batchSize, employees.size()));
             batchFutures.add(sendEmailsInBatch(batchEmployees));
         }
 
@@ -134,7 +134,7 @@ public class EmailController {
         return ResponseEntity.ok("Bulk emails sent successfully in batches.");
     }
 
-    private CompletableFuture<Void> sendEmailsInBatch(List<Employee> employees) {
+    private CompletableFuture<Void> sendEmailsInBatch(List<EmployeeClass> employees) {
         List<CompletableFuture<Void>> futures = employees.stream()
                 .map(employee -> {
                     ReportDto report = reportingUseCase.generateCompleteReport(
@@ -160,7 +160,7 @@ public class EmailController {
     public ResponseEntity<String> sendTestBulkEmails(
             @Parameter(description = "Número de empleados a los que se enviará correos de prueba. Por defecto es 5.", example = "3")
             @RequestParam(defaultValue = "5") int testBatchSize) {
-        List<Employee> employees = employeeRepository.findAll()
+        List<EmployeeClass> employees = employeeRepository.findAll()
                 .stream()
                 .limit(testBatchSize)
                 .collect(Collectors.toList());

@@ -1,7 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import com.employed.bar.domain.model.OvertimeSuggestion;
 import com.employed.bar.domain.port.in.service.OvertimeSuggestionUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
@@ -28,13 +28,13 @@ public class OvertimeSuggestionApplicationService implements OvertimeSuggestionU
 
     @Override
     public List<OvertimeSuggestion> generateSuggestions() {
-        List<Employee> employeesWithoutOvertimePay = employeeRepositoryPort.findAll().stream()
+        List<EmployeeClass> employeesWithoutOvertimePay = employeeRepositoryPort.findAll().stream()
                 .filter(employee -> !employee.isPaysOvertime())
                 .collect(Collectors.toList());
 
         List<OvertimeSuggestion> suggestions = new ArrayList<>();
 
-        for (Employee employee : employeesWithoutOvertimePay) {
+        for (EmployeeClass employee : employeesWithoutOvertimePay) {
             List<AttendanceRecord> records = attendanceRepositoryPort.findByEmployee(employee);
 
             // Group records by day using the 'date' field

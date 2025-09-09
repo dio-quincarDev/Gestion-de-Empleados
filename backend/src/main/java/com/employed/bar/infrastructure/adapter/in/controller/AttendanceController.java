@@ -5,7 +5,7 @@ import com.employed.bar.infrastructure.dto.AttendanceDto;
 import com.employed.bar.infrastructure.dto.AttendanceReportDto;
 import com.employed.bar.application.service.AttendanceApplicationService;
 import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -188,7 +188,7 @@ public class AttendanceController {
             )
             @RequestParam int day) {
 
-        Employee employee = employeeRepository.findById(employeeId)
+        EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee Not Found"));
         double percentage = attendanceApplicationService.calculateAttendancePercentage(employee, year, month, day);
         return ResponseEntity.ok(percentage);
@@ -239,7 +239,7 @@ public class AttendanceController {
             )
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        Employee employee = employeeRepository.findById(employeeId)
+        EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
 
         List<AttendanceRecord> attendanceRecords = attendanceApplicationService

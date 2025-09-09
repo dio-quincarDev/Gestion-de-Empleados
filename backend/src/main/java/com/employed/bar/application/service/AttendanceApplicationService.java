@@ -5,7 +5,7 @@ import com.employed.bar.infrastructure.dto.AttendanceDto;
 import com.employed.bar.infrastructure.dto.AttendanceReportDto;
 import com.employed.bar.infrastructure.dto.ReportDto;
 import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.ConsumptionRepository;
@@ -44,7 +44,7 @@ public class AttendanceApplicationService  {
        if (employeeId == null){
            throw new IllegalArgumentException("Employee ID cannot be null");
        }
-        Employee employee = employeeRepository.findById(employeeId)
+        EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
 
         AttendanceRecord attendanceRecord = new AttendanceRecord();
@@ -67,11 +67,11 @@ public class AttendanceApplicationService  {
 
 
 
-    public double calculateAttendancePercentage(Employee employee, int year, int month, int day){
+    public double calculateAttendancePercentage(EmployeeClass employee, int year, int month, int day){
         return attendanceUseCase.calculateAttendancePercentage(employee, year, month, day);
     }
 
-    public List<AttendanceRecord>getAttendanceListByEmployeeAndDateRange(Employee employee, LocalDate startDate, LocalDate endDate){
+    public List<AttendanceRecord>getAttendanceListByEmployeeAndDateRange(EmployeeClass employee, LocalDate startDate, LocalDate endDate){
         return attendanceUseCase.getAttendanceListByEmployeeAndDateRange(employee, startDate, endDate);
     }
 }

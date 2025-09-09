@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.integrations;
 import com.employed.bar.infrastructure.dto.ReportDto;
 import com.employed.bar.domain.exceptions.EmailSendingException;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class EmailService {
     @Autowired
     private TemplateEngine templateEngine;
 
-    public String generateEmailBody(ReportDto report, Employee employee) {
+    public String generateEmailBody(ReportDto report, EmployeeClass employee) {
         Context context = new Context();
         // Coloca todos los datos del reporte en el contexto de Thymeleaf
         Map<String, Object> dataMap = new HashMap<>();
@@ -66,7 +66,7 @@ public class EmailService {
         }
     }
 
-    public CompletableFuture<Void>sendEmailAsync(Employee employee, ReportDto reportDto){
+    public CompletableFuture<Void>sendEmailAsync(EmployeeClass employee, ReportDto reportDto){
         return CompletableFuture.runAsync(() -> {
             try{
                 String emailBody = generateEmailBody(reportDto, employee);

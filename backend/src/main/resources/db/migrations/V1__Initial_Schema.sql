@@ -22,8 +22,8 @@ CREATE TABLE Consumption (
     FOREIGN KEY (employee_id) REFERENCES Employee(id)
 );
 
--- Table: Schedule
-CREATE TABLE Schedule (
+-- Table: model.domain.com.bar-employees.com.employed.model.domain.ScheduleClass
+CREATE TABLE model.domain.com.bar-employees.ScheduleClass (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     start_time DATETIME NOT NULL,
     end_time DATETIME NOT NULL,

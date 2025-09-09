@@ -1,21 +1,21 @@
 package com.employed.bar.domain.port.in.service;
 
 import com.employed.bar.domain.enums.EmployeeRole;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface EmployeeUseCase {
-    Employee createEmployee(Employee employee);
-    Optional<Employee> getEmployeeById(Long id);
-    Optional<Employee> getEmployeeByName(String name);
-    Optional<Employee> getEmployeeByRole(EmployeeRole role);
-    List<Employee> getEmployeeByStatus(String status);
-    List<Employee> getEmployees( );
+    EmployeeClass createEmployee(EmployeeClass employee);
+    Optional<EmployeeClass> getEmployeeById(Long id);
+    Optional<EmployeeClass> getEmployeeByName(String name);
+    Optional<EmployeeClass> getEmployeeByRole(EmployeeRole role);
+    List<EmployeeClass> getEmployeeByStatus(String status);
+    List<EmployeeClass> getEmployees( );
     void deleteEmployee(Long id);
-    Employee updateEmployee(Long id, Employee updatedEmployee);
-    Optional<Employee> findByEmail(String email);
-    Employee updateHourlyRate(Long employeeId, java.math.BigDecimal newRate);
+    EmployeeClass updateEmployee(Long id, EmployeeClass updatedEmployee);
+    Optional<EmployeeClass> findByEmail(String email);
+    EmployeeClass updateHourlyRate(Long employeeId, java.math.BigDecimal newRate);
     java.math.BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours);
 }

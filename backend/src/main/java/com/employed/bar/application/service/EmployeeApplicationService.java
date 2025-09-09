@@ -5,7 +5,7 @@ import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.payment.AchPaymentMethod;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import com.employed.bar.domain.model.payment.PaymentMethod;
 import com.employed.bar.domain.model.payment.YappyPaymentMethod;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
@@ -34,7 +34,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    public Employee createEmployee(Employee employee) {
+    public EmployeeClass createEmployee(EmployeeClass employee) {
         if (employeeRepositoryPort.findByEmail(employee.getEmail()).isPresent()){
             throw new EmailAlreadyExistException("Este Email ya existe: " + employee.getEmail());
         }
@@ -43,27 +43,27 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    public Optional<Employee> getEmployeeById(Long id) {
+    public Optional<EmployeeClass> getEmployeeById(Long id) {
         return employeeRepositoryPort.findById(id);
     }
 
     @Override
-    public Optional<Employee> getEmployeeByName(String name) {
+    public Optional<EmployeeClass> getEmployeeByName(String name) {
         return employeeRepositoryPort.findByName(name);
     }
 
     @Override
-    public Optional<Employee> getEmployeeByRole(EmployeeRole role) {
+    public Optional<EmployeeClass> getEmployeeByRole(EmployeeRole role) {
         return employeeRepositoryPort.findByRole(role);
     }
 
     @Override
-    public List<Employee> getEmployeeByStatus(String status) {
+    public List<EmployeeClass> getEmployeeByStatus(String status) {
         return employeeRepositoryPort.findByStatus(status);
     }
 
     @Override
-    public List<Employee> getEmployees() {
+    public List<EmployeeClass> getEmployees() {
         return employeeRepositoryPort.findAll();
     }
 
@@ -73,7 +73,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    public Employee updateEmployee(Long id, Employee updatedEmployee) {
+    public EmployeeClass updateEmployee(Long id, EmployeeClass updatedEmployee) {
         validatePaymentMethod(updatedEmployee.getPaymentMethod());
         return employeeRepositoryPort.findById(id)
                 .map(employee -> {
@@ -93,7 +93,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    public Employee updateHourlyRate(Long employeeId, java.math.BigDecimal newRate) {
+    public EmployeeClass updateHourlyRate(Long employeeId, java.math.BigDecimal newRate) {
         return employeeRepositoryPort.findById(employeeId)
                 .map(employee -> {
                     employee.setHourlyRate(newRate);
@@ -103,17 +103,17 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    public Optional<Employee> findByEmail(String email) {
+    public Optional<EmployeeClass> findByEmail(String email) {
         return employeeRepositoryPort.findByEmail(email);
     }
 
-    public double calculateAttendancePercentage(Employee employee, int year, int month, int day) {
+    public double calculateAttendancePercentage(EmployeeClass employee, int year, int month, int day) {
         return attendanceUseCase.calculateAttendancePercentage(employee, year, month, day);
     }
 
     @Override
     public BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours) {
-      Employee employee = employeeRepositoryPort.findById(employeeId)
+      EmployeeClass employee = employeeRepositoryPort.findById(employeeId)
               .orElseThrow(()-> new EmployeeNotFoundException("Employee Not Found"));
       BigDecimal hourlyRate = employee.getHourlyRate();
       boolean paysOvertime = employee.isPaysOvertime();

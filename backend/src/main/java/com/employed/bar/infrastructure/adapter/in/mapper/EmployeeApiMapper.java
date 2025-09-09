@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class EmployeeApiMapper {
 
-    public Employee toDomain(EmployeeDto dto) {
+    public EmployeeClass toDomain(EmployeeDto dto) {
         if (dto == null) {
             return null;
         }
-        Employee domain = new Employee();
+        EmployeeClass domain = new EmployeeClass();
         domain.setId(dto.getId());
         domain.setName(dto.getName());
         domain.setEmail(dto.getEmail());
@@ -28,7 +28,7 @@ public class EmployeeApiMapper {
         return domain;
     }
 
-    public EmployeeDto toDto(Employee domain) {
+    public EmployeeDto toDto(EmployeeClass domain) {
         if (domain == null) {
             return null;
         }

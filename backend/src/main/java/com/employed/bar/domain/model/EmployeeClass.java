@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Employee {
+public class EmployeeClass {
     private Long id;
     private String name;
     private String email;
@@ -24,7 +24,7 @@ public class Employee {
     private boolean paysOvertime;
     private OvertimeRateType overtimeRateType;
     private String status;
-    private List<Schedule> schedules = new ArrayList<>();
+    private List<ScheduleClass> schedules = new ArrayList<>();
     private List<AttendanceRecord> attendanceRecords = new ArrayList<>();
     private List<Consumption> consumptions = new ArrayList<>();
 }

@@ -1,6 +1,5 @@
 package com.employed.bar.domain.exceptions;
 
-import lombok.experimental.SuperBuilder;
 import org.springframework.http.HttpStatus;
 
 

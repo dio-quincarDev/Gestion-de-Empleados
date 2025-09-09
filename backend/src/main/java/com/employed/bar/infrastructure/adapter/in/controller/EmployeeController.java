@@ -2,7 +2,7 @@ package com.employed.bar.infrastructure.adapter.in.controller;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
-import com.employed.bar.domain.model.Employee;
+import com.employed.bar.domain.model.EmployeeClass;
 import com.employed.bar.domain.port.in.service.EmployeeUseCase;
 import com.employed.bar.infrastructure.adapter.in.mapper.EmployeeApiMapper;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
@@ -59,8 +59,8 @@ public class EmployeeController {
     @PostMapping
     public ResponseEntity<EmployeeDto> createEmployee(@RequestBody @Valid EmployeeDto employeeDto) {
         try {
-            Employee employeeToCreate = employeeApiMapper.toDomain(employeeDto);
-            Employee createdEmployee = employeeUseCase.createEmployee(employeeToCreate);
+            EmployeeClass employeeToCreate = employeeApiMapper.toDomain(employeeDto);
+            EmployeeClass createdEmployee = employeeUseCase.createEmployee(employeeToCreate);
             return new ResponseEntity<>(employeeApiMapper.toDto(createdEmployee), HttpStatus.CREATED);
         } catch (EmailAlreadyExistException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -130,8 +130,8 @@ public class EmployeeController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable Long id, @RequestBody @Valid EmployeeDto employeeDto) {
-        Employee employeeToUpdate = employeeApiMapper.toDomain(employeeDto);
-        Employee updatedEmployee = employeeUseCase.updateEmployee(id, employeeToUpdate);
+        EmployeeClass employeeToUpdate = employeeApiMapper.toDomain(employeeDto);
+        EmployeeClass updatedEmployee = employeeUseCase.updateEmployee(id, employeeToUpdate);
         return ResponseEntity.ok(employeeApiMapper.toDto(updatedEmployee));
     }
 
@@ -147,7 +147,7 @@ public class EmployeeController {
     })
     @PatchMapping("/{id}/hourly-rate")
     public ResponseEntity<EmployeeDto> updateHourlyRate(@PathVariable Long id, @RequestBody @Valid UpdateHourlyRateRequest request) {
-        Employee updatedEmployee = employeeUseCase.updateHourlyRate(id, request.getHourlyRate());
+        EmployeeClass updatedEmployee = employeeUseCase.updateHourlyRate(id, request.getHourlyRate());
         return ResponseEntity.ok(employeeApiMapper.toDto(updatedEmployee));
     }
 
