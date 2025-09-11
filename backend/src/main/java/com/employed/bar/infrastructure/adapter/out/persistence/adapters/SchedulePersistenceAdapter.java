@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.adapters;
 
-import com.employed.bar.domain.model.EmployeeClass;
-import com.employed.bar.domain.model.ScheduleClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.ScheduleClass;
 import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.ScheduleEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.mapper.ScheduleMapper;

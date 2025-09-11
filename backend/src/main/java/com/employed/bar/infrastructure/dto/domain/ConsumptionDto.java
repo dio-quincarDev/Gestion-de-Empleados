@@ -1,4 +1,4 @@
-package com.employed.bar.infrastructure.dto;
+package com.employed.bar.infrastructure.dto.domain;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

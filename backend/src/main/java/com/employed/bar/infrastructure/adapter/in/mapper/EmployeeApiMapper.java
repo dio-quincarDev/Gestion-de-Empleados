@@ -1,49 +1,25 @@
 package com.employed.bar.infrastructure.adapter.in.mapper;
 
-import com.employed.bar.domain.model.*;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.model.payment.AchPaymentMethod;
 import com.employed.bar.domain.model.payment.CashPaymentMethod;
 import com.employed.bar.domain.model.payment.PaymentMethod;
 import com.employed.bar.domain.model.payment.YappyPaymentMethod;
-import com.employed.bar.infrastructure.dto.*;
-import org.springframework.stereotype.Component;
+import com.employed.bar.infrastructure.dto.payment.AchPaymentMethodDto;
+import com.employed.bar.infrastructure.dto.payment.CashPaymentMethodDto;
+import com.employed.bar.infrastructure.dto.domain.EmployeeDto;
+import com.employed.bar.infrastructure.dto.payment.PaymentMethodDto;
+import com.employed.bar.infrastructure.dto.payment.YappyPaymentMethodDto;
+import org.mapstruct.Mapper;
 
-@Component
-public class EmployeeApiMapper {
+@Mapper(componentModel = "spring")
+public interface EmployeeApiMapper {
 
-    public EmployeeClass toDomain(EmployeeDto dto) {
-        if (dto == null) {
-            return null;
-        }
-        EmployeeClass domain = new EmployeeClass();
-        domain.setId(dto.getId());
-        domain.setName(dto.getName());
-        domain.setEmail(dto.getEmail());
-        domain.setRole(dto.getRole());
-        domain.setHourlyRate(dto.getHourlyRate());
-        domain.setStatus(dto.getStatus());
-        domain.setPaysOvertime(dto.isPaysOvertime());
-        domain.setOvertimeRateType(dto.getOvertimeRateType());
-        domain.setPaymentMethod(toDomain(dto.getPaymentMethod()));
-        return domain;
-    }
+    EmployeeClass toDomain(EmployeeDto dto);
 
-    public EmployeeDto toDto(EmployeeClass domain) {
-        if (domain == null) {
-            return null;
-        }
-        EmployeeDto dto = new EmployeeDto();
-        dto.setId(domain.getId());
-        dto.setName(domain.getName());
-        dto.setEmail(domain.getEmail());
-        dto.setRole(domain.getRole());
-        dto.setHourlyRate(domain.getHourlyRate());
-        dto.setStatus(domain.getStatus());
-        dto.setPaymentMethod(toDto(domain.getPaymentMethod()));
-        return dto;
-    }
+    EmployeeDto toDto(EmployeeClass domain);
 
-    private PaymentMethod toDomain(PaymentMethodDto dto) {
+    default PaymentMethod toDomain(PaymentMethodDto dto) {
         if (dto == null) {
             return null;
         }
@@ -57,7 +33,7 @@ public class EmployeeApiMapper {
         throw new IllegalArgumentException("Unknown PaymentMethodDto type: " + dto.getClass().getName());
     }
 
-    private PaymentMethodDto toDto(PaymentMethod domain) {
+    default PaymentMethodDto toDto(PaymentMethod domain) {
         if (domain == null) {
             return null;
         }

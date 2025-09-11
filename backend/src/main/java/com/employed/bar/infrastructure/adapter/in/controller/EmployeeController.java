@@ -2,11 +2,11 @@ package com.employed.bar.infrastructure.adapter.in.controller;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.EmployeeUseCase;
 import com.employed.bar.infrastructure.adapter.in.mapper.EmployeeApiMapper;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
-import com.employed.bar.infrastructure.dto.EmployeeDto;
+import com.employed.bar.infrastructure.dto.domain.EmployeeDto;
 import com.employed.bar.infrastructure.dto.UpdateHourlyRateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

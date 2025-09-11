@@ -5,7 +5,7 @@ import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.payment.AchPaymentMethod;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.model.payment.PaymentMethod;
 import com.employed.bar.domain.model.payment.YappyPaymentMethod;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
@@ -108,7 +108,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     public double calculateAttendancePercentage(EmployeeClass employee, int year, int month, int day) {
-        return attendanceUseCase.calculateAttendancePercentage(employee, year, month, day);
+        return attendanceUseCase.calculateAttendancePercentage(employee.getId(), year, month, day);
     }
 
     @Override

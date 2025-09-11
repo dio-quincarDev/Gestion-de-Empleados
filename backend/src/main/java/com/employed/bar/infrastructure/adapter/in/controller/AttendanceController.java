@@ -1,12 +1,10 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
-import com.employed.bar.infrastructure.constants.ApiPathConstants;
-import com.employed.bar.infrastructure.dto.AttendanceDto;
-import com.employed.bar.infrastructure.dto.AttendanceReportDto;
 import com.employed.bar.application.service.AttendanceApplicationService;
-import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.EmployeeClass;
-import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.infrastructure.constants.ApiPathConstants;
+import com.employed.bar.infrastructure.dto.domain.AttendanceDto;
+import com.employed.bar.infrastructure.dto.report.AttendanceReportDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -29,12 +27,9 @@ import java.util.List;
 @Tag(name = "3. Gestión de Asistencia", description = "Endpoints para el registro y consulta de asistencia del personal")
 public class AttendanceController {
     private final AttendanceApplicationService attendanceApplicationService;
-    private final EmployeeRepositoryPort employeeRepository;
 
-    public AttendanceController(AttendanceApplicationService attendanceApplicationService,
-                                EmployeeRepositoryPort employeeRepository) {
+    public AttendanceController(AttendanceApplicationService attendanceApplicationService) {
         this.attendanceApplicationService = attendanceApplicationService;
-        this.employeeRepository = employeeRepository;
     }
 
     @Operation(
@@ -46,7 +41,7 @@ public class AttendanceController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Asistencia registrada correctamente",
-                    content = @Content(schema = @Schema(implementation = AttendanceRecord.class))
+                    content = @Content(schema = @Schema(implementation = AttendanceRecordClass.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -78,8 +73,8 @@ public class AttendanceController {
             if (attendanceDto.getEmployeeId() == null) {
                 return ResponseEntity.badRequest().body("Employee ID is required");
             }
-            AttendanceRecord attendanceRecord = attendanceApplicationService.registerAttendance(attendanceDto);
-            return ResponseEntity.ok(attendanceRecord);
+            AttendanceRecordClass attendanceRecordClass = attendanceApplicationService.registerAttendance(attendanceDto);
+            return ResponseEntity.ok(attendanceRecordClass);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
@@ -188,9 +183,7 @@ public class AttendanceController {
             )
             @RequestParam int day) {
 
-        EmployeeClass employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee Not Found"));
-        double percentage = attendanceApplicationService.calculateAttendancePercentage(employee, year, month, day);
+        double percentage = attendanceApplicationService.calculateAttendancePercentage(employeeId, year, month, day);
         return ResponseEntity.ok(percentage);
     }
 
@@ -203,7 +196,7 @@ public class AttendanceController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Lista de registros de asistencia",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AttendanceRecord.class)))
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AttendanceRecordClass.class)))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -217,7 +210,7 @@ public class AttendanceController {
             )
     })
     @GetMapping("/list")
-    public ResponseEntity<List<AttendanceRecord>> getAttendanceListByEmployeeAndDateRange(
+    public ResponseEntity<List<AttendanceRecordClass>> getAttendanceListByEmployeeAndDateRange(
             @Parameter(
                     description = "ID del empleado",
                     required = true,
@@ -239,11 +232,8 @@ public class AttendanceController {
             )
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        EmployeeClass employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
-
-        List<AttendanceRecord> attendanceRecords = attendanceApplicationService
-                .getAttendanceListByEmployeeAndDateRange(employee, startDate, endDate);
-        return ResponseEntity.ok(attendanceRecords);
+        List<AttendanceRecordClass> attendanceRecordClasses = attendanceApplicationService
+                .getAttendanceListByEmployeeAndDateRange(employeeId, startDate, endDate);
+        return ResponseEntity.ok(attendanceRecordClasses);
     }
 }

@@ -1,4 +1,4 @@
-package com.employed.bar.domain.model;
+package com.employed.bar.domain.model.strucuture;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import java.time.LocalTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AttendanceRecord {
+public class AttendanceRecordClass {
     private Long id;
     private EmployeeClass employee;
     private LocalDate date;

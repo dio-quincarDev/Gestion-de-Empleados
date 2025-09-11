@@ -1,7 +1,7 @@
 package com.employed.bar.domain.port.out;
 
-import com.employed.bar.infrastructure.dto.ReportDto;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.infrastructure.dto.report.ReportDto;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 
 import java.time.LocalDateTime;
 import java.util.List;

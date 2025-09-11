@@ -1,8 +1,8 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.infrastructure.dto.ReportDto;
-import com.employed.bar.domain.model.Consumption;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.infrastructure.dto.report.ReportDto;
+import com.employed.bar.domain.model.strucuture.ConsumptionClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.ConsumptionRepository;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
@@ -26,7 +26,7 @@ public class ReportingApplicationService {
 
     public ReportDto generateReport(LocalDateTime startDate, LocalDateTime endDate, Long employeeId) {
         List<EmployeeClass> employees = employeeRepository.findAll();
-        List<Consumption> consumptions = consumptionRepository.findAll();
+        List<ConsumptionClass> consumptionClasses = consumptionRepository.findAll();
 
         return reportingUseCase.generateCompleteReport( startDate.toLocalDate(), endDate.toLocalDate(), employeeId);
     }

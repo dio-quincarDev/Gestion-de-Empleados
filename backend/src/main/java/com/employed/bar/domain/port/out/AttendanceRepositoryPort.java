@@ -1,13 +1,13 @@
 package com.employed.bar.domain.port.out;
 
-import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public interface AttendanceRepositoryPort {
-    AttendanceRecord save(AttendanceRecord attendanceRecord);
-    List<AttendanceRecord> findByEmployeeAndDateRange(EmployeeClass employee, LocalDate startDate, LocalDate endDate);
-    List<AttendanceRecord> findByEmployee(EmployeeClass employee);
+    AttendanceRecordClass save(AttendanceRecordClass attendanceRecordClass);
+    List<AttendanceRecordClass> findByEmployeeAndDateRange(EmployeeClass employee, LocalDate startDate, LocalDate endDate);
+    List<AttendanceRecordClass> findByEmployee(EmployeeClass employee);
 }

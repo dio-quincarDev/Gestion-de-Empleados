@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.adapters;
 
-import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.AttendanceRecordEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.mapper.AttendanceMapper;
@@ -27,21 +27,21 @@ public class AttendancePersistenceAdapter implements AttendanceRepositoryPort {
     }
 
     @Override
-    public AttendanceRecord save(AttendanceRecord attendanceRecord) {
-        AttendanceRecordEntity attendanceRecordEntity = attendanceMapper.toEntity(attendanceRecord);
+    public AttendanceRecordClass save(AttendanceRecordClass attendanceRecordClass) {
+        AttendanceRecordEntity attendanceRecordEntity = attendanceMapper.toEntity(attendanceRecordClass);
         AttendanceRecordEntity savedEntity = springAttendanceJpaRepository.save(attendanceRecordEntity);
         return attendanceMapper.toDomain(savedEntity);
     }
 
     @Override
-    public List<AttendanceRecord> findByEmployeeAndDateRange(EmployeeClass employee, LocalDate startDate, LocalDate endDate) {
+    public List<AttendanceRecordClass> findByEmployeeAndDateRange(EmployeeClass employee, LocalDate startDate, LocalDate endDate) {
         return springAttendanceJpaRepository.findByEmployeeAndDateBetween(employeeMapper.toEntity(employee), startDate, endDate).stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<AttendanceRecord> findByEmployee(EmployeeClass employee) {
+    public List<AttendanceRecordClass> findByEmployee(EmployeeClass employee) {
         return springAttendanceJpaRepository.findByEmployee(employeeMapper.toEntity(employee)).stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());

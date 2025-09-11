@@ -11,7 +11,7 @@ CREATE TABLE Employee (
     CONSTRAINT chk_salary CHECK (salary >= 0) -- Moved from V4/V6
 );
 
--- Table: Consumption
+-- Table: ConsumptionClass
 CREATE TABLE Consumption (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     consumption_date DATETIME NOT NULL,

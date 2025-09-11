@@ -1,11 +1,11 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
-import com.employed.bar.infrastructure.dto.ConsumptionDto;
+import com.employed.bar.infrastructure.dto.domain.ConsumptionDto;
 import com.employed.bar.application.service.ConsumptionApplicationService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.InvalidConsumptionDataException;
-import com.employed.bar.domain.model.Consumption;
+import com.employed.bar.domain.model.strucuture.ConsumptionClass;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -43,7 +43,7 @@ public class ConsumptionController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Consumo registrado exitosamente",
-                    content = @Content(schema = @Schema(implementation = Consumption.class))
+                    content = @Content(schema = @Schema(implementation = ConsumptionClass.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -57,15 +57,15 @@ public class ConsumptionController {
             )
     })
     @PostMapping("/")
-    public ResponseEntity<Consumption> createConsumption(
+    public ResponseEntity<ConsumptionClass> createConsumption(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos del consumo a registrar",
                     required = true,
                     content = @Content(schema = @Schema(implementation = ConsumptionDto.class))
             )
             @RequestBody @Valid ConsumptionDto consumptionDto) {
-        Consumption consumption = consumptionApplicationService.processConsumption(consumptionDto);
-        return ResponseEntity.ok(consumption);
+        ConsumptionClass consumptionClass = consumptionApplicationService.processConsumption(consumptionDto);
+        return ResponseEntity.ok(consumptionClass);
     }
 
     @Operation(
@@ -130,7 +130,7 @@ public class ConsumptionController {
             @Parameter(description = "Fecha de fin (YYYY-MM-DD)", required = true, example = "2023-12-31")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
-        BigDecimal total = consumptionApplicationService.calculateTotalConsumptionForAllEmployees(startDate, endDate);
+        BigDecimal total = consumptionApplicationService.calculateTotalConsumptionForAllEmployees(startDate.atStartOfDay(), endDate.atTime(23, 59, 59));
         return ResponseEntity.ok(total);
     }
 

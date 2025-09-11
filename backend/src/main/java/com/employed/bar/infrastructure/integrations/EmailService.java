@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.integrations;
-import com.employed.bar.infrastructure.dto.ReportDto;
+import com.employed.bar.infrastructure.dto.report.ReportDto;
 import com.employed.bar.domain.exceptions.EmailSendingException;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;

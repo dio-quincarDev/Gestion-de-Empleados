@@ -1,6 +1,6 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.mapper;
 
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

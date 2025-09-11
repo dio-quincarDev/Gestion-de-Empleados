@@ -1,4 +1,4 @@
-package com.employed.bar.infrastructure.dto;
+package com.employed.bar.infrastructure.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

@@ -1,8 +1,8 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.EmployeeClass;
-import com.employed.bar.domain.model.OvertimeSuggestion;
+import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.payment.OvertimeSuggestion;
 import com.employed.bar.domain.port.in.service.OvertimeSuggestionUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
@@ -35,16 +35,16 @@ public class OvertimeSuggestionApplicationService implements OvertimeSuggestionU
         List<OvertimeSuggestion> suggestions = new ArrayList<>();
 
         for (EmployeeClass employee : employeesWithoutOvertimePay) {
-            List<AttendanceRecord> records = attendanceRepositoryPort.findByEmployee(employee);
+            List<AttendanceRecordClass> records = attendanceRepositoryPort.findByEmployee(employee);
 
             // Group records by day using the 'date' field
-            Map<LocalDate, List<AttendanceRecord>> recordsByDay = records.stream()
+            Map<LocalDate, List<AttendanceRecordClass>> recordsByDay = records.stream()
                     .filter(record -> record.getDate() != null)
-                    .collect(Collectors.groupingBy(AttendanceRecord::getDate));
+                    .collect(Collectors.groupingBy(AttendanceRecordClass::getDate));
 
-            for (Map.Entry<LocalDate, List<AttendanceRecord>> entry : recordsByDay.entrySet()) {
+            for (Map.Entry<LocalDate, List<AttendanceRecordClass>> entry : recordsByDay.entrySet()) {
                 LocalDate day = entry.getKey();
-                List<AttendanceRecord> dayRecords = entry.getValue();
+                List<AttendanceRecordClass> dayRecords = entry.getValue();
 
                 long totalMinutesWorked = dayRecords.stream()
                         .filter(record -> record.getEntryTime() != null && record.getExitTime() != null)

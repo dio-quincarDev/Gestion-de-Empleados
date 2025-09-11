@@ -1,7 +1,8 @@
-package com.employed.bar.domain.model;
+package com.employed.bar.domain.model.strucuture;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.OvertimeRateType;
+import com.employed.bar.domain.model.strucuture.ScheduleClass;
 import com.employed.bar.domain.model.payment.PaymentMethod;
 import lombok.*;
 
@@ -24,7 +25,7 @@ public class EmployeeClass {
     private boolean paysOvertime;
     private OvertimeRateType overtimeRateType;
     private String status;
-    private List<ScheduleClass> schedules = new ArrayList<>();
-    private List<AttendanceRecord> attendanceRecords = new ArrayList<>();
-    private List<Consumption> consumptions = new ArrayList<>();
+    private List<com.employed.bar.domain.model.strucuture.ScheduleClass> schedules = new ArrayList<>();
+    private List<AttendanceRecordClass> attendanceRecordClasses = new ArrayList<>();
+    private List<ConsumptionClass> consumptionClasses = new ArrayList<>();
 }

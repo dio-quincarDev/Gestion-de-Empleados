@@ -1,4 +1,4 @@
-package com.employed.bar.infrastructure.dto;
+package com.employed.bar.infrastructure.dto.payment;
 
 import lombok.NoArgsConstructor;
 

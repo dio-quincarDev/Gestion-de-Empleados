@@ -1,7 +1,7 @@
 package com.employed.bar.domain.port.out;
 
 import com.employed.bar.domain.enums.EmployeeRole;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 
 import java.util.List;
 import java.util.Optional;

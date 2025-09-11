@@ -201,7 +201,7 @@ erDiagram
 | PUT    | /{id} | Actualizar | ID, EmployeeDto |
 | DELETE | /{id} | Eliminar | ID |
 
-### Consumos (`/api/consumptions`)
+### Consumos (`/api/consumptionClasses`)
 | Método | Ruta | Descripción | Parámetros |
 |--------|------|-------------|------------|
 | POST   | /    | Registrar consumo | ConsumptionDto |

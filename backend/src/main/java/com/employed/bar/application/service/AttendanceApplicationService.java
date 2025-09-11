@@ -1,59 +1,58 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
-import com.employed.bar.infrastructure.dto.AttendanceDto;
-import com.employed.bar.infrastructure.dto.AttendanceReportDto;
-import com.employed.bar.infrastructure.dto.ReportDto;
-import com.employed.bar.domain.model.AttendanceRecord;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
+import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.ConsumptionRepository;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.infrastructure.adapter.in.mapper.AttendanceApiMapper;
+import com.employed.bar.infrastructure.dto.domain.AttendanceDto;
+import com.employed.bar.infrastructure.dto.report.AttendanceReportDto;
+import com.employed.bar.infrastructure.dto.report.ReportDto;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-public class AttendanceApplicationService  {
+public class AttendanceApplicationService implements AttendanceUseCase {
     private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepositoryPort attendanceRepositoryPort;
-    private final AttendanceUseCase attendanceUseCase;
     private final ReportingUseCase reportingUseCase;
     private final ConsumptionRepository consumptionRepository;
-
+    private final AttendanceApiMapper attendanceApiMapper;
 
     public AttendanceApplicationService(EmployeeRepositoryPort employeeRepository,
-                                         AttendanceRepositoryPort attendanceRepositoryPort,
-                                        AttendanceUseCase attendanceUseCase,
+                                        AttendanceRepositoryPort attendanceRepositoryPort,
                                         ReportingUseCase reportingUseCase,
-                                        ConsumptionRepository consumptionRepository) {
+                                        ConsumptionRepository consumptionRepository,
+                                        AttendanceApiMapper attendanceApiMapper) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepositoryPort = attendanceRepositoryPort;
-        this.attendanceUseCase = attendanceUseCase;
         this.reportingUseCase = reportingUseCase;
         this.consumptionRepository = consumptionRepository;
+        this.attendanceApiMapper = attendanceApiMapper;
     }
+
     @Transactional
-    public AttendanceRecord registerAttendance(AttendanceDto attendanceDto) {
-       Long employeeId = attendanceDto.getEmployeeId();
+    public AttendanceRecordClass registerAttendance(AttendanceDto attendanceDto) {
+        Long employeeId = attendanceDto.getEmployeeId();
 
-       if (employeeId == null){
-           throw new IllegalArgumentException("Employee ID cannot be null");
-       }
+        if (employeeId == null) {
+            throw new IllegalArgumentException("Employee ID cannot be null");
+        }
         EmployeeClass employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
 
-        AttendanceRecord attendanceRecord = new AttendanceRecord();
-        attendanceRecord.setEmployee(employee);
-        attendanceRecord.setDate(attendanceDto.getDate());
-        attendanceRecord.setEntryTime(attendanceDto.getEntryTime());
-        attendanceRecord.setExitTime(attendanceDto.getExitTime());
-        attendanceRecord.setStatus(attendanceDto.getStatus());
-        return attendanceRepositoryPort.save(attendanceRecord);
+        AttendanceRecordClass attendanceRecordClass = attendanceApiMapper.toDomain(attendanceDto);
+        attendanceRecordClass.setEmployee(employee);
+        return attendanceRepositoryPort.save(attendanceRecordClass);
     }
 
 
@@ -61,17 +60,32 @@ public class AttendanceApplicationService  {
         LocalDate date = LocalDate.of(year, month, day);
         LocalDate startDate = date.atStartOfDay().toLocalDate();
         LocalDate endDate = date.atTime(LocalTime.MAX).toLocalDate();
-        ReportDto report = reportingUseCase.generateCompleteReport( startDate, endDate, employeeId);
+        ReportDto report = reportingUseCase.generateCompleteReport(startDate, endDate, employeeId);
         return report.getAttendanceReports();
     }
 
-
-
-    public double calculateAttendancePercentage(EmployeeClass employee, int year, int month, int day){
-        return attendanceUseCase.calculateAttendancePercentage(employee, year, month, day);
+    @Override
+    public List<AttendanceRecordClass> findEmployeeAttendances(Long employeeId, LocalDate date) {
+        EmployeeClass employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
+        return attendanceRepositoryPort.findByEmployee(employee).stream()
+                .filter(record -> record.getDate().equals(date))
+                .collect(Collectors.toList());
     }
 
-    public List<AttendanceRecord>getAttendanceListByEmployeeAndDateRange(EmployeeClass employee, LocalDate startDate, LocalDate endDate){
-        return attendanceUseCase.getAttendanceListByEmployeeAndDateRange(employee, startDate, endDate);
+    @Override
+    public double calculateAttendancePercentage(Long employeeId, int year, int month, int day) {
+        EmployeeClass employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
+        // Placeholder: A real implementation is needed.
+        List<AttendanceRecordClass> records = getAttendanceListByEmployeeAndDateRange(employeeId, LocalDate.of(year, month, day), LocalDate.of(year, month, day));
+        return records.isEmpty() ? 0.0 : 100.0;
+    }
+
+    @Override
+    public List<AttendanceRecordClass> getAttendanceListByEmployeeAndDateRange(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        EmployeeClass employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
+        return attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate);
     }
 }

@@ -1,9 +1,9 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
-import com.employed.bar.infrastructure.dto.ReportDto;
+import com.employed.bar.infrastructure.dto.report.ReportDto;
 import com.employed.bar.infrastructure.integrations.EmailService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import io.swagger.v3.oas.annotations.Operation;

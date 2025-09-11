@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.adapter.in.mapper;
 
-import com.employed.bar.domain.model.ScheduleClass;
-import com.employed.bar.infrastructure.dto.ScheduleDto;
+import com.employed.bar.domain.model.strucuture.ScheduleClass;
+import com.employed.bar.infrastructure.dto.domain.ScheduleDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

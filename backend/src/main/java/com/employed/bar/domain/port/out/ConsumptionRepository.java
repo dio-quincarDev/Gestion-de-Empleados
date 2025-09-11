@@ -1,32 +1,32 @@
 package com.employed.bar.domain.port.out;
 
-import com.employed.bar.domain.model.Consumption;
-import com.employed.bar.domain.model.EmployeeClass;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+import com.employed.bar.domain.model.strucuture.ConsumptionClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-@Repository
-public interface ConsumptionRepository extends JpaRepository <Consumption, Long> {
-    @Query("SELECT c FROM Consumption c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate AND (:description IS NULL OR c.description LIKE %:description%)")
-    List<Consumption> findByEmployeeAndDateTimeBetween(@Param("employee") EmployeeClass employee,
-                                                       @Param("startDate") LocalDateTime startDate,
-                                                       @Param("endDate") LocalDateTime endDate,
-                                                       @Param("description") String description);
+public interface ConsumptionRepository {
 
+    ConsumptionClass save(ConsumptionClass consumptionClass);
 
-    @Query("SELECT SUM(c.amount) FROM Consumption c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate")
-    BigDecimal sumConsumptionByEmployeeAndDateRange(@Param("employee") EmployeeClass employee,
-                                                    @Param("startDate") LocalDateTime startDate,
-                                                    @Param("endDate") LocalDateTime endDate);
+    Optional<ConsumptionClass> findById(Long id);
 
-    @Query("SELECT SUM(c.amount) FROM Consumption c WHERE c.consumptionDate BETWEEN :startDate AND :endDate")
-    BigDecimal sumTotalConsumptionByDateRange(@Param("startDate") LocalDateTime startDate,
-                                              @Param("endDate") LocalDateTime endDate);
+    void deleteById(Long id);
 
+    List<ConsumptionClass> findByEmployeeAndDateTimeBetween(EmployeeClass employee,
+                                                            LocalDateTime startDate,
+                                                            LocalDateTime endDate,
+                                                            String description);
+
+    BigDecimal sumConsumptionByEmployeeAndDateRange(EmployeeClass employee,
+                                                    LocalDateTime startDate,
+                                                    LocalDateTime endDate);
+
+    BigDecimal sumTotalConsumptionByDateRange(LocalDateTime startDate,
+                                              LocalDateTime endDate);
+
+    List<ConsumptionClass> findAll();
 }

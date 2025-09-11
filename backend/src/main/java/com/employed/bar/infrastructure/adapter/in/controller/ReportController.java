@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
-import com.employed.bar.infrastructure.dto.ReportDto;
+import com.employed.bar.infrastructure.dto.report.ReportDto;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,10 +1,13 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
-import com.employed.bar.domain.model.ScheduleClass;
-import com.employed.bar.infrastructure.constants.ApiPathConstants;
-import com.employed.bar.infrastructure.dto.ScheduleDto;
+import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.ScheduleClass;
 import com.employed.bar.domain.port.in.service.ScheduleUseCase;
+import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.infrastructure.adapter.in.mapper.ScheduleApiMapper;
+import com.employed.bar.infrastructure.constants.ApiPathConstants;
+import com.employed.bar.infrastructure.dto.domain.ScheduleDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -26,10 +29,12 @@ import java.util.stream.Collectors;
 public class ScheduleController {
     private final ScheduleUseCase scheduleUseCase;
     private final ScheduleApiMapper scheduleApiMapper;
+    private final EmployeeRepositoryPort employeeRepositoryPort;
 
-    public ScheduleController(ScheduleUseCase scheduleUseCase, ScheduleApiMapper scheduleApiMapper) {
+    public ScheduleController(ScheduleUseCase scheduleUseCase, ScheduleApiMapper scheduleApiMapper, EmployeeRepositoryPort employeeRepositoryPort) {
         this.scheduleUseCase = scheduleUseCase;
         this.scheduleApiMapper = scheduleApiMapper;
+        this.employeeRepositoryPort = employeeRepositoryPort;
     }
 
     @Operation(
@@ -41,7 +46,7 @@ public class ScheduleController {
             @ApiResponse(
                     responseCode = "201",
                     description = "Horario creado exitosamente",
-                    content = @Content(schema = @Schema(implementation = ScheduleClass.class))
+                    content = @Content(schema = @Schema(implementation = ScheduleDto.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -62,7 +67,12 @@ public class ScheduleController {
                     content = @Content(schema = @Schema(implementation = ScheduleDto.class)))
             @RequestBody ScheduleDto scheduleDto) {
 
-        ScheduleClass createdSchedule = scheduleUseCase.createSchedule(scheduleDto);
+        ScheduleClass schedule = scheduleApiMapper.toDomain(scheduleDto);
+        EmployeeClass employee = employeeRepositoryPort.findById(scheduleDto.getEmployeeId())
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with ID: " + scheduleDto.getEmployeeId()));
+        schedule.setEmployee(employee);
+
+        ScheduleClass createdSchedule = scheduleUseCase.createSchedule(schedule);
         return ResponseEntity.status(HttpStatus.CREATED).body(scheduleApiMapper.toDto(createdSchedule));
     }
 
@@ -75,7 +85,7 @@ public class ScheduleController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Horario encontrado",
-                    content = @Content(schema = @Schema(implementation = ScheduleClass.class))
+                    content = @Content(schema = @Schema(implementation = ScheduleDto.class))
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -101,7 +111,7 @@ public class ScheduleController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Lista de horarios obtenida exitosamente",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ScheduleClass.class)))
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ScheduleDto.class)))
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -127,7 +137,7 @@ public class ScheduleController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Horario actualizado exitosamente",
-                    content = @Content(schema = @Schema(implementation = ScheduleClass.class))
+                    content = @Content(schema = @Schema(implementation = ScheduleDto.class))
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -148,7 +158,7 @@ public class ScheduleController {
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos actualizados del horario",
                     required = true,
-                    content = @Content(schema = @Schema(implementation = ScheduleClass.class)))
+                    content = @Content(schema = @Schema(implementation = ScheduleDto.class)))
             @RequestBody ScheduleDto scheduleDto) {
 
         ScheduleClass schedule = scheduleApiMapper.toDomain(scheduleDto);

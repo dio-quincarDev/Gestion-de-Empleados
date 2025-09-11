@@ -1,12 +1,12 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.infrastructure.dto.ConsumptionDto;
-import com.employed.bar.infrastructure.dto.ConsumptionReportDto;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.Consumption;
-import com.employed.bar.domain.model.EmployeeClass;
+import com.employed.bar.domain.model.strucuture.ConsumptionClass;
+import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ConsumptionUseCase;
+import com.employed.bar.domain.port.out.ConsumptionRepository;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.infrastructure.dto.domain.ConsumptionDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,45 +20,45 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ConsumptionApplicationService {
+public class ConsumptionApplicationService implements ConsumptionUseCase {
 
-    private final ConsumptionUseCase consumptionUseCase;
     private final EmployeeRepositoryPort employeeRepository;
+    private final ConsumptionRepository consumptionRepository;
 
-
-
-    public Consumption processConsumption(ConsumptionDto consumptionDto) {
+    public ConsumptionClass processConsumption(ConsumptionDto consumptionDto) {
         EmployeeClass employee = employeeRepository.findById(consumptionDto.getEmployeeId())
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id " + consumptionDto.getEmployeeId()));
 
-        // Mapea los datos del DTO a la entidad Consumption
-        Consumption consumption = new Consumption();
-        consumption.setEmployee(employee);
-        consumption.setAmount(consumptionDto.getAmount());
-        consumption.setConsumptionDate(consumptionDto.getDate());
-        consumption.setDescription(consumptionDto.getDescription());
+        ConsumptionClass consumptionClass = new ConsumptionClass();
+        consumptionClass.setEmployee(employee);
+        consumptionClass.setAmount(consumptionDto.getAmount());
+        consumptionClass.setConsumptionDate(consumptionDto.getDate());
+        consumptionClass.setDescription(consumptionDto.getDescription());
 
-        return consumptionUseCase.createConsumption(consumption);
+        return createConsumption(consumptionClass);
     }
 
-    public Consumption createConsumption(Consumption consumption) {
-        return consumptionUseCase.createConsumption(consumption);
+    @Override
+    public ConsumptionClass createConsumption(ConsumptionClass consumptionClass) {
+        return consumptionRepository.save(consumptionClass);
     }
 
-    public Optional<Consumption> getConsumptionById(Long id) {
-        return consumptionUseCase.getConsumptionById(id);
+    @Override
+    public Optional<ConsumptionClass> getConsumptionById(Long id) {
+        return consumptionRepository.findById(id);
     }
 
-    public List<ConsumptionReportDto> getConsumptionsByEmployee(EmployeeClass employee, LocalDateTime startDate,
+    @Override
+    public List<ConsumptionClass> getConsumptionByEmployee(EmployeeClass employee, LocalDateTime startDate,
                                                                 LocalDateTime endDate, String description) {
-                return consumptionUseCase.getConsumptionByEmployee(employee, startDate, endDate, description);
+        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate, description);
     }
 
+    @Override
     public BigDecimal calculateTotalConsumptionByEmployee(EmployeeClass employee, LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionUseCase.calculateTotalConsumptionByEmployee(employee, startDate, endDate);
+        return consumptionRepository.sumConsumptionByEmployeeAndDateRange(employee, startDate, endDate);
     }
-
-    // Calcular el consumo total de un empleado
+    
     public BigDecimal calculateTotalConsumptionByEmployee(Long employeeId, LocalDate startDate, LocalDate endDate) {
         EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
@@ -66,18 +66,16 @@ public class ConsumptionApplicationService {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
-        return consumptionUseCase.calculateTotalConsumptionByEmployee(employee, startDateTime, endDateTime);
+        return calculateTotalConsumptionByEmployee(employee, startDateTime, endDateTime);
     }
 
-    // Calcular el consumo total de todos los empleados
-    public BigDecimal calculateTotalConsumptionForAllEmployees(LocalDate startDate, LocalDate endDate) {
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
-
-        return consumptionUseCase.calculateTotalConsumptionForAllEmployees(startDateTime, endDateTime);
+    @Override
+    public BigDecimal calculateTotalConsumptionForAllEmployees(LocalDateTime startDate, LocalDateTime endDate) {
+        return consumptionRepository.sumTotalConsumptionByDateRange(startDate, endDate);
     }
 
+    @Override
     public void deleteConsumption(Long id) {
-        consumptionUseCase.deleteConsumption(id);
+        consumptionRepository.deleteById(id);
     }
 }

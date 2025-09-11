@@ -1,4 +1,4 @@
-package com.employed.bar.infrastructure.dto;
+package com.employed.bar.infrastructure.dto.payment;
 
 import com.employed.bar.domain.enums.BankAccount;
 import jakarta.validation.constraints.NotBlank;
