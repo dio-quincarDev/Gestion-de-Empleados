@@ -6,6 +6,7 @@ import com.employed.bar.application.service.ConsumptionApplicationService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.InvalidConsumptionDataException;
 import com.employed.bar.domain.model.strucuture.ConsumptionClass;
+import com.employed.bar.infrastructure.adapter.in.mapper.ConsumptionApiMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,6 +34,7 @@ import java.util.Map;
 @Tag(name = "4. Gestión de Consumos", description = "Endpoints para el registro y consulta de consumos del personal")
 public class ConsumptionController {
     private final ConsumptionApplicationService consumptionApplicationService;
+    private final ConsumptionApiMapper consumptionApiMapper;
 
     @Operation(
             summary = "Registrar nuevo consumo",
@@ -64,9 +66,11 @@ public class ConsumptionController {
                     content = @Content(schema = @Schema(implementation = ConsumptionDto.class))
             )
             @RequestBody @Valid ConsumptionDto consumptionDto) {
-        ConsumptionClass consumptionClass = consumptionApplicationService.processConsumption(consumptionDto);
-        return ResponseEntity.ok(consumptionClass);
+        ConsumptionClass consumptionClass = consumptionApiMapper.toDomain(consumptionDto);
+        ConsumptionClass createdConsumption = consumptionApplicationService.createConsumption(consumptionClass);
+        return ResponseEntity.ok(createdConsumption);
     }
+
 
     @Operation(
             summary = "Obtener total de consumos por empleado",

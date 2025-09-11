@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface AttendanceUseCase {
 
+    AttendanceRecordClass registerAttendance(AttendanceRecordClass attendanceRecord);
+
     List<AttendanceRecordClass> findEmployeeAttendances(Long employeeId, LocalDate date);
 
     double calculateAttendancePercentage(Long employeeId, int year, int month, int day);

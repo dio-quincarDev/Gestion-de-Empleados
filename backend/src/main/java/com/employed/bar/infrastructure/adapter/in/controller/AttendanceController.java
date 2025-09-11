@@ -2,9 +2,10 @@ package com.employed.bar.infrastructure.adapter.in.controller;
 
 import com.employed.bar.application.service.AttendanceApplicationService;
 import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.infrastructure.adapter.in.mapper.AttendanceApiMapper;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.dto.domain.AttendanceDto;
-import com.employed.bar.infrastructure.dto.report.AttendanceReportDto;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +27,10 @@ import java.util.List;
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.ATTENDANCE_ROUTE)
 @Tag(name = "3. Gestión de Asistencia", description = "Endpoints para el registro y consulta de asistencia del personal")
+@RequiredArgsConstructor
 public class AttendanceController {
     private final AttendanceApplicationService attendanceApplicationService;
-
-    public AttendanceController(AttendanceApplicationService attendanceApplicationService) {
-        this.attendanceApplicationService = attendanceApplicationService;
-    }
+    private final AttendanceApiMapper attendanceApiMapper;
 
     @Operation(
             summary = "Registrar nueva asistencia",
@@ -73,68 +73,15 @@ public class AttendanceController {
             if (attendanceDto.getEmployeeId() == null) {
                 return ResponseEntity.badRequest().body("Employee ID is required");
             }
-            AttendanceRecordClass attendanceRecordClass = attendanceApplicationService.registerAttendance(attendanceDto);
-            return ResponseEntity.ok(attendanceRecordClass);
+            AttendanceRecordClass attendanceRecord = attendanceApiMapper.toDomain(attendanceDto);
+            AttendanceRecordClass createdRecord = attendanceApplicationService.registerAttendance(attendanceRecord);
+            return ResponseEntity.ok(attendanceApiMapper.toDto(createdRecord));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
         }
     }
 
-    @Operation(
-            summary = "Generar reporte de asistencia diaria",
-            description = "Obtiene un reporte detallado de asistencia para un empleado en una fecha específica",
-            operationId = "generateAttendanceReport"
-    )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Reporte generado exitosamente",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = AttendanceReportDto.class)))
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Parámetros inválidos",
-                    content = @Content(schema = @Schema(example = "{\"message\": \"Invalid date parameters\"}"))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Empleado no encontrado",
-                    content = @Content(schema = @Schema(example = "{\"message\": \"Employee not found\"}"))
-            )
-    })
-    @GetMapping("/report")
-    public ResponseEntity<List<AttendanceReportDto>> generateAttendanceReport(
-            @Parameter(
-                    description = "ID del empleado",
-                    required = true,
-                    example = "1"
-            )
-            @RequestParam Long employeeId,
-
-            @Parameter(
-                    description = "Año (formato YYYY)",
-                    required = true,
-                    example = "2023"
-            )
-            @RequestParam int year,
-
-            @Parameter(
-                    description = "Mes (1-12)",
-                    required = true,
-                    example = "12"
-            )
-            @RequestParam int month,
-
-            @Parameter(
-                    description = "Día del mes",
-                    required = true,
-                    example = "15"
-            )
-            @RequestParam int day) {
-
-        List<AttendanceReportDto> report = attendanceApplicationService.generateAttendanceReport(year, month, day, employeeId);
-        return ResponseEntity.ok(report);
-    }
+    
 
     @Operation(
             summary = "Calcular porcentaje de asistencia",

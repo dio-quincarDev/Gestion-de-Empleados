@@ -11,10 +11,14 @@ import com.employed.bar.infrastructure.dto.domain.EmployeeDto;
 import com.employed.bar.infrastructure.dto.payment.PaymentMethodDto;
 import com.employed.bar.infrastructure.dto.payment.YappyPaymentMethodDto;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface EmployeeApiMapper {
 
+    @Mapping(target = "schedules", ignore = true)
+    @Mapping(target = "attendanceRecordClasses", ignore = true)
+    @Mapping(target = "consumptionClasses", ignore = true)
     EmployeeClass toDomain(EmployeeDto dto);
 
     EmployeeDto toDto(EmployeeClass domain);

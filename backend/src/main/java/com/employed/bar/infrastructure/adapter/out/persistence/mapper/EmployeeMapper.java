@@ -18,5 +18,8 @@ public interface EmployeeMapper {
     EmployeeEntity toEntity(EmployeeClass domain);
 
     @Mapping(target = "paymentMethod", ignore = true)
+    @Mapping(target = "schedules", ignore = true)
+    @Mapping(target = "attendanceRecordClasses", ignore = true)
+    @Mapping(target = "consumptionClasses", ignore = true)
     EmployeeClass toDomain(EmployeeEntity entity);
 }

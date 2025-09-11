@@ -6,17 +6,11 @@ import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
-import com.employed.bar.domain.port.out.ConsumptionRepository;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
-import com.employed.bar.infrastructure.adapter.in.mapper.AttendanceApiMapper;
-import com.employed.bar.infrastructure.dto.domain.AttendanceDto;
-import com.employed.bar.infrastructure.dto.report.AttendanceReportDto;
-import com.employed.bar.infrastructure.dto.report.ReportDto;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,43 +19,28 @@ public class AttendanceApplicationService implements AttendanceUseCase {
     private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepositoryPort attendanceRepositoryPort;
     private final ReportingUseCase reportingUseCase;
-    private final ConsumptionRepository consumptionRepository;
-    private final AttendanceApiMapper attendanceApiMapper;
 
     public AttendanceApplicationService(EmployeeRepositoryPort employeeRepository,
                                         AttendanceRepositoryPort attendanceRepositoryPort,
-                                        ReportingUseCase reportingUseCase,
-                                        ConsumptionRepository consumptionRepository,
-                                        AttendanceApiMapper attendanceApiMapper) {
+                                        ReportingUseCase reportingUseCase) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepositoryPort = attendanceRepositoryPort;
         this.reportingUseCase = reportingUseCase;
-        this.consumptionRepository = consumptionRepository;
-        this.attendanceApiMapper = attendanceApiMapper;
     }
 
+    @Override
     @Transactional
-    public AttendanceRecordClass registerAttendance(AttendanceDto attendanceDto) {
-        Long employeeId = attendanceDto.getEmployeeId();
-
-        if (employeeId == null) {
-            throw new IllegalArgumentException("Employee ID cannot be null");
+    public AttendanceRecordClass registerAttendance(AttendanceRecordClass attendanceRecord) {
+        if (attendanceRecord.getEmployee() == null || attendanceRecord.getEmployee().getId() == null) {
+            throw new IllegalArgumentException("Employee ID cannot be null in AttendanceRecord");
         }
+        Long employeeId = attendanceRecord.getEmployee().getId();
+
         EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
 
-        AttendanceRecordClass attendanceRecordClass = attendanceApiMapper.toDomain(attendanceDto);
-        attendanceRecordClass.setEmployee(employee);
-        return attendanceRepositoryPort.save(attendanceRecordClass);
-    }
-
-
-    public List<AttendanceReportDto> generateAttendanceReport(int year, int month, int day, Long employeeId) {
-        LocalDate date = LocalDate.of(year, month, day);
-        LocalDate startDate = date.atStartOfDay().toLocalDate();
-        LocalDate endDate = date.atTime(LocalTime.MAX).toLocalDate();
-        ReportDto report = reportingUseCase.generateCompleteReport(startDate, endDate, employeeId);
-        return report.getAttendanceReports();
+        attendanceRecord.setEmployee(employee);
+        return attendanceRepositoryPort.save(attendanceRecord);
     }
 
     @Override

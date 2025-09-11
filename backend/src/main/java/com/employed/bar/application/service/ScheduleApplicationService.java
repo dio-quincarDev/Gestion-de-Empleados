@@ -1,5 +1,6 @@
 package com.employed.bar.application.service;
 
+import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.model.strucuture.ScheduleClass;
 import com.employed.bar.domain.port.in.service.ScheduleUseCase;
@@ -23,12 +24,13 @@ public class ScheduleApplicationService implements ScheduleUseCase {
     @Override
     public ScheduleClass createSchedule(ScheduleClass schedule) {
         if (schedule.getEmployee() == null || schedule.getEmployee().getId() == null) {
-            throw new IllegalArgumentException("Employee must be set on the schedule.");
+            throw new IllegalArgumentException("Employee ID must be set on the schedule.");
         }
-        // Ensure the employee exists
-        employeeRepository.findById(schedule.getEmployee().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + schedule.getEmployee().getId()));
 
+        EmployeeClass employee = employeeRepository.findById(schedule.getEmployee().getId())
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with ID: " + schedule.getEmployee().getId()));
+
+        schedule.setEmployee(employee);
         return scheduleRepositoryPort.save(schedule);
     }
 

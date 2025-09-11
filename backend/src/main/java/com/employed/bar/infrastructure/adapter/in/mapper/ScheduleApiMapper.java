@@ -13,6 +13,7 @@ public interface ScheduleApiMapper {
     @Mapping(target = "employeeId", source = "employee.id")
     ScheduleDto toDto(ScheduleClass scheduleClass);
 
-    @Mapping(target = "employee", ignore = true) // Employee will be set by the application service
+    @Mapping(source = "employeeId", target = "employee.id")
+    @Mapping(target = "id", ignore = true)
     ScheduleClass toDomain(ScheduleDto scheduleDto);
 }

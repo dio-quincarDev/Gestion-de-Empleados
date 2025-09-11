@@ -6,7 +6,6 @@ import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ConsumptionUseCase;
 import com.employed.bar.domain.port.out.ConsumptionRepository;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
-import com.employed.bar.infrastructure.dto.domain.ConsumptionDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,21 +24,11 @@ public class ConsumptionApplicationService implements ConsumptionUseCase {
     private final EmployeeRepositoryPort employeeRepository;
     private final ConsumptionRepository consumptionRepository;
 
-    public ConsumptionClass processConsumption(ConsumptionDto consumptionDto) {
-        EmployeeClass employee = employeeRepository.findById(consumptionDto.getEmployeeId())
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id " + consumptionDto.getEmployeeId()));
-
-        ConsumptionClass consumptionClass = new ConsumptionClass();
-        consumptionClass.setEmployee(employee);
-        consumptionClass.setAmount(consumptionDto.getAmount());
-        consumptionClass.setConsumptionDate(consumptionDto.getDate());
-        consumptionClass.setDescription(consumptionDto.getDescription());
-
-        return createConsumption(consumptionClass);
-    }
-
     @Override
     public ConsumptionClass createConsumption(ConsumptionClass consumptionClass) {
+        EmployeeClass employee = employeeRepository.findById(consumptionClass.getEmployee().getId())
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id " + consumptionClass.getEmployee().getId()));
+        consumptionClass.setEmployee(employee);
         return consumptionRepository.save(consumptionClass);
     }
 

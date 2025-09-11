@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 public interface AttendanceApiMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "employee", ignore = true)
+    @Mapping(source = "employeeId", target = "employee.id")
     AttendanceRecordClass toDomain(AttendanceDto dto);
 
     @Mapping(source = "employee.id", target = "employeeId")

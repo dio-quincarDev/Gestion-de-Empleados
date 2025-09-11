@@ -2,7 +2,6 @@ package com.employed.bar.domain.model.strucuture;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.OvertimeRateType;
-import com.employed.bar.domain.model.strucuture.ScheduleClass;
 import com.employed.bar.domain.model.payment.PaymentMethod;
 import lombok.*;
 
