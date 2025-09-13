@@ -18,14 +18,11 @@ import java.util.stream.Collectors;
 public class AttendanceApplicationService implements AttendanceUseCase {
     private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepositoryPort attendanceRepositoryPort;
-    private final ReportingUseCase reportingUseCase;
-
     public AttendanceApplicationService(EmployeeRepositoryPort employeeRepository,
                                         AttendanceRepositoryPort attendanceRepositoryPort,
                                         ReportingUseCase reportingUseCase) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepositoryPort = attendanceRepositoryPort;
-        this.reportingUseCase = reportingUseCase;
     }
 
     @Override
@@ -54,7 +51,7 @@ public class AttendanceApplicationService implements AttendanceUseCase {
 
     @Override
     public double calculateAttendancePercentage(Long employeeId, int year, int month, int day) {
-        EmployeeClass employee = employeeRepository.findById(employeeId)
+        employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
         // Placeholder: A real implementation is needed.
         List<AttendanceRecordClass> records = getAttendanceListByEmployeeAndDateRange(employeeId, LocalDate.of(year, month, day), LocalDate.of(year, month, day));
