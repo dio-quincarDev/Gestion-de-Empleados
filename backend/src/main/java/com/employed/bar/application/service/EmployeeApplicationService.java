@@ -1,6 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
@@ -48,23 +49,13 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    public Optional<EmployeeClass> getEmployeeByName(String name) {
-        return employeeRepositoryPort.findByName(name);
-    }
-
-    @Override
-    public Optional<EmployeeClass> getEmployeeByRole(EmployeeRole role) {
-        return employeeRepositoryPort.findByRole(role);
-    }
-
-    @Override
-    public List<EmployeeClass> getEmployeeByStatus(String status) {
-        return employeeRepositoryPort.findByStatus(status);
-    }
-
-    @Override
     public List<EmployeeClass> getEmployees() {
         return employeeRepositoryPort.findAll();
+    }
+
+    @Override
+    public List<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status) {
+        return employeeRepositoryPort.searchEmployees(name, role, status);
     }
 
     @Override

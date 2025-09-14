@@ -1,11 +1,14 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.adapters;
 
 import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.mapper.EmployeeMapper;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.infrastructure.adapter.out.persistence.repository.EmployeeSpecification;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringEmployeeJpaRepository;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,7 +29,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     @Override
     public Optional<EmployeeClass> findByEmail(String email) {
         return springEmployeeJpaRepository.findByEmail(email)
-                .map(entity -> employeeMapper.toDomain(entity));
+                .map(employeeMapper::toDomain);
     }
 
     @Override
@@ -39,32 +42,13 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     @Override
     public Optional<EmployeeClass> findById(Long id) {
         return springEmployeeJpaRepository.findById(id)
-                .map(entity -> employeeMapper.toDomain(entity));
-    }
-
-    @Override
-    public List<EmployeeClass> findByStatus(String status) {
-        return springEmployeeJpaRepository.findByStatus(status).stream()
-                .map(entity -> employeeMapper.toDomain(entity))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public Optional<EmployeeClass> findByName(String name) {
-        return springEmployeeJpaRepository.findByName(name)
-                .map(entity -> employeeMapper.toDomain(entity));
-    }
-
-    @Override
-    public Optional<EmployeeClass> findByRole(EmployeeRole role) {
-        return springEmployeeJpaRepository.findByRole(role)
-                .map(entity -> employeeMapper.toDomain(entity));
+                .map(employeeMapper::toDomain);
     }
 
     @Override
     public List<EmployeeClass> findAll() {
         return springEmployeeJpaRepository.findAll().stream()
-                .map(entity -> employeeMapper.toDomain(entity))
+                .map(employeeMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
@@ -72,5 +56,22 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     public void delete(EmployeeClass employee) {
         EmployeeEntity employeeEntity = employeeMapper.toEntity(employee);
         springEmployeeJpaRepository.delete(employeeEntity);
+    }
+
+    @Override
+    public List<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status) {
+        Specification<EmployeeEntity> spec = Specification.where(null);
+        if (name != null) {
+            spec = spec.and(EmployeeSpecification.nameContains(name));
+        }
+        if (role != null) {
+            spec = spec.and(EmployeeSpecification.hasRole(role));
+        }
+        if (status != null) {
+            spec = spec.and(EmployeeSpecification.hasStatus(status));
+        }
+        return springEmployeeJpaRepository.findAll(spec).stream()
+                .map(employeeMapper::toDomain)
+                .collect(Collectors.toList());
     }
 }

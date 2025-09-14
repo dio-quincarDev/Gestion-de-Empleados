@@ -1,7 +1,9 @@
 package com.employed.bar.domain.exceptions;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
 public abstract class BaseDomainException extends RuntimeException {
 
     private final HttpStatus httpStatus;
@@ -19,11 +21,4 @@ public abstract class BaseDomainException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public HttpStatus getHttpStatus() {
-        return httpStatus;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
-    }
 }

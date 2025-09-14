@@ -1,6 +1,7 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
 import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.EmployeeUseCase;
@@ -58,13 +59,9 @@ public class EmployeeController {
     })
     @PostMapping
     public ResponseEntity<EmployeeDto> createEmployee(@RequestBody @Valid EmployeeDto employeeDto) {
-        try {
-            EmployeeClass employeeToCreate = employeeApiMapper.toDomain(employeeDto);
-            EmployeeClass createdEmployee = employeeUseCase.createEmployee(employeeToCreate);
-            return new ResponseEntity<>(employeeApiMapper.toDto(createdEmployee), HttpStatus.CREATED);
-        } catch (EmailAlreadyExistException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }
+        EmployeeClass employeeToCreate = employeeApiMapper.toDomain(employeeDto);
+        EmployeeClass createdEmployee = employeeUseCase.createEmployee(employeeToCreate);
+        return new ResponseEntity<>(employeeApiMapper.toDto(createdEmployee), HttpStatus.CREATED);
     }
 
     @Operation(
@@ -178,26 +175,14 @@ public class EmployeeController {
             operationId = "searchEmployees"
     )
     @GetMapping("/search")
-    public ResponseEntity<?> searchEmployees(
-            @Parameter(description = "Estado del empleado (ej. 'ACTIVE', 'INACTIVE')") @RequestParam(required = false) String status,
+    public ResponseEntity<List<EmployeeDto>> searchEmployees(
+            @Parameter(description = "Estado del empleado (ej. 'ACTIVE', 'INACTIVE')") @RequestParam(required = false) EmployeeStatus status,
             @Parameter(description = "Nombre completo o parcial del empleado") @RequestParam(required = false) String name,
             @Parameter(description = "Rol del empleado") @RequestParam(required = false) EmployeeRole role) {
 
-        if (status != null) {
-            List<EmployeeDto> employees = employeeUseCase.getEmployeeByStatus(status).stream()
-                    .map(employeeApiMapper::toDto)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(employees);
-        } else if (name != null) {
-            return employeeUseCase.getEmployeeByName(name)
-                    .map(employee -> ResponseEntity.ok(employeeApiMapper.toDto(employee)))
-                    .orElseGet(() -> ResponseEntity.notFound().build());
-        } else if (role != null) {
-            return employeeUseCase.getEmployeeByRole(role)
-                    .map(employee -> ResponseEntity.ok(employeeApiMapper.toDto(employee)))
-                    .orElseGet(() -> ResponseEntity.notFound().build());
-        } else {
-            return ResponseEntity.badRequest().build();
-        }
+        List<EmployeeDto> employees = employeeUseCase.searchEmployees(name, role, status).stream()
+                .map(employeeApiMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(employees);
     }
 }

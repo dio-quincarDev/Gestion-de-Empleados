@@ -2,6 +2,7 @@ package com.employed.bar.infrastructure.adapter.out.persistence.entity;
 
 import com.employed.bar.domain.enums.BankAccount;
 import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.enums.PaymentMethodType;
 import jakarta.persistence.*;
@@ -37,8 +38,9 @@ public class EmployeeEntity {
     @Column(name = "hourly_rate", nullable = false)
     private BigDecimal hourlyRate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private EmployeeStatus status;
 
     @Column(name = "pays_overtime")
     private boolean paysOvertime;
