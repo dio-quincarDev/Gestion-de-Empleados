@@ -39,7 +39,6 @@ public class EmployeeApplicationService implements EmployeeUseCase {
         if (doesEmailExist(employee.getEmail())){
             throw new EmailAlreadyExistException("Este Email ya existe: " + employee.getEmail());
         }
-        employee.getPaymentMethod().validate();
         return employeeRepositoryPort.save(employee);
     }
 
@@ -65,7 +64,6 @@ public class EmployeeApplicationService implements EmployeeUseCase {
 
     @Override
     public EmployeeClass updateEmployee(Long id, EmployeeClass updatedEmployee) {
-        updatedEmployee.getPaymentMethod().validate();
         return employeeRepositoryPort.findById(id)
                 .map(employee -> {
                     if (!employee.getEmail().equals(updatedEmployee.getEmail()) &&

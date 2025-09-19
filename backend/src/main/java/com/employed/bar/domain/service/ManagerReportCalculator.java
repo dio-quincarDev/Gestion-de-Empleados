@@ -3,6 +3,7 @@ package com.employed.bar.domain.service;
 import com.employed.bar.domain.model.manager.EmployeeSummary;
 import com.employed.bar.domain.model.manager.ManagerReport;
 import com.employed.bar.domain.model.manager.ReportTotals;
+import com.employed.bar.domain.model.report.IndividualReportSummary;
 import com.employed.bar.domain.model.report.Report;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import org.springframework.stereotype.Service;

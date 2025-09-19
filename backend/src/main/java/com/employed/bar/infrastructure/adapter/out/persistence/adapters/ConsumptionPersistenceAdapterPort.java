@@ -2,7 +2,7 @@ package com.employed.bar.infrastructure.adapter.out.persistence.adapters;
 
 import com.employed.bar.domain.model.strucuture.ConsumptionClass;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
-import com.employed.bar.domain.port.out.ConsumptionRepository;
+import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.ConsumptionEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.mapper.ConsumptionMapper;
 import com.employed.bar.infrastructure.adapter.out.persistence.mapper.EmployeeMapper;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class ConsumptionPersistenceAdapter implements ConsumptionRepository {
+public class ConsumptionPersistenceAdapterPort implements ConsumptionRepositoryPort {
 
     private final SpringConsumptionJpaRepository springConsumptionJpaRepository;
     private final ConsumptionMapper consumptionMapper;

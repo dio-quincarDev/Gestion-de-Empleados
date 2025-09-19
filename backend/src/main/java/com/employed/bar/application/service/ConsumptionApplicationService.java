@@ -4,7 +4,7 @@ import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.strucuture.ConsumptionClass;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ConsumptionUseCase;
-import com.employed.bar.domain.port.out.ConsumptionRepository;
+import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,30 +22,30 @@ import java.util.Optional;
 public class ConsumptionApplicationService implements ConsumptionUseCase {
 
     private final EmployeeRepositoryPort employeeRepository;
-    private final ConsumptionRepository consumptionRepository;
+    private final ConsumptionRepositoryPort consumptionRepositoryPort;
 
     @Override
     public ConsumptionClass createConsumption(ConsumptionClass consumptionClass) {
         EmployeeClass employee = employeeRepository.findById(consumptionClass.getEmployee().getId())
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id " + consumptionClass.getEmployee().getId()));
         consumptionClass.setEmployee(employee);
-        return consumptionRepository.save(consumptionClass);
+        return consumptionRepositoryPort.save(consumptionClass);
     }
 
     @Override
     public Optional<ConsumptionClass> getConsumptionById(Long id) {
-        return consumptionRepository.findById(id);
+        return consumptionRepositoryPort.findById(id);
     }
 
     @Override
     public List<ConsumptionClass> getConsumptionByEmployee(EmployeeClass employee, LocalDateTime startDate,
                                                                 LocalDateTime endDate, String description) {
-        return consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate, description);
+        return consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, startDate, endDate, description);
     }
 
     @Override
     public BigDecimal calculateTotalConsumptionByEmployee(EmployeeClass employee, LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionRepository.sumConsumptionByEmployeeAndDateRange(employee, startDate, endDate);
+        return consumptionRepositoryPort.sumConsumptionByEmployeeAndDateRange(employee, startDate, endDate);
     }
     
     public BigDecimal calculateTotalConsumptionByEmployee(Long employeeId, LocalDate startDate, LocalDate endDate) {
@@ -60,11 +60,11 @@ public class ConsumptionApplicationService implements ConsumptionUseCase {
 
     @Override
     public BigDecimal calculateTotalConsumptionForAllEmployees(LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionRepository.sumTotalConsumptionByDateRange(startDate, endDate);
+        return consumptionRepositoryPort.sumTotalConsumptionByDateRange(startDate, endDate);
     }
 
     @Override
     public void deleteConsumption(Long id) {
-        consumptionRepository.deleteById(id);
+        consumptionRepositoryPort.deleteById(id);
     }
 }

@@ -2,10 +2,7 @@ package com.employed.bar.application.service;
 
 import com.employed.bar.domain.event.TestEmailRequestedEvent;
 import com.employed.bar.domain.event.WeeklyReportRequestedEvent;
-import com.employed.bar.domain.model.report.AttendanceReportLine;
-import com.employed.bar.domain.model.report.ConsumptionReportLine;
-import com.employed.bar.domain.model.report.Report;
-import com.employed.bar.domain.model.report.ReportCalculator;
+import com.employed.bar.domain.model.report.*;
 import com.employed.bar.domain.model.report.hours.HoursCalculation;
 import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
@@ -13,7 +10,7 @@ import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.in.service.SendEmployeeReportNotificationUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
-import com.employed.bar.domain.port.out.ConsumptionRepository;
+import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +31,7 @@ import java.util.stream.Collectors;
 public class ReportingApplicationService implements ReportingUseCase {
 
     private final EmployeeRepositoryPort employeeRepository;
-    private final ConsumptionRepository consumptionRepository;
+    private final ConsumptionRepositoryPort consumptionRepositoryPort;
     private final AttendanceRepositoryPort attendanceRepositoryPort;
     private final ApplicationEventPublisher eventPublisher;
     private final ReportCalculator reportCalculator;
@@ -65,7 +62,7 @@ public class ReportingApplicationService implements ReportingUseCase {
                 .map(reportCalculator::mapToAttendanceReportLine)
                 .collect(Collectors.toList());
 
-        List<ConsumptionReportLine> consumptionLines = consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDateTime, endDateTime, null).stream()
+        List<ConsumptionReportLine> consumptionLines = consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, startDateTime, endDateTime, null).stream()
                 .map(reportCalculator::mapToConsumptionReportLine)
                 .collect(Collectors.toList());
 

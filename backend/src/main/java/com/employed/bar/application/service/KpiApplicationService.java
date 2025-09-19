@@ -8,12 +8,13 @@ import com.employed.bar.domain.model.strucuture.ConsumptionClass;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.KpiServicePort;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
-import com.employed.bar.domain.port.out.ConsumptionRepository;
+import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -26,33 +27,41 @@ public class KpiApplicationService implements KpiServicePort {
 
     private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepositoryPort attendanceRepository;
-    private final ConsumptionRepository consumptionRepository;
+    private final ConsumptionRepositoryPort consumptionRepositoryPort;
 
     @Override
     public ManagerKpis getManagerKpis(LocalDate startDate, LocalDate endDate) {
         List<EmployeeClass> allEmployees = employeeRepository.findAll();
 
-        // KPI 1: Total Active vs. Inactive Employees
-        long totalActiveEmployees = allEmployees.stream().filter(e -> e.getStatus() == EmployeeStatus.ACTIVE).count();
-        long totalInactiveEmployees = allEmployees.stream().filter(e -> e.getStatus() == EmployeeStatus.INACTIVE).count();
+        long totalActiveEmployees = allEmployees.stream()
+                .filter(e -> EmployeeStatus.ACTIVE.equals(e.getStatus()))
+                .count();
+
+        long totalInactiveEmployees = allEmployees.stream()
+                .filter(e -> EmployeeStatus.INACTIVE.equals(e.getStatus()))
+                .count();
 
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
-        // Calculate KPIs per employee for sorting
         List<EmployeeKpiSummary> employeeKpiSummaries = allEmployees.stream()
+                .filter(e -> EmployeeStatus.ACTIVE.equals(e.getStatus()))
                 .map(employee -> {
-                    List<AttendanceRecordClass> attendanceRecords = attendanceRepository.findByEmployeeAndDateRange(employee, startDate, endDate);
+                    List<AttendanceRecordClass> attendanceRecords =
+                            attendanceRepository.findByEmployeeAndDateRange(employee, startDate, endDate);
+
                     double totalHoursWorked = attendanceRecords.stream()
                             .mapToDouble(record -> {
                                 if (record.getEntryTime() != null && record.getExitTime() != null) {
-                                    return java.time.Duration.between(record.getEntryTime(), record.getExitTime()).toMinutes() / 60.0;
+                                    return Duration.between(record.getEntryTime(), record.getExitTime()).toMinutes() / 60.0;
                                 }
                                 return 0;
                             })
                             .sum();
 
-                    List<ConsumptionClass> consumptions = consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDateTime, endDateTime, null);
+                    List<ConsumptionClass> consumptions =
+                            consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, startDateTime, endDateTime, null);
+
                     BigDecimal totalConsumptions = consumptions.stream()
                             .map(ConsumptionClass::getAmount)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -66,21 +75,23 @@ public class KpiApplicationService implements KpiServicePort {
                 })
                 .collect(Collectors.toList());
 
-        // KPI 2: Total Hours Worked (Overall)
-        double totalHoursWorkedOverall = employeeKpiSummaries.stream().mapToDouble(EmployeeKpiSummary::getTotalHoursWorked).sum();
+        double totalHoursWorkedOverall = employeeKpiSummaries.stream()
+                .mapToDouble(EmployeeKpiSummary::getTotalHoursWorked)
+                .sum();
 
-        // KPI 3: Total Consumptions (Overall)
-        BigDecimal totalConsumptionsOverall = employeeKpiSummaries.stream().map(EmployeeKpiSummary::getTotalConsumptions).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalConsumptionsOverall = employeeKpiSummaries.stream()
+                .map(EmployeeKpiSummary::getTotalConsumptions)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Top N Employees by Hours Worked (e.g., Top 5)
         List<EmployeeKpiSummary> topEmployeesByHoursWorked = employeeKpiSummaries.stream()
+                .filter(s -> s.getTotalHoursWorked() > 0.0)
                 .sorted(Comparator.comparingDouble(EmployeeKpiSummary::getTotalHoursWorked).reversed())
                 .limit(5)
                 .collect(Collectors.toList());
 
-        // Top N Employees by Consumptions (e.g., Top 5)
         List<EmployeeKpiSummary> topEmployeesByConsumptions = employeeKpiSummaries.stream()
-                .sorted(Comparator.comparing(EmployeeKpiSummary::getTotalConsumptions).reversed())
+                .filter(s -> s.getTotalConsumptions().compareTo(BigDecimal.ZERO) > 0)
+                .sorted((s1, s2) -> s2.getTotalConsumptions().compareTo(s1.getTotalConsumptions()))
                 .limit(5)
                 .collect(Collectors.toList());
 

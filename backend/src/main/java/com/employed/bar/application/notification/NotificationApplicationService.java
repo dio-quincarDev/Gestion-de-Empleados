@@ -1,4 +1,4 @@
-package com.employed.bar.application.service.notification;
+package com.employed.bar.application.notification;
 
 import com.employed.bar.domain.model.report.Report;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
