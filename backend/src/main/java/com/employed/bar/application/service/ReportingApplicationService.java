@@ -13,7 +13,6 @@ import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class ReportingApplicationService implements ReportingUseCase {
 
     private final EmployeeRepositoryPort employeeRepository;
@@ -37,8 +35,19 @@ public class ReportingApplicationService implements ReportingUseCase {
     private final ReportCalculator reportCalculator;
     private final PaymentCalculationUseCase paymentCalculationUseCase;
     private final SendEmployeeReportNotificationUseCase sendEmployeeReportNotificationUseCase;
+    private final ReportingApplicationService reportingApplicationServiceSelf;
 
 
+    public ReportingApplicationService(EmployeeRepositoryPort employeeRepository, ConsumptionRepositoryPort consumptionRepositoryPort, AttendanceRepositoryPort attendanceRepositoryPort, ApplicationEventPublisher eventPublisher, ReportCalculator reportCalculator, PaymentCalculationUseCase paymentCalculationUseCase, SendEmployeeReportNotificationUseCase sendEmployeeReportNotificationUseCase, ReportingApplicationService reportingApplicationServiceSelf) {
+        this.employeeRepository = employeeRepository;
+        this.consumptionRepositoryPort = consumptionRepositoryPort;
+        this.attendanceRepositoryPort = attendanceRepositoryPort;
+        this.eventPublisher = eventPublisher;
+        this.reportCalculator = reportCalculator;
+        this.paymentCalculationUseCase = paymentCalculationUseCase;
+        this.sendEmployeeReportNotificationUseCase = sendEmployeeReportNotificationUseCase;
+        this.reportingApplicationServiceSelf = reportingApplicationServiceSelf;
+    }
     @EventListener
     public void handleWeeklyReportRequest(WeeklyReportRequestedEvent event) {
         List<EmployeeClass> allEmployees = employeeRepository.findAll();
@@ -94,7 +103,7 @@ public class ReportingApplicationService implements ReportingUseCase {
 
         LocalDate testDate = LocalDate.parse("2024-10-10");
 
-        Report report = this.generateCompleteReport(testDate, testDate, employeeId);
+        Report report = reportingApplicationServiceSelf.generateCompleteReport(testDate, testDate, employeeId);
 
         sendEmployeeReportNotificationUseCase.sendReport(Collections.singletonList(employee), Collections.singletonList(report));
     }

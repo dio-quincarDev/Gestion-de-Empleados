@@ -5,7 +5,6 @@ import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
 import com.employed.bar.domain.model.strucuture.ConsumptionClass;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Component
