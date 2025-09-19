@@ -1,9 +1,7 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.domain.event.ReportGeneratedEvent;
 import com.employed.bar.domain.event.TestEmailRequestedEvent;
 import com.employed.bar.domain.event.WeeklyReportRequestedEvent;
-
 import com.employed.bar.domain.model.report.AttendanceReportLine;
 import com.employed.bar.domain.model.report.ConsumptionReportLine;
 import com.employed.bar.domain.model.report.Report;
@@ -13,6 +11,7 @@ import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
+import com.employed.bar.domain.port.in.service.SendEmployeeReportNotificationUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.ConsumptionRepository;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
@@ -40,6 +39,7 @@ public class ReportingApplicationService implements ReportingUseCase {
     private final ApplicationEventPublisher eventPublisher;
     private final ReportCalculator reportCalculator;
     private final PaymentCalculationUseCase paymentCalculationUseCase;
+    private final SendEmployeeReportNotificationUseCase sendEmployeeReportNotificationUseCase;
 
 
     @EventListener
@@ -49,8 +49,7 @@ public class ReportingApplicationService implements ReportingUseCase {
                 .map(employee -> generateCompleteReport(event.getStartDate(), event.getEndDate(), employee.getId()))
                 .collect(Collectors.toList());
 
-        ReportGeneratedEvent reportGeneratedEvent = new ReportGeneratedEvent(this, allEmployees, reports);
-        eventPublisher.publishEvent(reportGeneratedEvent);
+        sendEmployeeReportNotificationUseCase.sendReport(allEmployees, reports);
     }
 
     @Override
@@ -100,8 +99,7 @@ public class ReportingApplicationService implements ReportingUseCase {
 
         Report report = this.generateCompleteReport(testDate, testDate, employeeId);
 
-        ReportGeneratedEvent event = new ReportGeneratedEvent(this, Collections.singletonList(employee), Collections.singletonList(report));
-        eventPublisher.publishEvent(event);
+        sendEmployeeReportNotificationUseCase.sendReport(Collections.singletonList(employee), Collections.singletonList(report));
     }
 }
 

@@ -1,13 +1,11 @@
 package com.employed.bar.infrastructure.adapter.in.controller.manager;
 
-import com.employed.bar.domain.event.ManagerReportRequestedEvent;
-import com.employed.bar.domain.port.in.service.GenerateManagerReportPdfUseCase;
+import com.employed.bar.domain.port.in.service.ManagerReportServicePort;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +23,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class ManagerReportController {
 
-    private final ApplicationEventPublisher eventPublisher;
-    private final GenerateManagerReportPdfUseCase generateManagerReportPdfUseCase;
+    private final ManagerReportServicePort managerReportServicePort;
 
     @Operation(summary = "Generate Manager Weekly Report",
             description = "Triggers the generation of the manager's weekly report for a given date range.")
@@ -37,7 +34,7 @@ public class ManagerReportController {
     public ResponseEntity<String> generateManagerWeeklyReport(
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
-        eventPublisher.publishEvent(new ManagerReportRequestedEvent(this, startDate, endDate));
+        managerReportServicePort.generateAndSendManagerReport(startDate, endDate);
         return ResponseEntity.ok("Manager report generation triggered successfully.");
     }
 
@@ -52,7 +49,7 @@ public class ManagerReportController {
     public ResponseEntity<byte[]> downloadManagerWeeklyReportPdf(
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
-        byte[] pdfBytes = generateManagerReportPdfUseCase.generateManagerReportPdf(startDate, endDate);
+        byte[] pdfBytes = managerReportServicePort.generateManagerReportPdf(startDate, endDate);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);

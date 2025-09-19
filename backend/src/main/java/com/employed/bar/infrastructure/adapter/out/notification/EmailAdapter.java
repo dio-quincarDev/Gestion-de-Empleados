@@ -46,6 +46,7 @@ public class EmailAdapter implements NotificationPort {
         return templateEngine.process("weekly-report", context);
     }
 
+    @Override
     public void sendManagerReportByEmail(String managerEmail, ManagerReport managerReport) {
         String subject = "Manager Weekly Report";
         String body = generateManagerEmailBody(managerReport);

@@ -1,8 +1,7 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.domain.event.ManagerReportRequestedEvent;
 import com.employed.bar.domain.event.WeeklyReportRequestedEvent;
-
+import com.employed.bar.domain.port.in.service.ManagerReportServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,6 +15,7 @@ import java.time.LocalDate;
 public class WeeklyReportScheduler {
 
     private final ApplicationEventPublisher eventPublisher;
+    private final ManagerReportServicePort managerReportServicePort;
 
     /**
      * This scheduler runs every Sunday at 10 PM.
@@ -32,7 +32,6 @@ public class WeeklyReportScheduler {
         eventPublisher.publishEvent(employeeEvent);
 
         // Trigger manager report
-        ManagerReportRequestedEvent managerEvent = new ManagerReportRequestedEvent(this, startDate, endDate);
-        eventPublisher.publishEvent(managerEvent);
+        managerReportServicePort.generateAndSendManagerReport(startDate, endDate);
     }
 }
