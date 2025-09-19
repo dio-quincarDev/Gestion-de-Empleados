@@ -28,4 +28,13 @@ public class EmployeeClass {
     private List<com.employed.bar.domain.model.strucuture.ScheduleClass> schedules = new ArrayList<>();
     private List<AttendanceRecordClass> attendanceRecordClasses = new ArrayList<>();
     private List<ConsumptionClass> consumptionClasses = new ArrayList<>();
+
+    public void updateWith(EmployeeClass updatedEmployee) {
+        this.name = updatedEmployee.getName();
+        this.role = updatedEmployee.getRole();
+        this.status = updatedEmployee.getStatus();
+        this.email = updatedEmployee.getEmail();
+        this.hourlyRate = updatedEmployee.getHourlyRate();
+        this.paymentMethod = updatedEmployee.getPaymentMethod();
+    }
 }

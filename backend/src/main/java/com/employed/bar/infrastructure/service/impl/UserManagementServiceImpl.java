@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -22,6 +23,16 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public UserEntity createUser(CreateUserRequest request) {
+        UserEntity authenticatedUser = getAuthenticatedUser();
+
+        if (request.getRole().ordinal() >= authenticatedUser.getRole().ordinal()) {
+            throw new SecurityException("Cannot create a user with a role equal to or higher than your own.");
+        }
+
+        if (request.getRole() == EmployeeRole.MANAGER && userEntityRepository.existsByRole(EmployeeRole.MANAGER)) {
+            throw new IllegalStateException("A MANAGER already exists in the system.");
+        }
+
         if (userEntityRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new EmailAlreadyExistException("Email already in use: " + request.getEmail());
         }
@@ -41,13 +52,14 @@ public class UserManagementServiceImpl implements UserManagementService {
     public void deleteUser(UUID id) {
         UserEntity userToDelete = userEntityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         UserEntity authenticatedUser = getAuthenticatedUser();
 
-        if (authenticatedUser.getRole() == EmployeeRole.ADMIN) {
-            if (userToDelete.getRole() == EmployeeRole.MANAGER || userToDelete.getRole() == EmployeeRole.ADMIN) {
-                throw new SecurityException("An ADMIN cannot delete a MANAGER or another ADMIN.");
-            }
+        if (authenticatedUser.getId().equals(userToDelete.getId())) {
+            throw new SecurityException("Users cannot delete themselves.");
+        }
+
+        if (userToDelete.getRole().ordinal() >= authenticatedUser.getRole().ordinal()) {
+            throw new SecurityException("Cannot delete a user with a role equal to or higher than your own.");
         }
 
         userEntityRepository.delete(userToDelete);
@@ -57,12 +69,24 @@ public class UserManagementServiceImpl implements UserManagementService {
     public void updateUserRole(UUID id, EmployeeRole role) {
         UserEntity userToUpdate = userEntityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         UserEntity authenticatedUser = getAuthenticatedUser();
 
-        if (authenticatedUser.getRole() == EmployeeRole.ADMIN) {
-            if (role == EmployeeRole.MANAGER) {
-                throw new SecurityException("An ADMIN cannot assign the MANAGER role.");
+        if (authenticatedUser.getId().equals(userToUpdate.getId())) {
+            throw new SecurityException("Users cannot change their own role.");
+        }
+
+        if (userToUpdate.getRole().ordinal() >= authenticatedUser.getRole().ordinal()) {
+            throw new SecurityException("Cannot update a user with a role equal to or higher than your own.");
+        }
+
+        if (role.ordinal() >= authenticatedUser.getRole().ordinal()) {
+            throw new SecurityException("Cannot assign a role that is equal to or higher than your own.");
+        }
+
+        if (role == EmployeeRole.MANAGER) {
+            Optional<UserEntity> manager = userEntityRepository.findByRole(EmployeeRole.MANAGER);
+            if (manager.isPresent() && !manager.get().getId().equals(id)) {
+                throw new IllegalStateException("A MANAGER already exists in the system.");
             }
         }
 

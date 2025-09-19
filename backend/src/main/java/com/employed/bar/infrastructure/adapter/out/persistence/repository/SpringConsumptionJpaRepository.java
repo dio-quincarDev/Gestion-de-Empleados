@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface SpringConsumptionJpaRepository extends JpaRepository<ConsumptionEntity, Long> {
 
-    @Query("SELECT c FROM ConsumptionEntity c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate AND (:description IS NULL OR c.description LIKE %:description%)")
+    @Query("SELECT c FROM ConsumptionEntity c JOIN FETCH c.employee WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate AND (:description IS NULL OR c.description LIKE %:description%)")
     List<ConsumptionEntity> findByEmployeeAndDateTimeBetween(@Param("employee") EmployeeEntity employee,
                                                             @Param("startDate") LocalDateTime startDate,
                                                             @Param("endDate") LocalDateTime endDate,

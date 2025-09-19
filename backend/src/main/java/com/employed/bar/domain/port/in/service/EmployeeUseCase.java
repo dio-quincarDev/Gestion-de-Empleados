@@ -17,4 +17,5 @@ public interface EmployeeUseCase {
     Optional<EmployeeClass> findByEmail(String email);
     EmployeeClass updateHourlyRate(Long employeeId, java.math.BigDecimal newRate);
     java.math.BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours);
+    boolean doesEmailExist(String email);
 }

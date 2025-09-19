@@ -11,4 +11,9 @@ public class CashPaymentMethod extends PaymentMethod {
     public PaymentMethodType getType() {
         return PaymentMethodType.CASH;
     }
+
+    @Override
+    public void validate() {
+        // No validation needed for cash payment method
+    }
 }

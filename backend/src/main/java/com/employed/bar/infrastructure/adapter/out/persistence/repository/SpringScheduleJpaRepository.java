@@ -15,13 +15,13 @@ public interface SpringScheduleJpaRepository extends JpaRepository<ScheduleEntit
 
     List<ScheduleEntity> findByEmployee(EmployeeEntity employee);
 
-    @Query("SELECT s FROM ScheduleEntity s WHERE s.employee = :employee AND s.startTime >= :startTime AND s.endTime <= :endTime")
+    @Query("SELECT s FROM ScheduleEntity s JOIN FETCH s.employee WHERE s.employee = :employee AND s.startTime >= :startTime AND s.endTime <= :endTime")
     List<ScheduleEntity> findByEmployeeAndDate(
             @Param("employee") EmployeeEntity employee,
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime);
 
-    @Query("SELECT s FROM ScheduleEntity s WHERE s.startTime >= :startTime AND s.endTime <= :endTime")
+    @Query("SELECT s FROM ScheduleEntity s JOIN FETCH s.employee WHERE s.startTime >= :startTime AND s.endTime <= :endTime")
     List<ScheduleEntity> findByDateRange(
             @Param("startTime") LocalDateTime startTime,
             @Param("endTime") LocalDateTime endTime);

@@ -11,8 +11,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Report {
+    private Long employeeId;
     private List<AttendanceReportLine> attendanceLines;
     private List<ConsumptionReportLine> consumptionLines;
     private double totalAttendanceHours;
     private BigDecimal totalConsumptionAmount;
+    private BigDecimal totalEarnings;
 }

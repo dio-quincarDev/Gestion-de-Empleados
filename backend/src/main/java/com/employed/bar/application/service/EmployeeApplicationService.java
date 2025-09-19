@@ -36,10 +36,10 @@ public class EmployeeApplicationService implements EmployeeUseCase {
 
     @Override
     public EmployeeClass createEmployee(EmployeeClass employee) {
-        if (employeeRepositoryPort.findByEmail(employee.getEmail()).isPresent()){
+        if (doesEmailExist(employee.getEmail())){
             throw new EmailAlreadyExistException("Este Email ya existe: " + employee.getEmail());
         }
-        validatePaymentMethod(employee.getPaymentMethod());
+        employee.getPaymentMethod().validate();
         return employeeRepositoryPort.save(employee);
     }
 
@@ -65,19 +65,14 @@ public class EmployeeApplicationService implements EmployeeUseCase {
 
     @Override
     public EmployeeClass updateEmployee(Long id, EmployeeClass updatedEmployee) {
-        validatePaymentMethod(updatedEmployee.getPaymentMethod());
+        updatedEmployee.getPaymentMethod().validate();
         return employeeRepositoryPort.findById(id)
                 .map(employee -> {
                     if (!employee.getEmail().equals(updatedEmployee.getEmail()) &&
-                            employeeRepositoryPort.findByEmail(updatedEmployee.getEmail()).isPresent()) {
+                            doesEmailExist(updatedEmployee.getEmail())) {
                         throw new EmailAlreadyExistException("Email already in use: " + updatedEmployee.getEmail());
                     }
-                    employee.setName(updatedEmployee.getName());
-                    employee.setRole(updatedEmployee.getRole());
-                    employee.setStatus(updatedEmployee.getStatus());
-                    employee.setEmail(updatedEmployee.getEmail());
-                    employee.setHourlyRate(updatedEmployee.getHourlyRate());
-                    employee.setPaymentMethod(updatedEmployee.getPaymentMethod());
+                    employee.updateWith(updatedEmployee);
                     return employeeRepositoryPort.save(employee);
                 })
                 .orElseThrow(()-> new EmployeeNotFoundException("Employee not Found with ID: " + id));
@@ -102,6 +97,10 @@ public class EmployeeApplicationService implements EmployeeUseCase {
         return attendanceUseCase.calculateAttendancePercentage(employee.getId(), year, month, day);
     }
 
+    public boolean doesEmailExist(String email) {
+        return employeeRepositoryPort.findByEmail(email).isPresent();
+    }
+
     @Override
     public BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours) {
       EmployeeClass employee = employeeRepositoryPort.findById(employeeId)
@@ -118,25 +117,5 @@ public class EmployeeApplicationService implements EmployeeUseCase {
       );
     }
 
-    private void validatePaymentMethod(PaymentMethod paymentMethod) {
-        if (paymentMethod == null) {
-            throw new IllegalArgumentException("Payment method cannot be null.");
-        }
-        if (paymentMethod instanceof AchPaymentMethod ach) {
-            if (!StringUtils.hasText(ach.getBankName())) {
-                throw new IllegalArgumentException("Bank name is required for ACH payment method.");
-            }
-            if (!StringUtils.hasText(ach.getAccountNumber())) {
-                throw new IllegalArgumentException("Account number is required for ACH payment method.");
-            }
-            if (ach.getBankAccountType() == null) {
-                throw new IllegalArgumentException("Bank account type is required for ACH payment method.");
-            }
-        } else if (paymentMethod instanceof YappyPaymentMethod yappy) {
-            if (!StringUtils.hasText(yappy.getPhoneNumber())) {
-                throw new IllegalArgumentException("Phone number is required for Yappy payment method.");
-            }
-        }
-        // No validation needed for CashPaymentMethod
-    }
+
 }

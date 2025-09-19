@@ -16,4 +16,5 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 })
 public abstract class PaymentMethod {
     public abstract PaymentMethodType getType();
+    public abstract void validate();
 }
