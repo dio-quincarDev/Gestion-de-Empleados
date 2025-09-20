@@ -54,8 +54,7 @@ public class ReportingApplicationServiceTest {
     @Mock
     private SendEmployeeReportNotificationUseCase sendEmployeeReportNotificationUseCase;
 
-    @Spy
-    @InjectMocks
+        @InjectMocks
     private ReportingApplicationService reportingApplicationService;
 
     private LocalDate startDate;
@@ -66,7 +65,6 @@ public class ReportingApplicationServiceTest {
     private AttendanceReportLine attendanceReportLine;
     private ConsumptionReportLine consumptionReportLine;
     private HoursCalculation hoursCalculation;
-    private List<EmployeeClass> allEmployees;
 
     @BeforeEach
     void setUp() {
@@ -87,11 +85,12 @@ public class ReportingApplicationServiceTest {
         consumptionClass = new ConsumptionClass();
         consumptionClass.setAmount(BigDecimal.valueOf(50.0));
 
-        attendanceReportLine = new AttendanceReportLine("Test Employee", LocalDate.now(), LocalTime.of(9,0), LocalTime.of(17,0), 8.0, 100.0);
-        consumptionReportLine = new ConsumptionReportLine("Test Employee", LocalDateTime.now(), BigDecimal.valueOf(50.0), "Lunch");
+        attendanceReportLine = new AttendanceReportLine("Test Employee", LocalDate.now(),
+                LocalTime.of(9,0), LocalTime.of(17,0), 8.0, 100.0);
+        consumptionReportLine = new ConsumptionReportLine("Test Employee", LocalDateTime.now(),
+                BigDecimal.valueOf(50.0), "Lunch");
 
         hoursCalculation = new HoursCalculation(8.0, 8.0, 0.0);
-        allEmployees = Arrays.asList(employee);
     }
 
     @Test
@@ -99,7 +98,8 @@ public class ReportingApplicationServiceTest {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
                 .thenReturn(Collections.singletonList(attendanceRecord));
-        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), eq(null)))
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class),
+                eq(null)))
                 .thenReturn(Collections.singletonList(consumptionClass));
         when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
         when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
@@ -138,10 +138,7 @@ public class ReportingApplicationServiceTest {
 
         assertEquals("Employee not found", thrown.getMessage());
         verify(employeeRepository, times(1)).findById(employee.getId());
-        verifyNoInteractions(attendanceRepositoryPort);
-        verifyNoInteractions(consumptionRepositoryPort);
-        verifyNoInteractions(reportCalculator);
-        verifyNoInteractions(paymentCalculationUseCase);
+        verifyNoInteractions(attendanceRepositoryPort, consumptionRepositoryPort, reportCalculator, paymentCalculationUseCase);
     }
 
     @Test
@@ -256,36 +253,30 @@ public class ReportingApplicationServiceTest {
     @Test
     void testHandleWeeklyReportRequest_Success() {
         WeeklyReportRequestedEvent event = new WeeklyReportRequestedEvent(this, startDate, endDate);
+        List<EmployeeClass> employees = Collections.singletonList(employee);
 
-        EmployeeClass streamEmployee = new EmployeeClass();
-        streamEmployee.setId(employee.getId()); // Use the same ID as the test employee
-        streamEmployee.setName(employee.getName()); // Use the same name
-
-        when(employeeRepository.findAll()).thenReturn(Collections.singletonList(streamEmployee));
-        when(employeeRepository.findById(streamEmployee.getId())).thenReturn(Optional.of(streamEmployee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(streamEmployee, startDate, endDate))
+        when(employeeRepository.findAll()).thenReturn(employees);
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
                 .thenReturn(Collections.singletonList(attendanceRecord));
-        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(streamEmployee), eq(startDate.atStartOfDay()), eq(endDate.atTime(23, 59, 59)), eq(null)))
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), eq(null)))
                 .thenReturn(Collections.singletonList(consumptionClass));
         when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
         when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
         when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
-        when(paymentCalculationUseCase.calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble()))
-                .thenReturn(BigDecimal.valueOf(80.0)); // Example total pay
+        when(paymentCalculationUseCase.calculateTotalPay(employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(),
+                hoursCalculation.getRegularHours(), hoursCalculation.getOvertimeHours()))
+                .thenReturn(BigDecimal.valueOf(80.0));
 
         reportingApplicationService.handleWeeklyReportRequest(event);
 
-        ArgumentCaptor<List> reportsCaptor = ArgumentCaptor.forClass(List.class);
-
+        ArgumentCaptor<List<Report>> reportsCaptor = ArgumentCaptor.forClass(List.class);
         verify(employeeRepository, times(1)).findAll();
-        verify(reportingApplicationService, times(1)).generateCompleteReport(startDate, endDate, employee.getId());
-        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(Collections.singletonList(streamEmployee)), reportsCaptor.capture());
+        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(employees), reportsCaptor.capture());
 
         List<Report> capturedReports = reportsCaptor.getValue();
         assertEquals(1, capturedReports.size());
         Report capturedReport = capturedReports.get(0);
 
-        // Assert properties of the captured report
         assertNotNull(capturedReport);
         assertEquals(employee.getId(), capturedReport.getEmployeeId());
         assertEquals(1, capturedReport.getAttendanceLines().size());
@@ -306,22 +297,40 @@ public class ReportingApplicationServiceTest {
         reportingApplicationService.handleWeeklyReportRequest(event);
 
         verify(employeeRepository, times(1)).findAll();
-
-        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(any(), any());
+        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(Collections.emptyList()), eq(Collections.emptyList()));
+        verifyNoMoreInteractions(sendEmployeeReportNotificationUseCase);
     }
 
     @Test
     void testSendTestEmailToEmployee_Success() {
-        Report report = new Report(employee.getId(), Collections.emptyList(), Collections.emptyList(), 0.0, BigDecimal.ZERO, BigDecimal.ZERO);
+        LocalDate testDate = LocalDate.parse("2024-10-10");
+        LocalDateTime startDateTime = testDate.atStartOfDay();
+        LocalDateTime endDateTime = testDate.atTime(23, 59, 59);
 
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
-        when(reportingApplicationService.generateCompleteReport(any(LocalDate.class), any(LocalDate.class), eq(employee.getId()))).thenReturn(report);
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, testDate, testDate))
+                .thenReturn(Collections.singletonList(attendanceRecord));
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, startDateTime, endDateTime, null))
+                .thenReturn(Collections.singletonList(consumptionClass));
+        when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
+        when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
+        when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
+        when(paymentCalculationUseCase.calculateTotalPay(employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(),
+                hoursCalculation.getRegularHours(), hoursCalculation.getOvertimeHours()))
+                .thenReturn(BigDecimal.valueOf(80.0));
 
         reportingApplicationService.sendTestEmailToEmployee(employee.getId());
 
+        ArgumentCaptor<List<Report>> reportsCaptor = ArgumentCaptor.forClass(List.class);
         verify(employeeRepository, times(1)).findById(employee.getId());
-        verify(reportingApplicationService, times(1)).generateCompleteReport(any(LocalDate.class), any(LocalDate.class), eq(employee.getId()));
-        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(Collections.singletonList(employee), Collections.singletonList(report));
+        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(Collections.singletonList(employee)), reportsCaptor.capture());
+
+        List<Report> capturedReports = reportsCaptor.getValue();
+        assertEquals(1, capturedReports.size());
+        Report capturedReport = capturedReports.get(0);
+
+        assertNotNull(capturedReport);
+        assertEquals(employee.getId(), capturedReport.getEmployeeId());
     }
 
     @Test
@@ -334,31 +343,39 @@ public class ReportingApplicationServiceTest {
 
         assertEquals("Employee not found", thrown.getMessage());
         verify(employeeRepository, times(1)).findById(employee.getId());
-        verifyNoInteractions(reportingApplicationService);
         verifyNoInteractions(sendEmployeeReportNotificationUseCase);
     }
 
     @Test
     void testHandleTestEmailRequest_Success() {
         TestEmailRequestedEvent event = new TestEmailRequestedEvent(this, employee.getId());
+        LocalDate testDate = LocalDate.parse("2024-10-10");
+        LocalDateTime startDateTime = testDate.atStartOfDay();
+        LocalDateTime endDateTime = testDate.atTime(23, 59, 59);
 
-        // Mock internal dependencies of sendTestEmailToEmployee
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, LocalDate.parse("2024-10-10"), LocalDate.parse("2024-10-10")))
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, testDate, testDate))
                 .thenReturn(Collections.singletonList(attendanceRecord));
-        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), eq(null)))
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, startDateTime, endDateTime, null))
                 .thenReturn(Collections.singletonList(consumptionClass));
         when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
         when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
         when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
-        when(paymentCalculationUseCase.calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble()))
-                .thenReturn(BigDecimal.valueOf(80.0)); // Example total pay
+        when(paymentCalculationUseCase.calculateTotalPay(employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(),
+                hoursCalculation.getRegularHours(), hoursCalculation.getOvertimeHours()))
+                .thenReturn(BigDecimal.valueOf(80.0));
 
         reportingApplicationService.handleTestEmailRequest(event);
 
-        verify(reportingApplicationService, times(1)).sendTestEmailToEmployee(employee.getId());
+        ArgumentCaptor<List<Report>> reportsCaptor = ArgumentCaptor.forClass(List.class);
         verify(employeeRepository, times(1)).findById(employee.getId());
-        verify(reportingApplicationService, times(1)).generateCompleteReport(LocalDate.parse("2024-10-10"), LocalDate.parse("2024-10-10"), employee.getId());
-        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(Collections.singletonList(employee), Collections.singletonList(any(Report.class)));
+        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(Collections.singletonList(employee)), reportsCaptor.capture());
+
+        List<Report> capturedReports = reportsCaptor.getValue();
+        assertEquals(1, capturedReports.size());
+        Report capturedReport = capturedReports.get(0);
+
+        assertNotNull(capturedReport);
+        assertEquals(employee.getId(), capturedReport.getEmployeeId());
     }
 }

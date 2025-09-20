@@ -33,7 +33,7 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
     public void generateAndSendManagerReport(LocalDate startDate, LocalDate endDate) {
         List<EmployeeClass> allEmployees = employeeRepository.findAll();
         List<Report> individualReports = allEmployees.stream()
-                .map(employee -> reportingUseCase.generateCompleteReport(startDate, endDate, employee.getId()))
+                .map(employee -> reportingUseCase.generateCompleteReport(startDate, endDate, employee))
                 .collect(Collectors.toList());
 
         ManagerReport managerReport = managerReportCalculator.calculate(allEmployees, individualReports);
@@ -48,7 +48,7 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
     public byte[] generateManagerReportPdf(LocalDate startDate, LocalDate endDate) {
         List<EmployeeClass> allEmployees = employeeRepository.findAll();
         List<Report> individualReports = allEmployees.stream()
-                .map(employee -> reportingUseCase.generateCompleteReport(startDate, endDate, employee.getId()))
+                .map(employee -> reportingUseCase.generateCompleteReport(startDate, endDate, employee))
                 .collect(Collectors.toList());
 
         ManagerReport managerReport = managerReportCalculator.calculate(allEmployees, individualReports);

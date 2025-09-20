@@ -1,6 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.exceptions.ScheduleNotFoundException;
 import com.employed.bar.domain.model.strucuture.EmployeeClass;
 import com.employed.bar.domain.model.strucuture.ScheduleClass;
 import com.employed.bar.domain.port.in.service.ScheduleUseCase;
@@ -58,7 +59,9 @@ public class ScheduleApplicationService implements ScheduleUseCase {
 
     @Override
     public ScheduleClass updateSchedule(Long id, ScheduleClass updatedSchedule) {
-        ScheduleClass existingSchedule = getScheduleById(id);
+        ScheduleClass existingSchedule = scheduleRepositoryPort.findById(id)
+                .orElseThrow(() -> new ScheduleNotFoundException("Schedule not found with ID: " + id));
+
         existingSchedule.setStartTime(updatedSchedule.getStartTime());
         existingSchedule.setEndTime(updatedSchedule.getEndTime());
         return scheduleRepositoryPort.save(existingSchedule);
