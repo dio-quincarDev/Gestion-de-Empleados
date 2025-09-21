@@ -3,9 +3,9 @@ package com.employed.bar.service;
 import com.employed.bar.application.service.KpiApplicationService;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.model.kpi.ManagerKpis;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
@@ -329,5 +329,27 @@ public class KpiApplicationServiceTest {
         verify(employeeRepository, times(1)).findAll();
         verify(attendanceRepository, times(3)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDate.class), any(LocalDate.class));
         verify(consumptionRepositoryPort, times(3)).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(null));
+    }
+
+    @Test
+    void testGetManagerKpis_NullStartDate() {
+        assertThrows(NullPointerException.class, () -> {
+            kpiApplicationService.getManagerKpis(null, endDate);
+        });
+
+        verify(employeeRepository, never()).findAll();
+        verify(attendanceRepository, never()).findByEmployeeAndDateRange(any(), any(), any());
+        verify(consumptionRepositoryPort, never()).findByEmployeeAndDateTimeBetween(any(), any(), any(), any());
+    }
+
+    @Test
+    void testGetManagerKpis_NullEndDate() {
+        assertThrows(NullPointerException.class, () -> {
+            kpiApplicationService.getManagerKpis(startDate, null);
+        });
+
+        verify(employeeRepository, never()).findAll();
+        verify(attendanceRepository, never()).findByEmployeeAndDateRange(any(), any(), any());
+        verify(consumptionRepositoryPort, never()).findByEmployeeAndDateTimeBetween(any(), any(), any(), any());
     }
 }

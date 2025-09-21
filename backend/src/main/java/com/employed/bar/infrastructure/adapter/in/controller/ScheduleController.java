@@ -1,6 +1,6 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
-import com.employed.bar.domain.model.strucuture.ScheduleClass;
+import com.employed.bar.domain.model.structure.ScheduleClass;
 import com.employed.bar.domain.port.in.service.ScheduleUseCase;
 import com.employed.bar.infrastructure.adapter.in.mapper.ScheduleApiMapper;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;

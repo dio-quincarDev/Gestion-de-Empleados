@@ -3,7 +3,7 @@ package com.employed.bar.service;
 import com.employed.bar.application.service.ManagerReportApplicationService;
 import com.employed.bar.domain.model.manager.ManagerReport;
 import com.employed.bar.domain.model.report.Report;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.NotificationPort;
@@ -140,5 +140,41 @@ public class ManagerReportApplicationServiceTest {
         verifyNoInteractions(reportingUseCase);
         verify(managerReportCalculator, times(1)).calculate(Collections.emptyList(), Collections.emptyList());
         verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport);
+    }
+
+    @Test
+    void testGenerateAndSendManagerReport_NullStartDate() {
+        assertThrows(NullPointerException.class, () -> {
+            managerReportApplicationService.generateAndSendManagerReport(null, endDate);
+        });
+
+        verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, notificationPort);
+    }
+
+    @Test
+    void testGenerateAndSendManagerReport_NullEndDate() {
+        assertThrows(NullPointerException.class, () -> {
+            managerReportApplicationService.generateAndSendManagerReport(startDate, null);
+        });
+
+        verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, notificationPort);
+    }
+
+    @Test
+    void testGenerateManagerReportPdf_NullStartDate() {
+        assertThrows(NullPointerException.class, () -> {
+            managerReportApplicationService.generateManagerReportPdf(null, endDate);
+        });
+
+        verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, pdfGeneratorPort);
+    }
+
+    @Test
+    void testGenerateManagerReportPdf_NullEndDate() {
+        assertThrows(NullPointerException.class, () -> {
+            managerReportApplicationService.generateManagerReportPdf(startDate, null);
+        });
+
+        verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, pdfGeneratorPort);
     }
 }

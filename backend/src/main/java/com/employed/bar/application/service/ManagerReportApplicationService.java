@@ -1,9 +1,8 @@
 package com.employed.bar.application.service;
 
-import com.employed.bar.domain.event.ManagerReportGeneratedEvent;
 import com.employed.bar.domain.model.manager.ManagerReport;
 import com.employed.bar.domain.model.report.Report;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ManagerReportServicePort;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
@@ -11,16 +10,12 @@ import com.employed.bar.domain.port.out.NotificationPort;
 import com.employed.bar.domain.port.out.PdfGeneratorPort;
 import com.employed.bar.domain.service.ManagerReportCalculator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
 public class ManagerReportApplicationService implements ManagerReportServicePort {
 
     private final EmployeeRepositoryPort employeeRepository;
@@ -28,6 +23,15 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
     private final ManagerReportCalculator managerReportCalculator;
     private final NotificationPort notificationPort;
     private final PdfGeneratorPort pdfGeneratorPort;
+
+    public ManagerReportApplicationService(EmployeeRepositoryPort employeeRepository, ReportingUseCase reportingUseCase, ManagerReportCalculator managerReportCalculator, NotificationPort notificationPort, PdfGeneratorPort pdfGeneratorPort) {
+        this.employeeRepository = employeeRepository;
+        this.reportingUseCase = reportingUseCase;
+        this.managerReportCalculator = managerReportCalculator;
+        this.notificationPort = notificationPort;
+        this.pdfGeneratorPort = pdfGeneratorPort;
+    }
+
 
     @Override
     public void generateAndSendManagerReport(LocalDate startDate, LocalDate endDate) {

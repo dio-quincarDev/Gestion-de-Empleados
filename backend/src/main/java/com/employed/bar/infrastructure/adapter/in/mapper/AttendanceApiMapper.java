@@ -1,6 +1,6 @@
 package com.employed.bar.infrastructure.adapter.in.mapper;
 
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.infrastructure.dto.domain.AttendanceDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

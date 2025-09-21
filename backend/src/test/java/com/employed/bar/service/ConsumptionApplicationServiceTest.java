@@ -2,8 +2,8 @@ package com.employed.bar.service;
 
 import com.employed.bar.application.service.ConsumptionApplicationService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -242,5 +242,120 @@ public class ConsumptionApplicationServiceTest {
         consumptionApplicationService.deleteConsumption(1L);
 
         verify(consumptionRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void testCreateConsumption_NullConsumptionClass() {
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.createConsumption(null);
+        });
+
+        verify(employeeRepository, never()).findById(anyLong());
+        verify(consumptionRepository, never()).save(any(ConsumptionClass.class));
+    }
+
+    @Test
+    void testCreateConsumption_NullEmployeeInConsumption() {
+        consumption.setEmployee(null);
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.createConsumption(consumption);
+        });
+
+        verify(employeeRepository, never()).findById(anyLong());
+        verify(consumptionRepository, never()).save(any(ConsumptionClass.class));
+    }
+
+    @Test
+    void testCreateConsumption_NullEmployeeIdInConsumption() {
+        employee.setId(null);
+        consumption.setEmployee(employee);
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.createConsumption(consumption);
+        });
+
+        verify(employeeRepository, never()).findById(anyLong());
+        verify(consumptionRepository, never()).save(any(ConsumptionClass.class));
+    }
+
+    @Test
+    void testGetConsumptionByEmployee_NullEmployee() {
+        LocalDateTime startDate = LocalDateTime.now().minusDays(7);
+        LocalDateTime endDate = LocalDateTime.now();
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.getConsumptionByEmployee(null, startDate, endDate, null);
+        });
+
+        verify(consumptionRepository, never()).findByEmployeeAndDateTimeBetween(any(), any(), any(), any());
+    }
+
+    @Test
+    void testGetConsumptionByEmployee_NullStartDate() {
+        LocalDateTime endDate = LocalDateTime.now();
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.getConsumptionByEmployee(employee, null, endDate, null);
+        });
+
+        verify(consumptionRepository, never()).findByEmployeeAndDateTimeBetween(any(), any(), any(), any());
+    }
+
+    @Test
+    void testGetConsumptionByEmployee_NullEndDate() {
+        LocalDateTime startDate = LocalDateTime.now().minusDays(7);
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.getConsumptionByEmployee(employee, startDate, null, null);
+        });
+
+        verify(consumptionRepository, never()).findByEmployeeAndDateTimeBetween(any(), any(), any(), any());
+    }
+
+    @Test
+    void testCalculateTotalConsumptionByEmployee_Overloaded_NullStartDate() {
+        LocalDate endDate = LocalDate.now();
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.calculateTotalConsumptionByEmployee(1L, null, endDate);
+        });
+
+        verify(employeeRepository, never()).findById(anyLong());
+        verify(consumptionRepository, never()).sumConsumptionByEmployeeAndDateRange(any(), any(), any());
+    }
+
+    @Test
+    void testCalculateTotalConsumptionByEmployee_Overloaded_NullEndDate() {
+        LocalDate startDate = LocalDate.now();
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.calculateTotalConsumptionByEmployee(1L, startDate, null);
+        });
+
+        verify(employeeRepository, never()).findById(anyLong());
+        verify(consumptionRepository, never()).sumConsumptionByEmployeeAndDateRange(any(), any(), any());
+    }
+
+    @Test
+    void testCalculateTotalConsumptionForAllEmployees_NullStartDate() {
+        LocalDateTime endDate = LocalDateTime.now();
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.calculateTotalConsumptionForAllEmployees(null, endDate);
+        });
+
+        verify(consumptionRepository, never()).sumTotalConsumptionByDateRange(any(), any());
+    }
+
+    @Test
+    void testCalculateTotalConsumptionForAllEmployees_NullEndDate() {
+        LocalDateTime startDate = LocalDateTime.now();
+
+        assertThrows(NullPointerException.class, () -> {
+            consumptionApplicationService.calculateTotalConsumptionForAllEmployees(startDate, null);
+        });
+
+        verify(consumptionRepository, never()).sumTotalConsumptionByDateRange(any(), any());
     }
 }

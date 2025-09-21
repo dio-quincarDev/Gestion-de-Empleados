@@ -1,6 +1,6 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.mapper;
 
-import com.employed.bar.domain.model.strucuture.ScheduleClass;
+import com.employed.bar.domain.model.structure.ScheduleClass;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.ScheduleEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

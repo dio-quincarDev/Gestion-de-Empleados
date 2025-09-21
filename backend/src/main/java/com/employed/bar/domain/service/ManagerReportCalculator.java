@@ -4,7 +4,7 @@ import com.employed.bar.domain.model.manager.EmployeeSummary;
 import com.employed.bar.domain.model.manager.ManagerReport;
 import com.employed.bar.domain.model.manager.ReportTotals;
 import com.employed.bar.domain.model.report.Report;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

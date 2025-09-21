@@ -1,6 +1,6 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.mapper;
 
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.AttendanceRecordEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

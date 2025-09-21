@@ -3,8 +3,8 @@ package com.employed.bar.service;
 import com.employed.bar.application.service.ScheduleApplicationService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.ScheduleNotFoundException;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
-import com.employed.bar.domain.model.strucuture.ScheduleClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
+import com.employed.bar.domain.model.structure.ScheduleClass;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -172,6 +172,65 @@ public class ScheduleApplicationServiceTest {
         });
 
         assertEquals("Schedule not found with ID: 10", exception.getMessage());
+        verify(scheduleRepositoryPort, times(1)).findById(10L);
+        verify(scheduleRepositoryPort, never()).save(any(ScheduleClass.class));
+    }
+
+    @Test
+    void testCreateSchedule_NullSchedule() {
+        assertThrows(NullPointerException.class, () -> {
+            scheduleApplicationService.createSchedule(null);
+        });
+
+        verifyNoInteractions(employeeRepository, scheduleRepositoryPort);
+    }
+
+    @Test
+    void testGetScheduleById_NullId() {
+        assertNull(scheduleApplicationService.getScheduleById(null));
+
+        verifyNoInteractions(scheduleRepositoryPort);
+    }
+
+    @Test
+    void testGetSchedulesByEmployee_NullEmployeeId() {
+        List<ScheduleClass> result = scheduleApplicationService.getSchedulesByEmployee(null);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        verifyNoInteractions(employeeRepository, scheduleRepositoryPort);
+    }
+
+    @Test
+    void testDeleteSchedule_NullId() {
+        assertThrows(NullPointerException.class, () -> {
+            scheduleApplicationService.deleteSchedule(null);
+        });
+
+        verifyNoInteractions(scheduleRepositoryPort);
+    }
+
+    @Test
+    void testUpdateSchedule_NullId() {
+        ScheduleClass updatedDetails = new ScheduleClass();
+        updatedDetails.setStartTime(LocalDateTime.of(2023, 1, 1, 10, 0));
+        updatedDetails.setEndTime(LocalDateTime.of(2023, 1, 1, 18, 0));
+
+        assertThrows(ScheduleNotFoundException.class, () -> {
+            scheduleApplicationService.updateSchedule(null, updatedDetails);
+        });
+
+        verifyNoInteractions(scheduleRepositoryPort);
+    }
+
+    @Test
+    void testUpdateSchedule_NullUpdatedSchedule() {
+        when(scheduleRepositoryPort.findById(10L)).thenReturn(Optional.of(schedule));
+
+        assertThrows(NullPointerException.class, () -> {
+            scheduleApplicationService.updateSchedule(10L, null);
+        });
+
         verify(scheduleRepositoryPort, times(1)).findById(10L);
         verify(scheduleRepositoryPort, never()).save(any(ScheduleClass.class));
     }

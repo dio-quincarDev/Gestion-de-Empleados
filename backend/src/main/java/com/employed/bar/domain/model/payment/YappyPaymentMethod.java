@@ -4,7 +4,7 @@ import com.employed.bar.domain.enums.PaymentMethodType;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
-import org.springframework.util.StringUtils;
+
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -18,7 +18,7 @@ public class YappyPaymentMethod extends PaymentMethod {
 
     @Override
     public void validate() {
-        if (!StringUtils.hasText(phoneNumber)) {
+        if (phoneNumber == null || phoneNumber.isBlank()) {
             throw new IllegalArgumentException("Phone number is required for Yappy payment method.");
         }
     }

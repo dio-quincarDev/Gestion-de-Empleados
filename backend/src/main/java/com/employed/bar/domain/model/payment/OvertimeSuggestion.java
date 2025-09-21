@@ -1,6 +1,6 @@
 package com.employed.bar.domain.model.payment;
 
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

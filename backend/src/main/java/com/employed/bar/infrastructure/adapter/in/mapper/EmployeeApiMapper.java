@@ -1,6 +1,6 @@
 package com.employed.bar.infrastructure.adapter.in.mapper;
 
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.model.payment.AchPaymentMethod;
 import com.employed.bar.domain.model.payment.CashPaymentMethod;
 import com.employed.bar.domain.model.payment.PaymentMethod;

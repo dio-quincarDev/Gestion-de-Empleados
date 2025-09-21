@@ -1,4 +1,4 @@
-package com.employed.bar.domain.model.strucuture;
+package com.employed.bar.domain.model.structure;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
@@ -26,7 +26,7 @@ public class EmployeeClass {
     private boolean paysOvertime;
     private OvertimeRateType overtimeRateType;
     private EmployeeStatus status;
-    private List<com.employed.bar.domain.model.strucuture.ScheduleClass> schedules = new ArrayList<>();
+    private List<com.employed.bar.domain.model.structure.ScheduleClass> schedules = new ArrayList<>();
     private List<AttendanceRecordClass> attendanceRecordClasses = new ArrayList<>();
     private List<ConsumptionClass> consumptionClasses = new ArrayList<>();
 

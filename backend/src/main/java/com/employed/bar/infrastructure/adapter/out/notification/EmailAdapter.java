@@ -3,7 +3,7 @@ package com.employed.bar.infrastructure.adapter.out.notification;
 import com.employed.bar.domain.model.manager.ManagerReport;
 import com.employed.bar.domain.model.report.Report;
 
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.NotificationPort;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

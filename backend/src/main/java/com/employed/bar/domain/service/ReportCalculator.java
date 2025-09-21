@@ -1,8 +1,10 @@
-package com.employed.bar.domain.model.report;
+package com.employed.bar.domain.service;
 
+import com.employed.bar.domain.model.report.AttendanceReportLine;
+import com.employed.bar.domain.model.report.ConsumptionReportLine;
 import com.employed.bar.domain.model.report.hours.HoursCalculation;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

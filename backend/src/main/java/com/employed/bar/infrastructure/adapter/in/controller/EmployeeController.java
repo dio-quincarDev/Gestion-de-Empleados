@@ -2,8 +2,7 @@ package com.employed.bar.infrastructure.adapter.in.controller;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
-import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.EmployeeUseCase;
 import com.employed.bar.infrastructure.adapter.in.mapper.EmployeeApiMapper;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;

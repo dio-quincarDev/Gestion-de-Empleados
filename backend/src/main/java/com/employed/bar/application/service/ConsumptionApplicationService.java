@@ -1,8 +1,8 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ConsumptionUseCase;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
@@ -16,13 +16,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Service
-@Transactional
-@RequiredArgsConstructor
 public class ConsumptionApplicationService implements ConsumptionUseCase {
 
     private final EmployeeRepositoryPort employeeRepository;
     private final ConsumptionRepositoryPort consumptionRepositoryPort;
+
+    public ConsumptionApplicationService(EmployeeRepositoryPort employeeRepository, ConsumptionRepositoryPort consumptionRepositoryPort) {
+        this.employeeRepository = employeeRepository;
+        this.consumptionRepositoryPort = consumptionRepositoryPort;
+    }
+
 
     @Override
     public ConsumptionClass createConsumption(ConsumptionClass consumptionClass) {

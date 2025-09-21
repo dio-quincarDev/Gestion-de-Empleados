@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.adapters;
 
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.ConsumptionEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.mapper.ConsumptionMapper;

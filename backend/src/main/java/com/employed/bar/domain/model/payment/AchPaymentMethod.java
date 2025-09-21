@@ -5,7 +5,7 @@ import com.employed.bar.domain.enums.PaymentMethodType;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
-import org.springframework.util.StringUtils;
+
 
 @Value
 @EqualsAndHashCode(callSuper = false)
@@ -21,10 +21,10 @@ public class AchPaymentMethod extends PaymentMethod {
 
     @Override
     public void validate() {
-        if (!StringUtils.hasText(bankName)) {
+        if (bankName == null || bankName.isBlank()) {
             throw new IllegalArgumentException("Bank name is required for ACH payment method.");
         }
-        if (!StringUtils.hasText(accountNumber)) {
+        if (accountNumber == null || accountNumber.isBlank()) {
             throw new IllegalArgumentException("Account number is required for ACH payment method.");
         }
         if (bankAccountType == null) {

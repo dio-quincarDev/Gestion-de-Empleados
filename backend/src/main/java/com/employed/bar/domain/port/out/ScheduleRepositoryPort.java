@@ -1,7 +1,7 @@
 package com.employed.bar.domain.port.out;
 
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
-import com.employed.bar.domain.model.strucuture.ScheduleClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
+import com.employed.bar.domain.model.structure.ScheduleClass;
 
 import java.time.LocalDateTime;
 import java.util.List;

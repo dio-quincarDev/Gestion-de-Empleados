@@ -1,7 +1,7 @@
 package com.employed.bar.domain.event;
 
 import com.employed.bar.domain.model.report.Report;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

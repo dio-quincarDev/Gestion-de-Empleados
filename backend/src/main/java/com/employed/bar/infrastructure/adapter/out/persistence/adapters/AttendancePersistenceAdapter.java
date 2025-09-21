@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.adapters;
 
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.AttendanceRecordEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.mapper.AttendanceMapper;

@@ -5,24 +5,17 @@ import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.payment.AchPaymentMethod;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
-import com.employed.bar.domain.model.payment.PaymentMethod;
-import com.employed.bar.domain.model.payment.YappyPaymentMethod;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.EmployeeUseCase;
 import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-@Service
-@Transactional
 public class EmployeeApplicationService implements EmployeeUseCase {
     private final EmployeeRepositoryPort employeeRepositoryPort;
     private final AttendanceUseCase attendanceUseCase;

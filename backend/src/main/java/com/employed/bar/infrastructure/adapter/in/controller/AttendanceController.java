@@ -1,7 +1,7 @@
 package com.employed.bar.infrastructure.adapter.in.controller;
 
 import com.employed.bar.application.service.AttendanceApplicationService;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.infrastructure.adapter.in.mapper.AttendanceApiMapper;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.dto.domain.AttendanceDto;

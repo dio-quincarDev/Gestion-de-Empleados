@@ -2,8 +2,8 @@ package com.employed.bar.service;
 
 import com.employed.bar.application.service.GeneratePaymentApplicationService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.EmployeeUseCase;
 import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
@@ -135,7 +135,7 @@ public class GeneratePaymentApplicationServiceTest {
     }
 
     @Test
-    void testGeneratePayment_PartialEntryExitTimes() {
+    void testPartialEntryExitTimes() {
         AttendanceRecordClass record1 = new AttendanceRecordClass();
         record1.setEntryTime(LocalTime.of(9, 0));
         record1.setExitTime(null);
@@ -157,5 +157,38 @@ public class GeneratePaymentApplicationServiceTest {
         verify(employeeUseCase, times(1)).getEmployeeById(1L);
         verify(attendanceUseCase, times(1)).getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate);
         verify(paymentCalculationUseCase, times(1)).calculateTotalPay(employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(), 0.0, 0.0);
+    }
+
+    @Test
+    void testGeneratePayment_NullEmployeeId() {
+        assertThrows(EmployeeNotFoundException.class, () -> {
+            generatePaymentApplicationService.generatePayment(null, startDate, endDate);
+        });
+
+        verify(employeeUseCase, never()).getEmployeeById(anyLong());
+        verify(attendanceUseCase, never()).getAttendanceListByEmployeeAndDateRange(anyLong(), any(), any());
+        verify(paymentCalculationUseCase, never()).calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble());
+    }
+
+    @Test
+    void testGeneratePayment_NullStartDate() {
+        assertThrows(NullPointerException.class, () -> {
+            generatePaymentApplicationService.generatePayment(1L, null, endDate);
+        });
+
+        verify(employeeUseCase, never()).getEmployeeById(anyLong());
+        verify(attendanceUseCase, never()).getAttendanceListByEmployeeAndDateRange(anyLong(), any(), any());
+        verify(paymentCalculationUseCase, never()).calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble());
+    }
+
+    @Test
+    void testGeneratePayment_NullEndDate() {
+        assertThrows(NullPointerException.class, () -> {
+            generatePaymentApplicationService.generatePayment(1L, startDate, null);
+        });
+
+        verify(employeeUseCase, never()).getEmployeeById(anyLong());
+        verify(attendanceUseCase, never()).getAttendanceListByEmployeeAndDateRange(anyLong(), any(), any());
+        verify(paymentCalculationUseCase, never()).calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble());
     }
 }

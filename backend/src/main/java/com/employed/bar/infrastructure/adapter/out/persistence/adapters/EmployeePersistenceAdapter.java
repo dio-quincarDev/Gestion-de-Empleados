@@ -4,7 +4,7 @@ import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.mapper.EmployeeMapper;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.EmployeeSpecification;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringEmployeeJpaRepository;

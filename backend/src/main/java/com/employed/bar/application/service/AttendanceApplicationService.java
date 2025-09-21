@@ -1,20 +1,19 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
-import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
 public class AttendanceApplicationService implements AttendanceUseCase {
     private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepositoryPort attendanceRepositoryPort;
@@ -26,7 +25,6 @@ public class AttendanceApplicationService implements AttendanceUseCase {
     }
 
     @Override
-    @Transactional
     public AttendanceRecordClass registerAttendance(AttendanceRecordClass attendanceRecord) {
         if (attendanceRecord.getEmployee() == null || attendanceRecord.getEmployee().getId() == null) {
             throw new IllegalArgumentException("Employee ID cannot be null in AttendanceRecord");
@@ -53,9 +51,24 @@ public class AttendanceApplicationService implements AttendanceUseCase {
     public double calculateAttendancePercentage(Long employeeId, int year, int month, int day) {
         employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
-        // Placeholder: A real implementation is needed.
-        List<AttendanceRecordClass> records = getAttendanceListByEmployeeAndDateRange(employeeId, LocalDate.of(year, month, day), LocalDate.of(year, month, day));
-        return records.isEmpty() ? 0.0 : 100.0;
+
+        LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        LocalDate endOfMonth = LocalDate.of(year, month, startOfMonth.lengthOfMonth());
+
+        List<AttendanceRecordClass> records = getAttendanceListByEmployeeAndDateRange(employeeId, startOfMonth, endOfMonth);
+
+        long daysWithAttendance = records.stream()
+                .map(AttendanceRecordClass::getDate)
+                .distinct()
+                .count();
+
+        long totalDaysInMonth = endOfMonth.getDayOfMonth();
+
+        if (totalDaysInMonth == 0) {
+            return 0.0;
+        }
+
+        return (double) daysWithAttendance / totalDaysInMonth * 100.0;
     }
 
     @Override

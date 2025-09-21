@@ -2,8 +2,8 @@ package com.employed.bar.application.service;
 
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.ScheduleNotFoundException;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
-import com.employed.bar.domain.model.strucuture.ScheduleClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
+import com.employed.bar.domain.model.structure.ScheduleClass;
 import com.employed.bar.domain.port.in.service.ScheduleUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
@@ -15,12 +15,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-@Service
-@Transactional
-@RequiredArgsConstructor
 public class ScheduleApplicationService implements ScheduleUseCase {
     private final ScheduleRepositoryPort scheduleRepositoryPort;
     private final EmployeeRepositoryPort employeeRepository;
+
+    public ScheduleApplicationService(ScheduleRepositoryPort scheduleRepositoryPort, EmployeeRepositoryPort employeeRepository) {
+        this.scheduleRepositoryPort = scheduleRepositoryPort;
+        this.employeeRepository = employeeRepository;
+    }
+
 
     @Override
     public ScheduleClass createSchedule(ScheduleClass schedule) {

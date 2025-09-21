@@ -3,9 +3,9 @@ package com.employed.bar.application.service;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.model.kpi.EmployeeKpiSummary;
 import com.employed.bar.domain.model.kpi.ManagerKpis;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.KpiServicePort;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
@@ -21,13 +21,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
-@RequiredArgsConstructor
 public class KpiApplicationService implements KpiServicePort {
 
     private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepositoryPort attendanceRepository;
     private final ConsumptionRepositoryPort consumptionRepositoryPort;
+
+    public KpiApplicationService(EmployeeRepositoryPort employeeRepository, AttendanceRepositoryPort attendanceRepository, ConsumptionRepositoryPort consumptionRepositoryPort) {
+        this.employeeRepository = employeeRepository;
+        this.attendanceRepository = attendanceRepository;
+        this.consumptionRepositoryPort = consumptionRepositoryPort;
+    }
+
 
     @Override
     public ManagerKpis getManagerKpis(LocalDate startDate, LocalDate endDate) {

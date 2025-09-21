@@ -100,4 +100,62 @@ public class PaymentCalculationApplicationServiceTest {
         BigDecimal expectedPay = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
         assertEquals(expectedPay, totalPay);
     }
+
+    @Test
+    void testCalculateTotalPay_NullHourlyRate() {
+        assertThrows(NullPointerException.class, () -> {
+            paymentCalculationService.calculateTotalPay(null, false, null, 8.0, 0.0);
+        });
+    }
+
+    @Test
+    void testCalculateTotalPay_NullOvertimeRateType_PaysOvertime() {
+        // Given
+        BigDecimal hourlyRate = new BigDecimal("10.00");
+        double regularHours = 8.0;
+        double overtimeHours = 2.0;
+
+        // When
+        BigDecimal totalPay = paymentCalculationService.calculateTotalPay(hourlyRate, true, null, regularHours, overtimeHours);
+
+        // Then
+        // Regular pay: 8 * 10 = 80
+        // Overtime pay: 2 * 10 = 20 (default to regular rate)
+        // Total: 100
+        BigDecimal expectedPay = new BigDecimal("100.00").setScale(2, RoundingMode.HALF_UP);
+        assertEquals(expectedPay, totalPay);
+    }
+
+    @Test
+    void testCalculateTotalPay_NegativeRegularHours() {
+        // Given
+        BigDecimal hourlyRate = new BigDecimal("10.00");
+        double regularHours = -5.0;
+        double overtimeHours = 0.0;
+
+        // When
+        BigDecimal totalPay = paymentCalculationService.calculateTotalPay(hourlyRate, false, null, regularHours, overtimeHours);
+
+        // Then
+        BigDecimal expectedPay = new BigDecimal("-50.00").setScale(2, RoundingMode.HALF_UP);
+        assertEquals(expectedPay, totalPay);
+    }
+
+    @Test
+    void testCalculateTotalPay_NegativeOvertimeHours() {
+        // Given
+        BigDecimal hourlyRate = new BigDecimal("10.00");
+        double regularHours = 8.0;
+        double overtimeHours = -2.0;
+
+        // When
+        BigDecimal totalPay = paymentCalculationService.calculateTotalPay(hourlyRate, true, OvertimeRateType.ONE_HUNDRED_PERCENT, regularHours, overtimeHours);
+
+        // Then
+        // Regular pay: 8 * 10 = 80
+        // Overtime pay: -2 * 10 * 2 = -40
+        // Total: 40
+        BigDecimal expectedPay = new BigDecimal("40.00").setScale(2, RoundingMode.HALF_UP);
+        assertEquals(expectedPay, totalPay);
+    }
 }

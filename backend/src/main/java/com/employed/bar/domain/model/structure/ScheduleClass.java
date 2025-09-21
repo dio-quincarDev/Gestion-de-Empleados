@@ -1,4 +1,4 @@
-package com.employed.bar.domain.model.strucuture;
+package com.employed.bar.domain.model.structure;
 
 import lombok.*;
 import java.time.LocalDateTime;

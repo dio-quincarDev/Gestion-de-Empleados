@@ -1,10 +1,12 @@
 package com.employed.bar.service;
 
 import com.employed.bar.application.service.EmployeeApplicationService;
+import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.payment.CashPaymentMethod;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.AttendanceUseCase;
 import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
@@ -228,6 +230,136 @@ public class EmployeeApplicationServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> {
             employee.updateWith(updatedEmployee);
+        });
+
+        verify(employeeRepositoryPort, never()).findById(anyLong());
+        verify(employeeRepositoryPort, never()).findByEmail(anyString());
+        verify(employeeRepositoryPort, never()).save(any(EmployeeClass.class));
+    }
+
+    @Test
+    void testGetEmployees_Success() {
+        when(employeeRepositoryPort.findAll()).thenReturn(java.util.Collections.singletonList(employee));
+
+        java.util.List<EmployeeClass> result = employeeApplicationService.getEmployees();
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(employee, result.get(0));
+        verify(employeeRepositoryPort, times(1)).findAll();
+    }
+
+    @Test
+    void testSearchEmployees_ByName() {
+        String name = "John";
+        when(employeeRepositoryPort.searchEmployees(name, null, null)).thenReturn(java.util.Collections.singletonList(employee));
+
+        java.util.List<EmployeeClass> result = employeeApplicationService.searchEmployees(name, null, null);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(employee, result.get(0));
+        verify(employeeRepositoryPort, times(1)).searchEmployees(name, null, null);
+    }
+
+    @Test
+    void testSearchEmployees_ByRole() {
+        EmployeeRole role = EmployeeRole.MANAGER;
+        when(employeeRepositoryPort.searchEmployees(null, role, null)).thenReturn(java.util.Collections.singletonList(employee));
+
+        java.util.List<EmployeeClass> result = employeeApplicationService.searchEmployees(null, role, null);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(employee, result.get(0));
+        verify(employeeRepositoryPort, times(1)).searchEmployees(null, role, null);
+    }
+
+    @Test
+    void testSearchEmployees_ByStatus() {
+        EmployeeStatus status = EmployeeStatus.ACTIVE;
+        when(employeeRepositoryPort.searchEmployees(null, null, status)).thenReturn(java.util.Collections.singletonList(employee));
+
+        java.util.List<EmployeeClass> result = employeeApplicationService.searchEmployees(null, null, status);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(employee, result.get(0));
+        verify(employeeRepositoryPort, times(1)).searchEmployees(null, null, status);
+    }
+
+    @Test
+    void testSearchEmployees_ByAllCriteria() {
+        String name = "John";
+        EmployeeRole role = EmployeeRole.MANAGER;
+        EmployeeStatus status = EmployeeStatus.ACTIVE;
+        when(employeeRepositoryPort.searchEmployees(name, role, status)).thenReturn(java.util.Collections.singletonList(employee));
+
+        java.util.List<EmployeeClass> result = employeeApplicationService.searchEmployees(name, role, status);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(employee, result.get(0));
+        verify(employeeRepositoryPort, times(1)).searchEmployees(name, role, status);
+    }
+
+    @Test
+    void testCalculateAttendancePercentage_Success() {
+        when(attendanceUseCase.calculateAttendancePercentage(employee.getId(), 2024, 10, 1)).thenReturn(80.0);
+
+        double result = employeeApplicationService.calculateAttendancePercentage(employee, 2024, 10, 1);
+
+        assertEquals(80.0, result, 0.01);
+        verify(attendanceUseCase, times(1)).calculateAttendancePercentage(employee.getId(), 2024, 10, 1);
+    }
+
+    @Test
+    void testCalculateAttendancePercentage_EmployeeNotFound() {
+        when(attendanceUseCase.calculateAttendancePercentage(employee.getId(), 2024, 10, 1))
+                .thenThrow(new EmployeeNotFoundException("Employee not found"));
+
+        assertThrows(EmployeeNotFoundException.class, () -> {
+            employeeApplicationService.calculateAttendancePercentage(employee, 2024, 10, 1);
+        });
+
+        verify(attendanceUseCase, times(1)).calculateAttendancePercentage(employee.getId(), 2024, 10, 1);
+    }
+
+    @Test
+    void testCreateEmployee_NullEmployee() {
+        assertThrows(NullPointerException.class, () -> {
+            employeeApplicationService.createEmployee(null);
+        });
+
+        verify(employeeRepositoryPort, never()).findByEmail(anyString());
+        verify(employeeRepositoryPort, never()).save(any(EmployeeClass.class));
+    }
+
+    @Test
+    void testUpdateEmployee_NullUpdatedEmployee() {
+        when(employeeRepositoryPort.findById(1L)).thenReturn(Optional.of(employee));
+
+        assertThrows(NullPointerException.class, () -> {
+            employeeApplicationService.updateEmployee(1L, null);
+        });
+
+        verify(employeeRepositoryPort, times(1)).findById(1L);
+        verify(employeeRepositoryPort, never()).findByEmail(anyString());
+        verify(employeeRepositoryPort, never()).save(any(EmployeeClass.class));
+    }
+
+    @Test
+    void testUpdateEmployee_NullId() {
+        EmployeeClass updatedEmployee = new EmployeeClass();
+        updatedEmployee.setPaymentMethod(new CashPaymentMethod());
+
+        assertThrows(EmployeeNotFoundException.class, () -> {
+            employeeApplicationService.updateEmployee(null, updatedEmployee);
         });
 
         verify(employeeRepositoryPort, never()).findById(anyLong());

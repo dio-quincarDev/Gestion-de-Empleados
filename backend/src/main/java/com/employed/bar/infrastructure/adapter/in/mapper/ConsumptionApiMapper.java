@@ -1,6 +1,6 @@
 package com.employed.bar.infrastructure.adapter.in.mapper;
 
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
 import com.employed.bar.infrastructure.dto.domain.ConsumptionDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

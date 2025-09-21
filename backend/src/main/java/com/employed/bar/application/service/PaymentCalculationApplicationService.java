@@ -2,12 +2,11 @@ package com.employed.bar.application.service;
 
 import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
-import org.springframework.stereotype.Service;
+
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-@Service
 public class PaymentCalculationApplicationService implements PaymentCalculationUseCase {
 
     @Override

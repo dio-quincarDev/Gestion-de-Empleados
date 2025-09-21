@@ -2,8 +2,8 @@ package com.employed.bar.service;
 
 import com.employed.bar.application.service.AttendanceApplicationService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -184,5 +185,123 @@ public class AttendanceApplicationServiceTest {
         assertTrue(result.isEmpty());
         verify(employeeRepository, times(1)).findById(1L);
         verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+    }
+
+    @Test
+    void testCalculateAttendancePercentage_EmployeeNotFound() {
+        when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(EmployeeNotFoundException.class, () -> {
+            attendanceApplicationService.calculateAttendancePercentage(1L, 2024, 10, 1);
+        });
+
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(), any());
+    }
+
+    @Test
+    void testCalculateAttendancePercentage_NoRecords() {
+        LocalDate startDate = LocalDate.of(2024, 10, 1);
+        LocalDate endDate = LocalDate.of(2024, 10, 31);
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate)).thenReturn(java.util.Collections.emptyList());
+
+        double percentage = attendanceApplicationService.calculateAttendancePercentage(1L, 2024, 10, 1);
+
+        assertEquals(0.0, percentage, 0.01);
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+    }
+
+    @Test
+    void testCalculateAttendancePercentage_SomeRecords() {
+        LocalDate startDate = LocalDate.of(2024, 10, 1);
+        LocalDate endDate = LocalDate.of(2024, 10, 31);
+
+        AttendanceRecordClass record1 = new AttendanceRecordClass();
+        record1.setDate(LocalDate.of(2024, 10, 5));
+        AttendanceRecordClass record2 = new AttendanceRecordClass();
+        record2.setDate(LocalDate.of(2024, 10, 10));
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
+                .thenReturn(java.util.Arrays.asList(record1, record2));
+
+        double percentage = attendanceApplicationService.calculateAttendancePercentage(1L, 2024, 10, 1);
+
+        // October has 31 days, 2 days with attendance
+        assertEquals((2.0 / 31.0) * 100.0, percentage, 0.01);
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+    }
+
+    @Test
+    void testCalculateAttendancePercentage_FullAttendance() {
+        LocalDate startDate = LocalDate.of(2024, 10, 1);
+        LocalDate endDate = LocalDate.of(2024, 10, 31);
+
+        List<AttendanceRecordClass> records = new java.util.ArrayList<>();
+        for (int i = 1; i <= 31; i++) {
+            AttendanceRecordClass record = new AttendanceRecordClass();
+            record.setDate(LocalDate.of(2024, 10, i));
+            records.add(record);
+        }
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
+                .thenReturn(records);
+
+        double percentage = attendanceApplicationService.calculateAttendancePercentage(1L, 2024, 10, 1);
+
+        assertEquals(100.0, percentage, 0.01);
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+    }
+
+    @Test
+    void testRegisterAttendance_NullAttendanceRecord() {
+        assertThrows(NullPointerException.class, () -> {
+            attendanceApplicationService.registerAttendance(null);
+        });
+
+        verify(employeeRepository, never()).findById(anyLong());
+        verify(attendanceRepositoryPort, never()).save(any(AttendanceRecordClass.class));
+    }
+
+    @Test
+    void testFindEmployeeAttendances_NullDate() {
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(java.util.Collections.singletonList(attendanceRecord));
+
+        assertThrows(NullPointerException.class, () -> {
+            attendanceApplicationService.findEmployeeAttendances(1L, null);
+        });
+
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, times(1)).findByEmployee(employee);
+    }
+
+    @Test
+    void testGetAttendanceListByEmployeeAndDateRange_NullStartDate() {
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+
+        assertThrows(NullPointerException.class, () -> {
+            attendanceApplicationService.getAttendanceListByEmployeeAndDateRange(1L, null, LocalDate.now());
+        });
+
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(), any());
+    }
+
+    @Test
+    void testGetAttendanceListByEmployeeAndDateRange_NullEndDate() {
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+
+        assertThrows(NullPointerException.class, () -> {
+            attendanceApplicationService.getAttendanceListByEmployeeAndDateRange(1L, LocalDate.now(), null);
+        });
+
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(), any());
     }
 }

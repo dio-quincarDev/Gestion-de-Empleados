@@ -1,7 +1,7 @@
 package com.employed.bar.domain.port.in.service;
 
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

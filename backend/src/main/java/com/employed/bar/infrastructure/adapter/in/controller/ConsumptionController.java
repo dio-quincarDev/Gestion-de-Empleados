@@ -5,7 +5,7 @@ import com.employed.bar.infrastructure.dto.domain.ConsumptionDto;
 import com.employed.bar.application.service.ConsumptionApplicationService;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.InvalidConsumptionDataException;
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
 import com.employed.bar.infrastructure.adapter.in.mapper.ConsumptionApiMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

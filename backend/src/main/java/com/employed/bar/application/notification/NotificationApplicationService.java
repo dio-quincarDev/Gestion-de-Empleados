@@ -1,7 +1,7 @@
 package com.employed.bar.application.notification;
 
 import com.employed.bar.domain.model.report.Report;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.SendEmployeeReportNotificationUseCase;
 import com.employed.bar.domain.port.out.NotificationPort;
 import lombok.RequiredArgsConstructor;

@@ -1,17 +1,15 @@
 package com.employed.bar.service;
 
 import com.employed.bar.application.service.ReportingApplicationService;
-import com.employed.bar.domain.enums.OvertimeRateType;
-import com.employed.bar.domain.event.TestEmailRequestedEvent;
-import com.employed.bar.domain.event.WeeklyReportRequestedEvent;
+import com.employed.bar.domain.enums.OvertimeRateType;;
 import com.employed.bar.domain.model.report.AttendanceReportLine;
 import com.employed.bar.domain.model.report.ConsumptionReportLine;
 import com.employed.bar.domain.model.report.Report;
-import com.employed.bar.domain.model.report.ReportCalculator;
+import com.employed.bar.domain.service.ReportCalculator;
 import com.employed.bar.domain.model.report.hours.HoursCalculation;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.ConsumptionClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.ConsumptionClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
 import com.employed.bar.domain.port.in.service.SendEmployeeReportNotificationUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
@@ -54,7 +52,7 @@ public class ReportingApplicationServiceTest {
     @Mock
     private SendEmployeeReportNotificationUseCase sendEmployeeReportNotificationUseCase;
 
-        @InjectMocks
+    @InjectMocks
     private ReportingApplicationService reportingApplicationService;
 
     private LocalDate startDate;
@@ -86,7 +84,7 @@ public class ReportingApplicationServiceTest {
         consumptionClass.setAmount(BigDecimal.valueOf(50.0));
 
         attendanceReportLine = new AttendanceReportLine("Test Employee", LocalDate.now(),
-                LocalTime.of(9,0), LocalTime.of(17,0), 8.0, 100.0);
+                LocalTime.of(9, 0), LocalTime.of(17, 0), 8.0, 100.0);
         consumptionReportLine = new ConsumptionReportLine("Test Employee", LocalDateTime.now(),
                 BigDecimal.valueOf(50.0), "Lunch");
 
@@ -250,56 +248,6 @@ public class ReportingApplicationServiceTest {
         verify(paymentCalculationUseCase, times(1)).calculateTotalPay(employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(), 0.0, 0.0);
     }
 
-    @Test
-    void testHandleWeeklyReportRequest_Success() {
-        WeeklyReportRequestedEvent event = new WeeklyReportRequestedEvent(this, startDate, endDate);
-        List<EmployeeClass> employees = Collections.singletonList(employee);
-
-        when(employeeRepository.findAll()).thenReturn(employees);
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
-                .thenReturn(Collections.singletonList(attendanceRecord));
-        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), eq(null)))
-                .thenReturn(Collections.singletonList(consumptionClass));
-        when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
-        when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
-        when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
-        when(paymentCalculationUseCase.calculateTotalPay(employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(),
-                hoursCalculation.getRegularHours(), hoursCalculation.getOvertimeHours()))
-                .thenReturn(BigDecimal.valueOf(80.0));
-
-        reportingApplicationService.handleWeeklyReportRequest(event);
-
-        ArgumentCaptor<List<Report>> reportsCaptor = ArgumentCaptor.forClass(List.class);
-        verify(employeeRepository, times(1)).findAll();
-        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(employees), reportsCaptor.capture());
-
-        List<Report> capturedReports = reportsCaptor.getValue();
-        assertEquals(1, capturedReports.size());
-        Report capturedReport = capturedReports.get(0);
-
-        assertNotNull(capturedReport);
-        assertEquals(employee.getId(), capturedReport.getEmployeeId());
-        assertEquals(1, capturedReport.getAttendanceLines().size());
-        assertEquals(attendanceReportLine, capturedReport.getAttendanceLines().get(0));
-        assertEquals(1, capturedReport.getConsumptionLines().size());
-        assertEquals(consumptionReportLine, capturedReport.getConsumptionLines().get(0));
-        assertEquals(8.0, capturedReport.getTotalAttendanceHours());
-        assertEquals(BigDecimal.valueOf(50.0), capturedReport.getTotalConsumptionAmount());
-        assertEquals(BigDecimal.valueOf(80.0), capturedReport.getTotalEarnings());
-    }
-
-    @Test
-    void testHandleWeeklyReportRequest_NoEmployees() {
-        WeeklyReportRequestedEvent event = new WeeklyReportRequestedEvent(this, startDate, endDate);
-
-        when(employeeRepository.findAll()).thenReturn(Collections.emptyList());
-
-        reportingApplicationService.handleWeeklyReportRequest(event);
-
-        verify(employeeRepository, times(1)).findAll();
-        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(Collections.emptyList()), eq(Collections.emptyList()));
-        verifyNoMoreInteractions(sendEmployeeReportNotificationUseCase);
-    }
 
     @Test
     void testSendTestEmailToEmployee_Success() {
@@ -347,35 +295,58 @@ public class ReportingApplicationServiceTest {
     }
 
     @Test
-    void testHandleTestEmailRequest_Success() {
-        TestEmailRequestedEvent event = new TestEmailRequestedEvent(this, employee.getId());
-        LocalDate testDate = LocalDate.parse("2024-10-10");
-        LocalDateTime startDateTime = testDate.atStartOfDay();
-        LocalDateTime endDateTime = testDate.atTime(23, 59, 59);
+    void testGenerateAndSendWeeklyReport_Success() {
+        List<EmployeeClass> employees = Collections.singletonList(employee);
+        Report mockedReport = mock(Report.class); // Create a mock report
 
-        when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, testDate, testDate))
-                .thenReturn(Collections.singletonList(attendanceRecord));
-        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, startDateTime, endDateTime, null))
-                .thenReturn(Collections.singletonList(consumptionClass));
-        when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
-        when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
-        when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
-        when(paymentCalculationUseCase.calculateTotalPay(employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(),
-                hoursCalculation.getRegularHours(), hoursCalculation.getOvertimeHours()))
-                .thenReturn(BigDecimal.valueOf(80.0));
+        when(employeeRepository.findAll()).thenReturn(employees);
+        // Mock the behavior of the reportingUseCase mock, not the InjectMocks instance
+        when(reportingUseCase.generateCompleteReport(eq(startDate), eq(endDate), (EmployeeClass) eq(employee))).thenReturn(mockedReport);
 
-        reportingApplicationService.handleTestEmailRequest(event);
+        reportingApplicationService.generateAndSendWeeklyReport(startDate, endDate);
 
-        ArgumentCaptor<List<Report>> reportsCaptor = ArgumentCaptor.forClass(List.class);
-        verify(employeeRepository, times(1)).findById(employee.getId());
-        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(Collections.singletonList(employee)), reportsCaptor.capture());
+        verify(employeeRepository, times(1)).findAll();
+        // Verify that generateCompleteReport was called on the reportingUseCase mock
+        verify(reportingUseCase, times(1)).generateCompleteReport(startDate, endDate, employee);
+        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(employees), anyList());
+    }
 
-        List<Report> capturedReports = reportsCaptor.getValue();
-        assertEquals(1, capturedReports.size());
-        Report capturedReport = capturedReports.get(0);
+    @Test
+    void testGenerateAndSendWeeklyReport_NoEmployees() {
+        when(employeeRepository.findAll()).thenReturn(Collections.emptyList());
 
-        assertNotNull(capturedReport);
-        assertEquals(employee.getId(), capturedReport.getEmployeeId());
+        reportingApplicationService.generateAndSendWeeklyReport(startDate, endDate);
+
+        verify(employeeRepository, times(1)).findAll();
+        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(Collections.emptyList(), Collections.emptyList());
+    }
+
+    @Test
+    void testGenerateCompleteReport_NullStartDate_EmployeeId() {
+        assertThrows(NullPointerException.class, () -> {
+            reportingApplicationService.generateCompleteReport(null, endDate, employee.getId());
+        });
+
+    }
+
+    @Test
+    void testGenerateCompleteReport_NullEndDate_EmployeeId() {
+        assertThrows(NullPointerException.class, () -> {
+            reportingApplicationService.generateCompleteReport(startDate, null, employee.getId());
+        });
+    }
+
+    @Test
+    void testGenerateCompleteReport_NullEmployee_EmployeeId() {
+        assertThrows(NullPointerException.class, () -> {
+            reportingApplicationService.generateCompleteReport(startDate, endDate, null);
+        });
+    }
+
+    @Test
+    void testGenerateCompleteReport_NullStartDate_EmployeeClass() {
+        assertThrows(NullPointerException.class, () -> {
+            reportingApplicationService.generateCompleteReport(null, endDate, employee);
+        });
     }
 }

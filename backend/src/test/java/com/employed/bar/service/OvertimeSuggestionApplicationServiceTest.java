@@ -3,8 +3,8 @@ package com.employed.bar.service;
 import com.employed.bar.application.service.OvertimeSuggestionApplicationService;
 
 import com.employed.bar.domain.model.payment.OvertimeSuggestion;
-import com.employed.bar.domain.model.strucuture.AttendanceRecordClass;
-import com.employed.bar.domain.model.strucuture.EmployeeClass;
+import com.employed.bar.domain.model.structure.AttendanceRecordClass;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.model.payment.PaymentMethod;
@@ -181,5 +181,98 @@ public class OvertimeSuggestionApplicationServiceTest {
         OvertimeSuggestion suggestion = suggestions.get(0);
         assertEquals(employeeWithOvertime, suggestion.getEmployee());
         assertEquals(60, suggestion.getExtraMinutesWorked());
+    }
+
+    @Test
+    void testGenerateSuggestions_NullEmployeeRepositoryFindAll() {
+        when(employeeRepositoryPort.findAll()).thenReturn(null);
+
+        List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
+
+        assertTrue(suggestions.isEmpty());
+    }
+
+    @Test
+    void testGenerateSuggestions_NullAttendanceRepositoryFindByEmployee() {
+        PaymentMethod paymentMethod = mock(PaymentMethod.class);
+        EmployeeClass employee = new EmployeeClass();
+        employee.setId(1L);
+        employee.setPaysOvertime(false);
+        employee.setPaymentMethod(paymentMethod);
+
+        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(null);
+
+        List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
+
+        assertTrue(suggestions.isEmpty());
+    }
+
+    @Test
+    void testGenerateSuggestions_AttendanceRecordWithNullDate() {
+        PaymentMethod paymentMethod = mock(PaymentMethod.class);
+        EmployeeClass employee = new EmployeeClass();
+        employee.setId(1L);
+        employee.setPaysOvertime(false);
+        employee.setPaymentMethod(paymentMethod);
+
+        AttendanceRecordClass record = new AttendanceRecordClass();
+        record.setEmployee(employee);
+        record.setDate(null); // Null date
+        record.setEntryTime(LocalTime.of(9, 0));
+        record.setExitTime(LocalTime.of(18, 0));
+
+        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
+
+        List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
+
+        assertTrue(suggestions.isEmpty());
+    }
+
+    @Test
+    void testGenerateSuggestions_ExactlyEightHoursWorked() {
+        PaymentMethod paymentMethod = mock(PaymentMethod.class);
+        EmployeeClass employee = new EmployeeClass();
+        employee.setId(1L);
+        employee.setName("John Doe");
+        employee.setPaysOvertime(false);
+        employee.setPaymentMethod(paymentMethod);
+
+        AttendanceRecordClass record = new AttendanceRecordClass();
+        record.setEmployee(employee);
+        record.setDate(LocalDate.of(2024, 5, 20));
+        record.setEntryTime(LocalTime.of(9, 0));
+        record.setExitTime(LocalTime.of(17, 0)); // 8 hours
+
+        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
+
+        List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
+
+        assertTrue(suggestions.isEmpty());
+    }
+
+    @Test
+    void testGenerateSuggestions_LessThanEightHoursWorked() {
+        PaymentMethod paymentMethod = mock(PaymentMethod.class);
+        EmployeeClass employee = new EmployeeClass();
+        employee.setId(1L);
+        employee.setName("John Doe");
+        employee.setPaysOvertime(false);
+        employee.setPaymentMethod(paymentMethod);
+
+        AttendanceRecordClass record = new AttendanceRecordClass();
+        record.setEmployee(employee);
+        record.setDate(LocalDate.of(2024, 5, 20));
+        record.setEntryTime(LocalTime.of(9, 0));
+        record.setExitTime(LocalTime.of(16, 0)); // 7 hours
+
+        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
+
+        List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
+
+        assertTrue(suggestions.isEmpty());
     }
 }
