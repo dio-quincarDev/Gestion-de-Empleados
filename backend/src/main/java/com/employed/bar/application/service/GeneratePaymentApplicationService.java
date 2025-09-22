@@ -2,13 +2,11 @@ package com.employed.bar.application.service;
 
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
-import com.employed.bar.domain.port.in.service.AttendanceUseCase;
-import com.employed.bar.domain.port.in.service.EmployeeUseCase;
-import com.employed.bar.domain.port.in.service.GeneratePaymentUseCase;
-import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
+import com.employed.bar.domain.port.in.app.AttendanceUseCase;
+import com.employed.bar.domain.port.in.app.EmployeeUseCase;
+import com.employed.bar.domain.port.in.payment.GeneratePaymentUseCase;
+import com.employed.bar.domain.port.in.payment.PaymentCalculationUseCase;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Duration;

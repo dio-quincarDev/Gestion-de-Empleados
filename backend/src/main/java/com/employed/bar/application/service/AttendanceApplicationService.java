@@ -3,12 +3,9 @@ package com.employed.bar.application.service;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
-import com.employed.bar.domain.port.in.service.AttendanceUseCase;
-import com.employed.bar.domain.port.in.service.ReportingUseCase;
+import com.employed.bar.domain.port.in.app.AttendanceUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
-
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;

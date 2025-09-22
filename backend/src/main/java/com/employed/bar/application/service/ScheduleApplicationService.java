@@ -4,12 +4,9 @@ import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.ScheduleNotFoundException;
 import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.model.structure.ScheduleClass;
-import com.employed.bar.domain.port.in.service.ScheduleUseCase;
+import com.employed.bar.domain.port.in.app.ScheduleUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;

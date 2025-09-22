@@ -1,7 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.enums.OvertimeRateType;
-import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
+import com.employed.bar.domain.port.in.payment.PaymentCalculationUseCase;
 
 
 import java.math.BigDecimal;

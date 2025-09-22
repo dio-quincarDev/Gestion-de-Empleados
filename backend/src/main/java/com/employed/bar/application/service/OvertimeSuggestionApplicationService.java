@@ -3,7 +3,7 @@ package com.employed.bar.application.service;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.model.payment.OvertimeSuggestion;
-import com.employed.bar.domain.port.in.service.OvertimeSuggestionUseCase;
+import com.employed.bar.domain.port.in.payment.OvertimeSuggestionUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 

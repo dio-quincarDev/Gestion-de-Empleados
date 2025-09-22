@@ -6,9 +6,9 @@ import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.structure.EmployeeClass;
-import com.employed.bar.domain.port.in.service.AttendanceUseCase;
-import com.employed.bar.domain.port.in.service.EmployeeUseCase;
-import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
+import com.employed.bar.domain.port.in.app.AttendanceUseCase;
+import com.employed.bar.domain.port.in.app.EmployeeUseCase;
+import com.employed.bar.domain.port.in.payment.PaymentCalculationUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 
 

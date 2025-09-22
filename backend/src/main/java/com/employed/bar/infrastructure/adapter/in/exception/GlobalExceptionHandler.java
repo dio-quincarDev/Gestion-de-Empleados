@@ -2,7 +2,7 @@ package com.employed.bar.infrastructure.adapter.in.exception;
 
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.infrastructure.dto.ErrorResponse;
+import com.employed.bar.infrastructure.dto.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

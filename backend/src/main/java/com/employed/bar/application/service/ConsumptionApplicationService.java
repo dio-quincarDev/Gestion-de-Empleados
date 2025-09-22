@@ -3,12 +3,9 @@ package com.employed.bar.application.service;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.structure.ConsumptionClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
-import com.employed.bar.domain.port.in.service.ConsumptionUseCase;
+import com.employed.bar.domain.port.in.app.ConsumptionUseCase;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

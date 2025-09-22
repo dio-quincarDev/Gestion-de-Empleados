@@ -18,11 +18,11 @@ import com.employed.bar.domain.service.ManagerReportCalculator;
 import com.employed.bar.application.service.KpiApplicationService;
 
 import com.employed.bar.application.service.GeneratePaymentApplicationService;
-import com.employed.bar.domain.port.in.service.EmployeeUseCase;
+import com.employed.bar.domain.port.in.app.EmployeeUseCase;
 
 import com.employed.bar.application.service.EmployeeApplicationService;
-import com.employed.bar.domain.port.in.service.AttendanceUseCase;
-import com.employed.bar.domain.port.in.service.PaymentCalculationUseCase;
+import com.employed.bar.domain.port.in.app.AttendanceUseCase;
+import com.employed.bar.domain.port.in.payment.PaymentCalculationUseCase;
 
 import com.employed.bar.application.service.ConsumptionApplicationService;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;

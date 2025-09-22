@@ -76,7 +76,7 @@ public class KpiApplicationServiceTest {
         assertEquals(EmployeeStatus.INACTIVE, inactiveEmployee.getStatus(), "Inactive employee status should be INACTIVE"); // DEBUG ASSERTION
         when(employeeRepository.findAll()).thenReturn(allEmployees);
 
-        // Execute the service method
+        // Execute the security method
         ManagerKpis result = kpiApplicationService.getManagerKpis(startDate, endDate);
 
         // Assertions
