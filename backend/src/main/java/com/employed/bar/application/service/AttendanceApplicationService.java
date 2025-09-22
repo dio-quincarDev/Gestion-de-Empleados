@@ -18,8 +18,7 @@ public class AttendanceApplicationService implements AttendanceUseCase {
     private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepositoryPort attendanceRepositoryPort;
     public AttendanceApplicationService(EmployeeRepositoryPort employeeRepository,
-                                        AttendanceRepositoryPort attendanceRepositoryPort,
-                                        ReportingUseCase reportingUseCase) {
+                                        AttendanceRepositoryPort attendanceRepositoryPort) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepositoryPort = attendanceRepositoryPort;
     }

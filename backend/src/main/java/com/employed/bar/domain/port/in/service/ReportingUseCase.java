@@ -8,7 +8,6 @@ import java.time.LocalDate;
 
 public interface ReportingUseCase {
     Report generateCompleteReportForEmployeeById(LocalDate startDate, LocalDate endDate, Long employeeId);
-    Report generateCompleteReportForEmployee(LocalDate startDate, LocalDate endDate, EmployeeClass employee);
     void sendTestEmailToEmployee(Long employeeId);
     void generateAndSendWeeklyReport(LocalDate startDate, LocalDate endDate);
 }

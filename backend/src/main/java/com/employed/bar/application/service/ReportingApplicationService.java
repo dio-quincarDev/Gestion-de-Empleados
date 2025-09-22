@@ -43,13 +43,15 @@ public class ReportingApplicationService implements ReportingUseCase {
 
     @Override
     public Report generateCompleteReportForEmployeeById(LocalDate startDate, LocalDate endDate, Long employeeId) {
+        if (startDate == null || endDate == null || employeeId == null) {
+            throw new IllegalArgumentException("Start date, end date, and employee ID must not be null");
+        }
         EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
         return generateCompleteReportForEmployee(startDate, endDate, employee);
     }
 
-    @Override
-    public Report generateCompleteReportForEmployee(LocalDate startDate, LocalDate endDate, EmployeeClass employee) {
+    private Report generateCompleteReportForEmployee(LocalDate startDate, LocalDate endDate, EmployeeClass employee) {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 

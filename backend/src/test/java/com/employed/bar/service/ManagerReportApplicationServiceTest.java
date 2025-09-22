@@ -20,8 +20,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -69,7 +68,7 @@ public class ManagerReportApplicationServiceTest {
         String managerEmail = "manager@example.com";
 
         when(employeeRepository.findAll()).thenReturn(employees);
-        when(reportingUseCase.generateCompleteReport(startDate, endDate, employee)).thenReturn(individualReport);
+        when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId())).thenReturn(individualReport);
         when(managerReportCalculator.calculate(employees, individualReports)).thenReturn(managerReport);
 
         // Act
@@ -77,7 +76,7 @@ public class ManagerReportApplicationServiceTest {
 
         // Assert
         verify(employeeRepository, times(1)).findAll();
-        verify(reportingUseCase, times(1)).generateCompleteReport(startDate, endDate, employee);
+        verify(reportingUseCase, times(1)).generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         verify(managerReportCalculator, times(1)).calculate(employees, individualReports);
         verify(notificationPort, times(1)).sendManagerReportByEmail(managerEmail, managerReport);
     }
@@ -106,7 +105,7 @@ public class ManagerReportApplicationServiceTest {
         byte[] expectedPdf = {1, 2, 3, 4};
 
         when(employeeRepository.findAll()).thenReturn(employees);
-        when(reportingUseCase.generateCompleteReport(startDate, endDate, employee)).thenReturn(individualReport);
+        when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId())).thenReturn(individualReport);
         when(managerReportCalculator.calculate(employees, individualReports)).thenReturn(managerReport);
         when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(expectedPdf);
 
@@ -117,7 +116,7 @@ public class ManagerReportApplicationServiceTest {
         assertNotNull(actualPdf);
         assertArrayEquals(expectedPdf, actualPdf);
         verify(employeeRepository, times(1)).findAll();
-        verify(reportingUseCase, times(1)).generateCompleteReport(startDate, endDate, employee);
+        verify(reportingUseCase, times(1)).generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         verify(managerReportCalculator, times(1)).calculate(employees, individualReports);
         verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport);
     }
@@ -144,37 +143,37 @@ public class ManagerReportApplicationServiceTest {
 
     @Test
     void testGenerateAndSendManagerReport_NullStartDate() {
-        assertThrows(NullPointerException.class, () -> {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
             managerReportApplicationService.generateAndSendManagerReport(null, endDate);
         });
-
+        assertEquals("Start date and end date must not be null", thrown.getMessage());
         verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, notificationPort);
     }
 
     @Test
     void testGenerateAndSendManagerReport_NullEndDate() {
-        assertThrows(NullPointerException.class, () -> {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
             managerReportApplicationService.generateAndSendManagerReport(startDate, null);
         });
-
+        assertEquals("Start date and end date must not be null", thrown.getMessage());
         verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, notificationPort);
     }
 
     @Test
     void testGenerateManagerReportPdf_NullStartDate() {
-        assertThrows(NullPointerException.class, () -> {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
             managerReportApplicationService.generateManagerReportPdf(null, endDate);
         });
-
+        assertEquals("Start date and end date must not be null", thrown.getMessage());
         verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, pdfGeneratorPort);
     }
 
     @Test
     void testGenerateManagerReportPdf_NullEndDate() {
-        assertThrows(NullPointerException.class, () -> {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
             managerReportApplicationService.generateManagerReportPdf(startDate, null);
         });
-
+        assertEquals("Start date and end date must not be null", thrown.getMessage());
         verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, pdfGeneratorPort);
     }
 }

@@ -1,7 +1,7 @@
 package com.employed.bar.service;
 
 import com.employed.bar.application.service.ReportingApplicationService;
-import com.employed.bar.domain.enums.OvertimeRateType;;
+import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.model.report.AttendanceReportLine;
 import com.employed.bar.domain.model.report.ConsumptionReportLine;
 import com.employed.bar.domain.model.report.Report;
@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,8 +42,6 @@ public class ReportingApplicationServiceTest {
     private ConsumptionRepositoryPort consumptionRepositoryPort;
     @Mock
     private AttendanceRepositoryPort attendanceRepositoryPort;
-    @Mock
-    private ApplicationEventPublisher eventPublisher;
     @Mock
     private ReportCalculator reportCalculator;
     @Mock
@@ -92,7 +89,7 @@ public class ReportingApplicationServiceTest {
     }
 
     @Test
-    void testGenerateCompleteReport_Success() {
+    void testGenerateCompleteReportForEmployeeById_Success() {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
                 .thenReturn(Collections.singletonList(attendanceRecord));
@@ -105,7 +102,7 @@ public class ReportingApplicationServiceTest {
         when(paymentCalculationUseCase.calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble()))
                 .thenReturn(BigDecimal.valueOf(80.0)); // Example total pay
 
-        Report result = reportingApplicationService.generateCompleteReport(startDate, endDate, employee.getId());
+        Report result = reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
 
         assertNotNull(result);
         assertEquals(employee.getId(), result.getEmployeeId());
@@ -127,11 +124,11 @@ public class ReportingApplicationServiceTest {
     }
 
     @Test
-    void testGenerateCompleteReport_EmployeeNotFound() {
+    void testGenerateCompleteReportForEmployeeById_EmployeeNotFound() {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.empty());
 
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            reportingApplicationService.generateCompleteReport(startDate, endDate, employee.getId());
+            reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         });
 
         assertEquals("Employee not found", thrown.getMessage());
@@ -140,7 +137,7 @@ public class ReportingApplicationServiceTest {
     }
 
     @Test
-    void testGenerateCompleteReport_NoAttendanceRecords() {
+    void testGenerateCompleteReportForEmployeeById_NoAttendanceRecords() {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
                 .thenReturn(Collections.emptyList());
@@ -151,7 +148,7 @@ public class ReportingApplicationServiceTest {
         when(paymentCalculationUseCase.calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble()))
                 .thenReturn(BigDecimal.valueOf(0.0));
 
-        Report result = reportingApplicationService.generateCompleteReport(startDate, endDate, employee.getId());
+        Report result = reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
 
         assertNotNull(result);
         assertEquals(employee.getId(), result.getEmployeeId());
@@ -171,7 +168,7 @@ public class ReportingApplicationServiceTest {
     }
 
     @Test
-    void testGenerateCompleteReport_NoConsumptionRecords() {
+    void testGenerateCompleteReportForEmployeeById_NoConsumptionRecords() {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
                 .thenReturn(Collections.singletonList(attendanceRecord));
@@ -182,7 +179,7 @@ public class ReportingApplicationServiceTest {
         when(paymentCalculationUseCase.calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble()))
                 .thenReturn(BigDecimal.valueOf(80.0));
 
-        Report result = reportingApplicationService.generateCompleteReport(startDate, endDate, employee.getId());
+        Report result = reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
 
         assertNotNull(result);
         assertEquals(employee.getId(), result.getEmployeeId());
@@ -203,7 +200,7 @@ public class ReportingApplicationServiceTest {
     }
 
     @Test
-    void testGenerateCompleteReport_AttendanceWithNullTimes() {
+    void testGenerateCompleteReportForEmployeeById_AttendanceWithNullTimes() {
         AttendanceRecordClass arNullEntry = new AttendanceRecordClass();
         arNullEntry.setEntryTime(null);
         arNullEntry.setExitTime(LocalTime.of(17, 0));
@@ -229,7 +226,7 @@ public class ReportingApplicationServiceTest {
         when(paymentCalculationUseCase.calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble()))
                 .thenReturn(BigDecimal.valueOf(0.0));
 
-        Report result = reportingApplicationService.generateCompleteReport(startDate, endDate, employee.getId());
+        Report result = reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
 
         assertNotNull(result);
         assertEquals(employee.getId(), result.getEmployeeId());
@@ -297,18 +294,27 @@ public class ReportingApplicationServiceTest {
     @Test
     void testGenerateAndSendWeeklyReport_Success() {
         List<EmployeeClass> employees = Collections.singletonList(employee);
-        Report mockedReport = mock(Report.class); // Create a mock report
-
         when(employeeRepository.findAll()).thenReturn(employees);
-        // Mock the behavior of the reportingUseCase mock, not the InjectMocks instance
-        when(reportingUseCase.generateCompleteReport(eq(startDate), eq(endDate), (EmployeeClass) eq(employee))).thenReturn(mockedReport);
+
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
+                .thenReturn(Collections.singletonList(attendanceRecord));
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class),
+                eq(null)))
+                .thenReturn(Collections.singletonList(consumptionClass));
+        when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
+        when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
+        when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
+        when(paymentCalculationUseCase.calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble()))
+                .thenReturn(BigDecimal.valueOf(80.0));
 
         reportingApplicationService.generateAndSendWeeklyReport(startDate, endDate);
 
         verify(employeeRepository, times(1)).findAll();
-        // Verify that generateCompleteReport was called on the reportingUseCase mock
-        verify(reportingUseCase, times(1)).generateCompleteReport(startDate, endDate, employee);
         verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(eq(employees), anyList());
+
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(consumptionRepositoryPort, times(1)).findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), eq(null));
+        verify(paymentCalculationUseCase, times(1)).calculateTotalPay(employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(), hoursCalculation.getRegularHours(), hoursCalculation.getOvertimeHours());
     }
 
     @Test
@@ -322,31 +328,26 @@ public class ReportingApplicationServiceTest {
     }
 
     @Test
-    void testGenerateCompleteReport_NullStartDate_EmployeeId() {
-        assertThrows(NullPointerException.class, () -> {
-            reportingApplicationService.generateCompleteReport(null, endDate, employee.getId());
+    void testGenerateCompleteReportForEmployeeById_NullStartDate() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            reportingApplicationService.generateCompleteReportForEmployeeById(null, endDate, employee.getId());
         });
-
+        assertEquals("Start date, end date, and employee ID must not be null", thrown.getMessage());
     }
 
     @Test
-    void testGenerateCompleteReport_NullEndDate_EmployeeId() {
-        assertThrows(NullPointerException.class, () -> {
-            reportingApplicationService.generateCompleteReport(startDate, null, employee.getId());
+    void testGenerateCompleteReportForEmployeeById_NullEndDate() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            reportingApplicationService.generateCompleteReportForEmployeeById(startDate, null, employee.getId());
         });
+        assertEquals("Start date, end date, and employee ID must not be null", thrown.getMessage());
     }
 
     @Test
-    void testGenerateCompleteReport_NullEmployee_EmployeeId() {
-        assertThrows(NullPointerException.class, () -> {
-            reportingApplicationService.generateCompleteReport(startDate, endDate, null);
+    void testGenerateCompleteReportForEmployeeById_NullEmployeeId() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, null);
         });
-    }
-
-    @Test
-    void testGenerateCompleteReport_NullStartDate_EmployeeClass() {
-        assertThrows(NullPointerException.class, () -> {
-            reportingApplicationService.generateCompleteReport(null, endDate, employee);
-        });
+        assertEquals("Start date, end date, and employee ID must not be null", thrown.getMessage());
     }
 }

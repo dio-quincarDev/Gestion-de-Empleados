@@ -65,7 +65,7 @@ public class ReportController {
         }
 
         try {
-            Report report = reportingUseCase.generateCompleteReport(startDate, endDate, employeeId);
+            Report report = reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employeeId);
             ReportDto reportDto = reportApiMapper.toDto(report);
             return ResponseEntity.ok(reportDto);
         } catch (EntityNotFoundException e) {

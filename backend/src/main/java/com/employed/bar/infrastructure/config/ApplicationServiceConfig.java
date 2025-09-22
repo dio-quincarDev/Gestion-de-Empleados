@@ -44,9 +44,8 @@ public class ApplicationServiceConfig {
     @Transactional
     public AttendanceApplicationService attendanceApplicationService(
             EmployeeRepositoryPort employeeRepository,
-            AttendanceRepositoryPort attendanceRepositoryPort,
-            ReportingUseCase reportingUseCase) {
-        return new AttendanceApplicationService(employeeRepository, attendanceRepositoryPort, reportingUseCase);
+            AttendanceRepositoryPort attendanceRepositoryPort) {
+        return new AttendanceApplicationService(employeeRepository, attendanceRepositoryPort);
     }
 
     @Bean
