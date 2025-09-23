@@ -9,8 +9,8 @@ public enum EmployeeRole {
     CHEF_ASSISTANT("Ayudante de Cocina"),
     STOCKER("Bodeguero/a"),
     MAINTENANCE("Mantenimiento"),
-    MANAGER("Gerente"),
     ADMIN("Administrador/a"),
+    MANAGER("Gerente"),
     HOST("Anfitrión/a"),
     DJ("DJ");
 
