@@ -1,5 +1,10 @@
 package com.employed.bar.infrastructure.security.auth;
 
+import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
+import com.employed.bar.infrastructure.dto.security.request.CreateUserRequest;
+import org.springframework.security.access.AccessDeniedException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,11 +43,42 @@ public class AuthServiceImpl implements AuthService {
 						)
 				);
 				
-				UserEntity user = (UserEntity) authentication.getPrincipal();
-				log.info("Login exitoso para usuario: {}", user.getEmail());
+		UserEntity user = (UserEntity) authentication.getPrincipal();
+
+		if (user.getRole() != EmployeeRole.ADMIN && user.getRole() != EmployeeRole.MANAGER) {
+			log.warn("Intento de login de usuario no autorizado: {} con rol: {}", user.getEmail(), user.getRole());
+			throw new AccessDeniedException("El usuario no tiene privilegios para acceder al sistema.");
+		}
+
+		log.info("Login exitoso para usuario: {}", user.getEmail());
 		
 		
 		return jwtService.generateToken(user.getEmail(), user.getRole().name());
+	}
+
+	@Override
+	public void registerManager(CreateUserRequest request) {
+		if (request.getRole() != EmployeeRole.MANAGER) {
+			throw new IllegalArgumentException("This endpoint is only for registering the MANAGER.");
+		}
+
+		if (userEntityRepository.existsByRole(EmployeeRole.MANAGER)) {
+			throw new IllegalStateException("A MANAGER account already exists.");
+		}
+
+		if (userEntityRepository.findByEmail(request.getEmail()).isPresent()) {
+			throw new EmailAlreadyExistException("Email already exists: " + request.getEmail());
+		}
+
+		UserEntity user = UserEntity.builder()
+				.email(request.getEmail())
+				.password(passwordEncoder.encode(request.getPassword()))
+				.firstname(request.getFirstname())
+				.lastname(request.getLastname())
+				.role(request.getRole())
+				.build();
+
+		userEntityRepository.save(user);
 	}
 
 }

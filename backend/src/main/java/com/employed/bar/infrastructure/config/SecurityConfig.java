@@ -45,7 +45,7 @@ public class SecurityConfig {
                 		.requestMatchers(ApiPathConstants.V1_ROUTE + ApiPathConstants.AUTH_ROUTE + "/**")
                 		.permitAll()
                         .requestMatchers(ApiPathConstants.V1_ROUTE + "/users/**").hasAnyRole("ADMIN", "MANAGER")
-                        .anyRequest().authenticated()
+                        .anyRequest().hasAnyRole("ADMIN", "MANAGER")
                         )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
