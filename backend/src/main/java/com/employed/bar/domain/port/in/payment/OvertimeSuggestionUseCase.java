@@ -1,0 +1,9 @@
+package com.employed.bar.domain.port.in.payment;
+
+import com.employed.bar.domain.model.payment.OvertimeSuggestion;
+
+import java.util.List;
+
+public interface OvertimeSuggestionUseCase {
+    List<OvertimeSuggestion> generateSuggestions();
+}

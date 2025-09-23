@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Manager Weekly Report</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h2>Manager Weekly Report</h2>
+    <h3>Employee Summaries</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Employee Name</th>
+                <th>Total Hours Worked</th>
+                <th>Total Earnings</th>
+                <th>Total Consumptions</th>
+                <th>Net Pay</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="summary : ${employeeSummaries}">
+                <td th:text="${summary.employeeName}"></td>
+                <td th:text="${summary.totalHoursWorked}"></td>
+                <td th:text="${summary.totalEarnings}"></td>
+                <td th:text="${summary.totalConsumptions}"></td>
+                <td th:text="${summary.netPay}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Totals</h3>
+    <table>
+        <tbody>
+            <tr>
+                <td>Total Regular Hours Worked</td>
+                <td th:text="${totals.totalRegularHoursWorked}"></td>
+            </tr>
+            <tr>
+                <td>Total Overtime Hours Worked</td>
+                <td th:text="${totals.totalOvertimeHoursWorked}"></td>
+            </tr>
+            <tr>
+                <td>Total Earnings</td>
+                <td th:text="${totals.totalEarnings}"></td>
+            </tr>
+            <tr>
+                <td>Total Consumptions</td>
+                <td th:text="${totals.totalConsumptions}"></td>
+            </tr>
+            <tr>
+                <td>Total Net Pay</td>
+                <td th:text="${totals.totalNetPay}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

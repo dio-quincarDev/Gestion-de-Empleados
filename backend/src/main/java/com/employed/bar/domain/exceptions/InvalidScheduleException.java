@@ -1,13 +1,10 @@
 package com.employed.bar.domain.exceptions;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import org.springframework.http.HttpStatus;
 
 
-@AllArgsConstructor
-public class InvalidScheduleException extends RuntimeException {
+public class InvalidScheduleException extends BaseDomainException {
     public InvalidScheduleException(String message){
-        super(message);
+        super(message, HttpStatus.BAD_REQUEST, "INVALID_SCHEDULE");
     }
 }

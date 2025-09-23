@@ -1,7 +1,9 @@
 package com.employed.bar.domain.exceptions;
 
-public class InvalidConsumptionDataException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidConsumptionDataException extends BaseDomainException {
     public InvalidConsumptionDataException(String message) {
-        super(message);
+        super(message, HttpStatus.BAD_REQUEST, "INVALID_CONSUMPTION_DATA");
     }
 }

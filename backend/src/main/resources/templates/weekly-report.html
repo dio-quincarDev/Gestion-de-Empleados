@@ -47,10 +47,10 @@
         <th>Descripción</th>
         <th>Monto</th>
     </tr>
-    <tr th:each="consumption : ${individualConsumptionReports}">
-        <td th:text="${#temporals.format(consumption.consumptionDate, 'dd-MM-yyyy HH:mm')}"></td>
-        <td th:text="${consumption.description}"></td>
-        <td th:text="${'$' + #numbers.formatDecimal(consumption.amount, 1, 2)}"></td>
+    <tr th:each="consumptionClass : ${individualConsumptionReports}">
+        <td th:text="${#temporals.format(consumptionClass.consumptionDate, 'dd-MM-yyyy HH:mm')}"></td>
+        <td th:text="${consumptionClass.description}"></td>
+        <td th:text="${'$' + #numbers.formatDecimal(consumptionClass.amount, 1, 2)}"></td>
     </tr>
 </table>
 
