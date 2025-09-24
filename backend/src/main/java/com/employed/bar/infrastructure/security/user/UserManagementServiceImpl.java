@@ -4,6 +4,7 @@ import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
+import com.employed.bar.domain.exceptions.UserNotFoundException;
 import com.employed.bar.infrastructure.dto.security.request.CreateUserRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,7 +48,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public void deleteUser(UUID id) {
         UserEntity userToDelete = userEntityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         UserEntity authenticatedUser = getAuthenticatedUser();
 
         // Rule: Users cannot delete themselves.
@@ -74,7 +75,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public void updateUserRole(UUID id, EmployeeRole role) {
         UserEntity userToUpdate = userEntityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         UserEntity authenticatedUser = getAuthenticatedUser();
 
         // Rule: Users cannot change their own role.

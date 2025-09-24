@@ -5,5 +5,7 @@ import com.employed.bar.infrastructure.dto.security.request.LoginRequest;
 import com.employed.bar.infrastructure.dto.security.response.TokenResponse;
 
 public interface AuthService {
-	TokenResponse login(LoginRequest loginRequest);
-	void registerManager(CreateUserRequest request);
+    TokenResponse login(LoginRequest loginRequest);
+
+    void registerManager(CreateUserRequest request);
+}
