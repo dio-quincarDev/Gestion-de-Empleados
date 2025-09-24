@@ -67,6 +67,4 @@ public class EmployeeEntity {
     @Column(name = "bank_account_type")
     private BankAccount bankAccountType; // For ACH
 
-    // Note: Relationships to other entities like ScheduleEntity would go here
-    // but are omitted for now to focus on the current refactoring.
 }
