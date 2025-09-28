@@ -4,8 +4,6 @@ import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
 import com.employed.bar.infrastructure.dto.security.request.CreateUserRequest;
-import com.employed.bar.infrastructure.constants.ApiPathConstants;
-import com.employed.bar.infrastructure.dto.security.request.LoginRequest;
 import com.employed.bar.infrastructure.security.jwt.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
+
 
 import java.util.UUID;
 
