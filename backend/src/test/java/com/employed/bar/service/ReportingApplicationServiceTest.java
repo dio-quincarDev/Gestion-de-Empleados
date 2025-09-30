@@ -2,6 +2,7 @@ package com.employed.bar.service;
 
 import com.employed.bar.application.service.ReportingApplicationService;
 import com.employed.bar.domain.enums.OvertimeRateType;
+import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.report.AttendanceReportLine;
 import com.employed.bar.domain.model.report.ConsumptionReportLine;
 import com.employed.bar.domain.model.report.Report;
@@ -282,7 +283,7 @@ public class ReportingApplicationServiceTest {
     void testSendTestEmailToEmployee_EmployeeNotFound() {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.empty());
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+        EmployeeNotFoundException thrown = assertThrows(EmployeeNotFoundException.class, () -> {
             reportingApplicationService.sendTestEmailToEmployee(employee.getId());
         });
 
@@ -349,5 +350,20 @@ public class ReportingApplicationServiceTest {
             reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, null);
         });
         assertEquals("Start date, end date, and employee ID must not be null", thrown.getMessage());
+    }
+
+    @Test
+    void testAssertThrows_EmployeeNotFoundException() {
+        assertThrows(EmployeeNotFoundException.class, () -> {
+            throw new EmployeeNotFoundException("Directly thrown exception");
+        });
+    }
+
+    @Test
+    void testOptionalOrElseThrow() {
+        Optional<EmployeeClass> emptyOptional = Optional.empty();
+        assertThrows(EmployeeNotFoundException.class, () -> {
+            emptyOptional.orElseThrow(() -> new EmployeeNotFoundException("Test exception"));
+        });
     }
 }

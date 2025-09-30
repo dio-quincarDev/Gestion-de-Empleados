@@ -35,6 +35,9 @@ public class ManagerReportController {
     public ResponseEntity<String> generateManagerWeeklyReport(
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().body("End date cannot be before start date.");
+        }
         managerReportServicePort.generateAndSendManagerReport(startDate, endDate);
         return ResponseEntity.ok("Manager report generation triggered successfully.");
     }
@@ -50,6 +53,9 @@ public class ManagerReportController {
     public ResponseEntity<byte[]> downloadManagerWeeklyReportPdf(
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().build();
+        }
         byte[] pdfBytes = managerReportServicePort.generateManagerReportPdf(startDate, endDate);
 
         HttpHeaders headers = new HttpHeaders();

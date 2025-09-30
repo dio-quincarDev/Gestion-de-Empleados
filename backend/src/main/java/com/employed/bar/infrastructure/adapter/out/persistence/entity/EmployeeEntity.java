@@ -38,6 +38,9 @@ public class EmployeeEntity {
     @Column(name = "hourly_rate", nullable = false)
     private BigDecimal hourlyRate;
 
+    @Column(name = "salary", nullable = false)
+    private BigDecimal salary;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private EmployeeStatus status;

@@ -82,7 +82,6 @@ public class ApplicationServiceConfig {
     }
 
     @Bean
-    @Transactional
     public ReportingApplicationService reportingApplicationService(
             EmployeeRepositoryPort employeeRepository,
             ConsumptionRepositoryPort consumptionRepositoryPort,

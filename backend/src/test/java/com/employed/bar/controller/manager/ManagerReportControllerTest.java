@@ -21,8 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -116,6 +115,54 @@ public class ManagerReportControllerTest {
 
     private String generateToken(String email, String role) {
         return jwtService.generateToken(email, role).getAccessToken();
+    }
+
+    @Test
+    void whenGenerateManagerWeeklyReport_withEndDateBeforeStartDate_shouldReturnBadRequest() throws Exception {
+        LocalDate startDate = LocalDate.of(2024, 1, 7);
+        LocalDate endDate = LocalDate.of(2024, 1, 1);
+
+        mockMvc.perform(post(ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE + "/weekly")
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .param("startDate", startDate.toString())
+                        .param("endDate", endDate.toString()))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void whenGenerateManagerWeeklyReport_withNonManagerUser_shouldReturnForbidden() throws Exception {
+        UserEntity adminUser = createTestUser("admin@example.com", "password123", EmployeeRole.ADMIN);
+        String adminJwtToken = generateToken(adminUser.getEmail(), adminUser.getRole().name());
+
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 1, 7);
+
+        mockMvc.perform(post(ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE + "/weekly")
+                        .header("Authorization", "Bearer " + adminJwtToken)
+                        .param("startDate", startDate.toString())
+                        .param("endDate", endDate.toString()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void whenGenerateManagerWeeklyReport_andServiceThrowsException_shouldReturnInternalServerError() throws Exception {
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 1, 7);
+
+        doThrow(new RuntimeException("Service failure")).when(managerReportServicePort).generateAndSendManagerReport(startDate, endDate);
+
+        mockMvc.perform(post(ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE + "/weekly")
+                        .header("Authorization", "Bearer " + jwtToken)
+                        .param("startDate", startDate.toString())
+                        .param("endDate", endDate.toString()))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void whenGenerateManagerWeeklyReport_withMissingDates_shouldReturnBadRequest() throws Exception {
+        mockMvc.perform(post(ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE + "/weekly")
+                        .header("Authorization", "Bearer " + jwtToken))
+                .andExpect(status().isBadRequest());
     }
 }
 

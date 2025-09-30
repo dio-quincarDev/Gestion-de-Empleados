@@ -47,6 +47,7 @@ public class SecurityConfig {
                 		.requestMatchers(ApiPathConstants.V1_ROUTE + ApiPathConstants.AUTH_ROUTE + "/**")
                 		.permitAll()
                         .requestMatchers(ApiPathConstants.V1_ROUTE + "/users/**").hasAnyRole("ADMIN", "MANAGER")
+                        .requestMatchers(ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE + "/**").hasRole("MANAGER")
                         .anyRequest().hasAnyRole("ADMIN", "MANAGER")
                         )
                 .authenticationProvider(authenticationProvider())
