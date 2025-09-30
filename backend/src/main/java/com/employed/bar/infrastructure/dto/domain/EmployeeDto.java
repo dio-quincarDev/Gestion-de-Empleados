@@ -36,6 +36,10 @@ public class EmployeeDto {
     @Email(message = "El formato del correo electrónico es inválido")
     private String email;
 
+    @NotNull(message = "Salary is required")
+    @Positive(message = "Salary must be positive")
+    private BigDecimal salary;
+
     @NotBlank(message = "El estado no puede estar en blanco")
     private String status;
 

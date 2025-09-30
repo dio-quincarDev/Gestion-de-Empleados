@@ -2,6 +2,7 @@ package com.employed.bar.infrastructure.adapter.in.exception;
 
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.domain.exceptions.UserNotFoundException;
 import com.employed.bar.infrastructure.dto.response.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -38,6 +39,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse("USER_NOT_FOUND", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidAttendanceDataException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidAttendanceDataException(InvalidAttendanceDataException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("INVALID_ATTENDANCE_DATA", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(BadCredentialsException.class)

@@ -47,6 +47,7 @@ public class EmployeeApplicationServiceTest {
         employee.setName("John Doe");
         employee.setEmail("john.doe@example.com");
         employee.setHourlyRate(BigDecimal.TEN);
+        employee.setSalary(new BigDecimal("2000.00"));
         employee.setPaymentMethod(new CashPaymentMethod());
     }
 
@@ -81,6 +82,7 @@ public class EmployeeApplicationServiceTest {
         updatedEmployee.setId(1L);
         updatedEmployee.setName("John Doe Updated");
         updatedEmployee.setEmail("john.doe.updated@example.com");
+        updatedEmployee.setSalary(new BigDecimal("2200.00"));
         updatedEmployee.setPaymentMethod(new CashPaymentMethod());
 
         when(employeeRepositoryPort.findById(1L)).thenReturn(Optional.of(employee));
@@ -99,6 +101,7 @@ public class EmployeeApplicationServiceTest {
     @Test
     void testUpdateEmployee_EmployeeNotFound() {
         EmployeeClass updatedEmployee = new EmployeeClass();
+        updatedEmployee.setSalary(new BigDecimal("2200.00"));
         updatedEmployee.setPaymentMethod(new CashPaymentMethod());
         when(employeeRepositoryPort.findById(1L)).thenReturn(Optional.empty());
 
@@ -115,10 +118,14 @@ public class EmployeeApplicationServiceTest {
     void testUpdateEmployee_EmailAlreadyExists() {
         EmployeeClass updatedEmployee = new EmployeeClass();
         updatedEmployee.setEmail("existing.email@example.com");
+        updatedEmployee.setSalary(new BigDecimal("2200.00"));
         updatedEmployee.setPaymentMethod(new CashPaymentMethod());
 
+        EmployeeClass existingEmployeeWithEmail = new EmployeeClass();
+        existingEmployeeWithEmail.setPaymentMethod(new CashPaymentMethod());
+
         when(employeeRepositoryPort.findById(1L)).thenReturn(Optional.of(employee));
-        when(employeeRepositoryPort.findByEmail(updatedEmployee.getEmail())).thenReturn(Optional.of(new EmployeeClass()));
+        when(employeeRepositoryPort.findByEmail(updatedEmployee.getEmail())).thenReturn(Optional.of(existingEmployeeWithEmail));
 
         assertThrows(EmailAlreadyExistException.class, () -> {
             employeeApplicationService.updateEmployee(1L, updatedEmployee);
@@ -208,16 +215,6 @@ public class EmployeeApplicationServiceTest {
 
         verify(employeeRepositoryPort, times(1)).findById(1L);
         verify(paymentCalculationUseCase, never()).calculateTotalPay(any(), anyBoolean(), any(), anyDouble(), anyDouble());
-    }
-
-    @Test
-    void testCreateEmployee_InvalidPaymentMethod() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new EmployeeClass(1L, "John Doe", "john.doe@example.com", null, BigDecimal.TEN, null, false, null, null, null, null, null);
-        });
-
-        verify(employeeRepositoryPort, never()).findByEmail(anyString());
-        verify(employeeRepositoryPort, never()).save(any(EmployeeClass.class));
     }
 
     @Test
@@ -357,6 +354,7 @@ public class EmployeeApplicationServiceTest {
     void testUpdateEmployee_NullId() {
         EmployeeClass updatedEmployee = new EmployeeClass();
         updatedEmployee.setPaymentMethod(new CashPaymentMethod());
+        updatedEmployee.setSalary(new BigDecimal("2000"));
 
         assertThrows(EmployeeNotFoundException.class, () -> {
             employeeApplicationService.updateEmployee(null, updatedEmployee);

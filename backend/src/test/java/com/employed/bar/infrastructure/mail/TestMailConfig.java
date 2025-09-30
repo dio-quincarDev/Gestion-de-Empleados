@@ -1,4 +1,4 @@
-package com.employed.bar.infrastructure.config;
+package com.employed.bar.infrastructure.mail;
 
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;

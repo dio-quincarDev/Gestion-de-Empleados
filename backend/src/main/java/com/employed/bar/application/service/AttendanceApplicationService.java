@@ -1,6 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.app.AttendanceUseCase;
@@ -25,6 +26,13 @@ public class AttendanceApplicationService implements AttendanceUseCase {
         if (attendanceRecord.getEmployee() == null || attendanceRecord.getEmployee().getId() == null) {
             throw new IllegalArgumentException("Employee ID cannot be null in AttendanceRecord");
         }
+
+        // Add business rule validation
+        if (attendanceRecord.getEntryTime() != null && attendanceRecord.getExitTime() != null &&
+            attendanceRecord.getExitTime().isBefore(attendanceRecord.getEntryTime())) {
+            throw new InvalidAttendanceDataException("Exit time cannot be before entry time.");
+        }
+
         Long employeeId = attendanceRecord.getEmployee().getId();
 
         EmployeeClass employee = employeeRepository.findById(employeeId)

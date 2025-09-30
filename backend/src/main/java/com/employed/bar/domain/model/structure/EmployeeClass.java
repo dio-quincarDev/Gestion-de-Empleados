@@ -22,6 +22,7 @@ public class EmployeeClass {
     private String email;
     private EmployeeRole role;
     private BigDecimal hourlyRate;
+    private BigDecimal salary;
     private PaymentMethod paymentMethod;
     private boolean paysOvertime;
     private OvertimeRateType overtimeRateType;
@@ -30,7 +31,7 @@ public class EmployeeClass {
     private List<AttendanceRecordClass> attendanceRecordClasses = new ArrayList<>();
     private List<ConsumptionClass> consumptionClasses = new ArrayList<>();
 
-    public EmployeeClass(Long id, String name, String email, EmployeeRole role, BigDecimal hourlyRate, PaymentMethod paymentMethod, boolean paysOvertime, OvertimeRateType overtimeRateType, EmployeeStatus status, List<ScheduleClass> schedules, List<AttendanceRecordClass> attendanceRecordClasses, List<ConsumptionClass> consumptionClasses) {
+    public EmployeeClass(Long id, String name, String email, EmployeeRole role, BigDecimal hourlyRate, BigDecimal salary, PaymentMethod paymentMethod, boolean paysOvertime, OvertimeRateType overtimeRateType, EmployeeStatus status, List<ScheduleClass> schedules, List<AttendanceRecordClass> attendanceRecordClasses, List<ConsumptionClass> consumptionClasses) {
         if (paymentMethod == null) {
             throw new IllegalArgumentException("Payment method cannot be null");
         }
@@ -39,6 +40,7 @@ public class EmployeeClass {
         this.email = email;
         this.role = role;
         this.hourlyRate = hourlyRate;
+        this.salary = salary;
         this.paymentMethod = paymentMethod;
         this.paysOvertime = paysOvertime;
         this.overtimeRateType = overtimeRateType;
@@ -54,6 +56,7 @@ public class EmployeeClass {
         this.status = updatedEmployee.getStatus();
         this.email = updatedEmployee.getEmail();
         this.hourlyRate = updatedEmployee.getHourlyRate();
+        this.salary = updatedEmployee.getSalary();
         if (updatedEmployee.getPaymentMethod() == null) {
             throw new IllegalArgumentException("Payment method cannot be null");
         }

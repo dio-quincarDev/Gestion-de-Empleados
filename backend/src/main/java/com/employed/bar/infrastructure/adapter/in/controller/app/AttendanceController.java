@@ -69,16 +69,12 @@ public class AttendanceController {
                     )
             )
             @RequestBody @Valid AttendanceDto attendanceDto) {
-        try {
-            if (attendanceDto.getEmployeeId() == null) {
-                return ResponseEntity.badRequest().body("Employee ID is required");
-            }
-            AttendanceRecordClass attendanceRecord = attendanceApiMapper.toDomain(attendanceDto);
-            AttendanceRecordClass createdRecord = attendanceApplicationService.registerAttendance(attendanceRecord);
-            return ResponseEntity.ok(attendanceApiMapper.toDto(createdRecord));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+        if (attendanceDto.getEmployeeId() == null) {
+            return ResponseEntity.badRequest().body("Employee ID is required");
         }
+        AttendanceRecordClass attendanceRecord = attendanceApiMapper.toDomain(attendanceDto);
+        AttendanceRecordClass createdRecord = attendanceApplicationService.registerAttendance(attendanceRecord);
+        return ResponseEntity.ok(attendanceApiMapper.toDto(createdRecord));
     }
 
     
