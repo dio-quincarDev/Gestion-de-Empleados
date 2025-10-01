@@ -1,6 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.exceptions.InvalidScheduleException;
 import com.employed.bar.domain.exceptions.ScheduleNotFoundException;
 import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.model.structure.ScheduleClass;
@@ -32,29 +33,41 @@ public class ScheduleApplicationService implements ScheduleUseCase {
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with ID: " + schedule.getEmployee().getId()));
 
         schedule.setEmployee(employee);
+
+        if (schedule.getStartTime().isAfter(schedule.getEndTime())) {
+            throw new InvalidScheduleException("Start time cannot be after end time.");
+        }
+
+        // Check for overlapping schedules
+        List<ScheduleClass> existingSchedules = scheduleRepositoryPort.findByEmployee(employee);
+        for (ScheduleClass existingSchedule : existingSchedules) {
+            if (schedule.getStartTime().isBefore(existingSchedule.getEndTime()) &&
+                schedule.getEndTime().isAfter(existingSchedule.getStartTime())) {
+                throw new InvalidScheduleException("Schedule overlaps with an existing schedule for this employee.");
+            }
+        }
+
         return scheduleRepositoryPort.save(schedule);
     }
 
     @Override
     public ScheduleClass getScheduleById(Long id) {
-        Optional<ScheduleClass> scheduleOptional = scheduleRepositoryPort.findById(id);
-        return scheduleOptional.orElse(null);
-
+        return scheduleRepositoryPort.findById(id)
+                .orElseThrow(() -> new ScheduleNotFoundException("Schedule not found with ID: " + id));
     }
 
     @Override
     public List<ScheduleClass> getSchedulesByEmployee(Long employeeId) {
-        EmployeeClass employee = employeeRepository.findById(employeeId).orElse(null);
-        if (employee != null) {
-            return scheduleRepositoryPort.findByEmployee(employee);
-        }
-        return Collections.emptyList();
-
+        EmployeeClass employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with ID: " + employeeId));
+        return scheduleRepositoryPort.findByEmployee(employee);
     }
 
     @Override
     public void deleteSchedule(Long scheduleId) {
-        scheduleRepositoryPort.deleteById(scheduleId);
+        ScheduleClass scheduleToDelete = scheduleRepositoryPort.findById(scheduleId)
+                .orElseThrow(() -> new ScheduleNotFoundException("Schedule not found with ID: " + scheduleId));
+        scheduleRepositoryPort.deleteById(scheduleToDelete.getId());
     }
 
     @Override
@@ -62,8 +75,19 @@ public class ScheduleApplicationService implements ScheduleUseCase {
         ScheduleClass existingSchedule = scheduleRepositoryPort.findById(id)
                 .orElseThrow(() -> new ScheduleNotFoundException("Schedule not found with ID: " + id));
 
+        if (updatedSchedule.getStartTime().isAfter(updatedSchedule.getEndTime())) {
+            throw new InvalidScheduleException("Start time cannot be after end time.");
+        }
+
         existingSchedule.setStartTime(updatedSchedule.getStartTime());
         existingSchedule.setEndTime(updatedSchedule.getEndTime());
+
+        if (updatedSchedule.getEmployee() != null && updatedSchedule.getEmployee().getId() != null) {
+            EmployeeClass employee = employeeRepository.findById(updatedSchedule.getEmployee().getId())
+                    .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with ID: " + updatedSchedule.getEmployee().getId()));
+            existingSchedule.setEmployee(employee);
+        }
+
         return scheduleRepositoryPort.save(existingSchedule);
     }
 }

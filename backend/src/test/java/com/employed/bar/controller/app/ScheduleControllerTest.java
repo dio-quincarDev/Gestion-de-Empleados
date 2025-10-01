@@ -3,7 +3,6 @@ package com.employed.bar.controller.app;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEntity;
-import com.employed.bar.infrastructure.adapter.out.persistence.entity.ScheduleEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringEmployeeJpaRepository;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringScheduleJpaRepository;
@@ -24,9 +23,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.time.DayOfWeek;
+
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -89,6 +88,7 @@ public class ScheduleControllerTest {
                 .email(email)
                 .role(role)
                 .salary(new java.math.BigDecimal("1800.00"))
+                .hourlyRate(new java.math.BigDecimal("10.00")) // Added hourlyRate
                 .status(status)
                 .build();
         return employeeRepository.save(employee);
@@ -108,8 +108,8 @@ public class ScheduleControllerTest {
     private ScheduleDto createValidScheduleDto() {
        ScheduleDto scheduleDto = new ScheduleDto();
        scheduleDto.setEmployeeId(testEmployee.getId());
-       scheduleDto.setStartTime(LocalDateTime.now().withHour(9).withMinute(0).withSecond(0));
-       scheduleDto.setEndTime(LocalDateTime.now().withHour(17).minusMinutes(0).withSecond(0));
+       scheduleDto.setStartTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0));
+       scheduleDto.setEndTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0));
        return scheduleDto;
     }
 
@@ -126,9 +126,8 @@ public class ScheduleControllerTest {
 
         // Then
         response.andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.startTime", is("09:00:00")))
-                .andExpect(jsonPath("$.endTime", is("17:00:00")))
+                .andExpect(jsonPath("$.startTime", is("2025-09-30T09:00:00")))
+                .andExpect(jsonPath("$.endTime", is("2025-09-30T17:00:00")))
                 .andExpect(jsonPath("$.id", notNullValue()));
     }
 
@@ -154,8 +153,59 @@ public class ScheduleControllerTest {
         // Given - Hora de fin antes de hora de inicio
         ScheduleDto scheduleDto = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .startTime(LocalDateTime.from(LocalTime.of(17, 0)))
-                .endTime(LocalDateTime.from(LocalTime.of(9, 0))) // Hora fin antes de hora inicio
+                .startTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0)) // Hora fin antes de hora inicio
+                .build();
+
+        // When
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(scheduleDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSchedule_WithOverlappingSchedule_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un horario existente
+        ScheduleDto existingScheduleDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0))
+                .build();
+
+        mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(existingScheduleDto)))
+                .andExpect(status().isCreated());
+
+        // When - Intentar crear un horario que se superpone
+        ScheduleDto overlappingScheduleDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 16, 0, 0)) // Se superpone con el existente
+                .endTime(LocalDateTime.of(2025, 9, 30, 18, 0, 0))
+                .build();
+
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(overlappingScheduleDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSchedule_WithMissingEmployeeId_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un ScheduleDto sin employeeId
+        ScheduleDto scheduleDto = ScheduleDto.builder()
+                .startTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0))
                 .build();
 
         // When
@@ -189,8 +239,8 @@ public class ScheduleControllerTest {
         response.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(createdSchedule.getId().intValue())))
-                .andExpect(jsonPath("$.startTime", is("09:00:00")))
-                .andExpect(jsonPath("$.endTime", is("17:00:00")));
+                .andExpect(jsonPath("$.startTime", is("2025-09-30T09:00:00")))
+                .andExpect(jsonPath("$.endTime", is("2025-09-30T17:00:00")));
     }
 
     @Test
@@ -202,6 +252,17 @@ public class ScheduleControllerTest {
         // Then
         response.andDo(print())
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getSchedule_WithInvalidIdFormat_ShouldReturnBadRequest() throws Exception {
+        // When
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/{id}", "abc")
+                .header("Authorization", managerToken));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -260,8 +321,8 @@ public class ScheduleControllerTest {
         // Preparar datos de actualización
         ScheduleDto updateDto = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .startTime(LocalDateTime.from(LocalTime.of(10, 0)))
-                .endTime(LocalDateTime.from(LocalTime.of(18, 0)))
+                .startTime(LocalDateTime.of(2025, 9, 30, 10, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 18, 0, 0))
                 .build();
 
         // When
@@ -273,8 +334,8 @@ public class ScheduleControllerTest {
         // Then
         response.andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.startTime", is("10:00:00")))
-                .andExpect(jsonPath("$.endTime", is("18:00:00")));
+                .andExpect(jsonPath("$.startTime", is("2025-09-30T10:00:00")))
+                .andExpect(jsonPath("$.endTime", is("2025-09-30T18:00:00")));
     }
 
     @Test
@@ -318,6 +379,35 @@ public class ScheduleControllerTest {
         // Then
         response.andDo(print())
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateSchedule_WithEndTimeBeforeStartTime_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un horario primero
+        ScheduleDto scheduleDto = createValidScheduleDto();
+        String responseJson = mockMvc.perform(post(BASE_URL + "/")
+                        .header("Authorization", managerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(scheduleDto)))
+                .andReturn().getResponse().getContentAsString();
+
+        ScheduleDto createdSchedule = objectMapper.readValue(responseJson, ScheduleDto.class);
+
+        // When - Intentar actualizar con hora de fin antes de hora de inicio
+        ScheduleDto updateDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0))
+                .build();
+
+        ResultActions response = mockMvc.perform(put(BASE_URL + "/{id}", createdSchedule.getId())
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -414,14 +504,14 @@ public class ScheduleControllerTest {
         // Crear horarios de lunes y martes
         ScheduleDto mondaySchedule = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .startTime(LocalDateTime.from(LocalTime.of(9, 0)))
-                .endTime(LocalDateTime.from(LocalTime.of(17, 0)))
+                .startTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0))
                 .build();
 
         ScheduleDto tuesdaySchedule = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .startTime(LocalDateTime.from(LocalTime.of(10, 0)))
-                .endTime(LocalDateTime.from(LocalTime.of(18, 0)))
+                .startTime(LocalDateTime.of(2025, 10, 1, 10, 0, 0)) // Changed date to next day
+                .endTime(LocalDateTime.of(2025, 10, 1, 18, 0, 0))  // Changed date to next day
                 .build();
 
         mockMvc.perform(post(BASE_URL + "/")
