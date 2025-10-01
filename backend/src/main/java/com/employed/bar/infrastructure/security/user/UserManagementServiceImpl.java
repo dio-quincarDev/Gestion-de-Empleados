@@ -4,6 +4,7 @@ import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
+import com.employed.bar.domain.exceptions.UserNotFoundException;
 import com.employed.bar.infrastructure.dto.security.request.CreateUserRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,14 +23,11 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public UserEntity createUser(CreateUserRequest request) {
-        UserEntity authenticatedUser = getAuthenticatedUser();
+        // The controller's @PreAuthorize("hasRole('MANAGER')") ensures only a MANAGER can execute this.
 
-        if (request.getRole().ordinal() >= authenticatedUser.getRole().ordinal()) {
-            throw new SecurityException("Cannot create a user with a role equal to or higher than your own.");
-        }
-
-        if (request.getRole() == EmployeeRole.MANAGER && userEntityRepository.existsByRole(EmployeeRole.MANAGER)) {
-            throw new IllegalStateException("A MANAGER already exists in the system.");
+        if (request.getRole() == EmployeeRole.MANAGER) {
+            // A MANAGER cannot create another MANAGER.
+            throw new SecurityException("Cannot create a user with the MANAGER role.");
         }
 
         if (userEntityRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -50,15 +48,25 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public void deleteUser(UUID id) {
         UserEntity userToDelete = userEntityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         UserEntity authenticatedUser = getAuthenticatedUser();
 
+        // Rule: Users cannot delete themselves.
         if (authenticatedUser.getId().equals(userToDelete.getId())) {
             throw new SecurityException("Users cannot delete themselves.");
         }
 
-        if (userToDelete.getRole().ordinal() >= authenticatedUser.getRole().ordinal()) {
-            throw new SecurityException("Cannot delete a user with a role equal to or higher than your own.");
+        // A MANAGER can delete anyone (except themselves, checked above).
+        // An ADMIN has restrictions.
+        if (authenticatedUser.getRole() == EmployeeRole.ADMIN) {
+            // Rule: An ADMIN cannot delete a MANAGER.
+            if (userToDelete.getRole() == EmployeeRole.MANAGER) {
+                throw new SecurityException("An ADMIN cannot delete a MANAGER.");
+            }
+            // Rule: An ADMIN cannot delete another ADMIN.
+            if (userToDelete.getRole() == EmployeeRole.ADMIN) {
+                throw new SecurityException("An ADMIN cannot delete another ADMIN.");
+            }
         }
 
         userEntityRepository.delete(userToDelete);
@@ -67,25 +75,40 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public void updateUserRole(UUID id, EmployeeRole role) {
         UserEntity userToUpdate = userEntityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         UserEntity authenticatedUser = getAuthenticatedUser();
 
+        // Rule: Users cannot change their own role.
         if (authenticatedUser.getId().equals(userToUpdate.getId())) {
             throw new SecurityException("Users cannot change their own role.");
         }
 
-        if (userToUpdate.getRole().ordinal() >= authenticatedUser.getRole().ordinal()) {
-            throw new SecurityException("Cannot update a user with a role equal to or higher than your own.");
+        // A MANAGER can change anyone's role (except their own, checked above).
+        // An ADMIN has restrictions.
+        if (authenticatedUser.getRole() == EmployeeRole.ADMIN) {
+            // Rule: An ADMIN cannot change a MANAGER's role.
+            if (userToUpdate.getRole() == EmployeeRole.MANAGER) {
+                throw new SecurityException("An ADMIN cannot change a MANAGER's role.");
+            }
+            // Rule: An ADMIN cannot change another ADMIN's role.
+            if (userToUpdate.getRole() == EmployeeRole.ADMIN) {
+                throw new SecurityException("An ADMIN cannot change another ADMIN's role.");
+            }
+            // Rule: An ADMIN cannot promote anyone to MANAGER.
+            if (role == EmployeeRole.MANAGER) {
+                throw new SecurityException("An ADMIN cannot promote users to MANAGER.");
+            }
+            // Rule: An ADMIN cannot promote anyone to ADMIN.
+            if (role == EmployeeRole.ADMIN) {
+                throw new SecurityException("An ADMIN cannot promote users to ADMIN.");
+            }
         }
 
-        if (role.ordinal() >= authenticatedUser.getRole().ordinal()) {
-            throw new SecurityException("Cannot assign a role that is equal to or higher than your own.");
-        }
-
+        // General rule: Nobody can assign the MANAGER role if one already exists.
         if (role == EmployeeRole.MANAGER) {
             Optional<UserEntity> manager = userEntityRepository.findByRole(EmployeeRole.MANAGER);
             if (manager.isPresent() && !manager.get().getId().equals(id)) {
-                throw new IllegalStateException("A MANAGER already exists in the system.");
+                throw new IllegalStateException("A MANAGER already exists in the system and you cannot assign this role to another user.");
             }
         }
 

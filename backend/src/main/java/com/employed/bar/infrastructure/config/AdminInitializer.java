@@ -17,18 +17,7 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userEntityRepository.findByRole(EmployeeRole.MANAGER).isEmpty()) {
-            UserEntity managerUser = UserEntity.builder()
-                    .email("manager@example.com")
-                    .password(passwordEncoder.encode("managerpassword"))
-                    .firstname("Manager")
-                    .lastname("User")
-                    .role(EmployeeRole.MANAGER)
-                    .build();
-            userEntityRepository.save(managerUser);
-        }
-
-        if (userEntityRepository.findByRole(EmployeeRole.ADMIN).isEmpty()) {
+        if (userEntityRepository.findByEmail("admin@example.com").isEmpty()) {
             UserEntity adminUser = UserEntity.builder()
                     .email("admin@example.com")
                     .password(passwordEncoder.encode("adminpassword"))

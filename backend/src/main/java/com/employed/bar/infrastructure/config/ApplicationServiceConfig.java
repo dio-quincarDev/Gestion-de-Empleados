@@ -1,36 +1,14 @@
 package com.employed.bar.infrastructure.config;
 
-
-
-import com.employed.bar.application.service.ReportingApplicationService;
-import com.employed.bar.domain.port.in.service.SendEmployeeReportNotificationUseCase;
-import com.employed.bar.domain.service.ReportCalculator;
-
-import com.employed.bar.application.service.PaymentCalculationApplicationService;
-
-import com.employed.bar.application.service.OvertimeSuggestionApplicationService;
-
-import com.employed.bar.application.service.ManagerReportApplicationService;
-import com.employed.bar.domain.port.out.NotificationPort;
-import com.employed.bar.domain.port.out.PdfGeneratorPort;
-import com.employed.bar.domain.service.ManagerReportCalculator;
-
-import com.employed.bar.application.service.KpiApplicationService;
-
-import com.employed.bar.application.service.GeneratePaymentApplicationService;
-import com.employed.bar.domain.port.in.app.EmployeeUseCase;
-
-import com.employed.bar.application.service.EmployeeApplicationService;
+import com.employed.bar.application.service.*;
 import com.employed.bar.domain.port.in.app.AttendanceUseCase;
+import com.employed.bar.domain.port.in.app.EmployeeUseCase;
 import com.employed.bar.domain.port.in.payment.PaymentCalculationUseCase;
-
-import com.employed.bar.application.service.ConsumptionApplicationService;
-import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
-
-import com.employed.bar.application.service.AttendanceApplicationService;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
-import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
-import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.port.in.service.SendEmployeeReportNotificationUseCase;
+import com.employed.bar.domain.port.out.*;
+import com.employed.bar.domain.service.ManagerReportCalculator;
+import com.employed.bar.domain.service.ReportCalculator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -104,7 +82,6 @@ public class ApplicationServiceConfig {
     }
 
     @Bean
-    @Transactional
     public ReportingApplicationService reportingApplicationService(
             EmployeeRepositoryPort employeeRepository,
             ConsumptionRepositoryPort consumptionRepositoryPort,
@@ -113,5 +90,13 @@ public class ApplicationServiceConfig {
             PaymentCalculationUseCase paymentCalculationUseCase,
             SendEmployeeReportNotificationUseCase sendEmployeeReportNotificationUseCase) {
         return new ReportingApplicationService(employeeRepository, consumptionRepositoryPort, attendanceRepositoryPort, reportCalculator, paymentCalculationUseCase, sendEmployeeReportNotificationUseCase);
+    }
+
+    @Bean
+    @Transactional
+    public ScheduleApplicationService scheduleApplicationService(
+            ScheduleRepositoryPort scheduleRepositoryPort,
+            EmployeeRepositoryPort employeeRepository) {
+        return new ScheduleApplicationService(scheduleRepositoryPort, employeeRepository);
     }
 }

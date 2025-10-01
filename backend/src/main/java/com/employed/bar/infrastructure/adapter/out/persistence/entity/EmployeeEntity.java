@@ -6,10 +6,7 @@ import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.enums.PaymentMethodType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -18,6 +15,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "employee")
 public class EmployeeEntity {
     @Id
@@ -37,6 +35,9 @@ public class EmployeeEntity {
 
     @Column(name = "hourly_rate", nullable = false)
     private BigDecimal hourlyRate;
+
+    @Column(name = "salary", nullable = false)
+    private BigDecimal salary;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -67,6 +68,4 @@ public class EmployeeEntity {
     @Column(name = "bank_account_type")
     private BankAccount bankAccountType; // For ACH
 
-    // Note: Relationships to other entities like ScheduleEntity would go here
-    // but are omitted for now to focus on the current refactoring.
 }

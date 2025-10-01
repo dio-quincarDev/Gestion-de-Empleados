@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// ... (rest of the imports)
+
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE)
 @Tag(name = "2. Gestión de Horarios", description = "Endpoints para la administración de horarios del personal")

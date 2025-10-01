@@ -1,5 +1,6 @@
 package com.employed.bar.application.service;
 
+import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.report.AttendanceReportLine;
 import com.employed.bar.domain.model.report.ConsumptionReportLine;
 import com.employed.bar.domain.model.report.Report;
@@ -47,7 +48,7 @@ public class ReportingApplicationService implements ReportingUseCase {
             throw new IllegalArgumentException("Start date, end date, and employee ID must not be null");
         }
         EmployeeClass employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
         return generateCompleteReportForEmployee(startDate, endDate, employee);
     }
 
@@ -85,7 +86,7 @@ public class ReportingApplicationService implements ReportingUseCase {
     @Override
     public void sendTestEmailToEmployee(Long employeeId) {
         EmployeeClass employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
 
         LocalDate testDate = LocalDate.parse("2024-10-10");
 

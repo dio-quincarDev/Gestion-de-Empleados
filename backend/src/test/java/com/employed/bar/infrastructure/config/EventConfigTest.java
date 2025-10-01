@@ -1,9 +1,8 @@
-package com.employed.bar.infrastructure;
+package com.employed.bar.infrastructure.config;
 
 import com.employed.bar.domain.event.TestEmailRequestedEvent;
 import com.employed.bar.domain.event.WeeklyReportRequestedEvent;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
-import com.employed.bar.infrastructure.config.EventConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

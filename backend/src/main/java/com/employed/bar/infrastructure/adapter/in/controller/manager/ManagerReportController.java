@@ -1,6 +1,7 @@
 package com.employed.bar.infrastructure.adapter.in.controller.manager;
 
 import com.employed.bar.domain.port.in.service.ManagerReportServicePort;
+import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/manager/reports")
+@RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE)
 @Tag(name = "Manager Reports", description = "Endpoints for generating manager reports.")
 @RequiredArgsConstructor
 public class ManagerReportController {
@@ -34,6 +35,9 @@ public class ManagerReportController {
     public ResponseEntity<String> generateManagerWeeklyReport(
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().body("End date cannot be before start date.");
+        }
         managerReportServicePort.generateAndSendManagerReport(startDate, endDate);
         return ResponseEntity.ok("Manager report generation triggered successfully.");
     }
@@ -49,11 +53,14 @@ public class ManagerReportController {
     public ResponseEntity<byte[]> downloadManagerWeeklyReportPdf(
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().build();
+        }
         byte[] pdfBytes = managerReportServicePort.generateManagerReportPdf(startDate, endDate);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", "manager_weekly_report.pdf");
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"manager_weekly_report.pdf\"");
         headers.setContentLength(pdfBytes.length);
 
         return new ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);

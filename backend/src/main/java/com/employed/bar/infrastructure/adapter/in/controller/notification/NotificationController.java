@@ -1,6 +1,7 @@
 package com.employed.bar.infrastructure.adapter.in.controller.notification;
 
 import com.employed.bar.domain.event.TestEmailRequestedEvent;
+import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/notifications")
+@RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.NOTIFICATION_ROUTE)
 @Tag(name = "Gestión de Notificaciones", description = "API para el envío y la gestión de notificaciones, incluyendo correos electrónicos.")
 @RequiredArgsConstructor
 public class NotificationController {

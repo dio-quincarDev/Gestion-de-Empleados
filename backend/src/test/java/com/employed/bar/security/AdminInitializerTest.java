@@ -1,4 +1,4 @@
-package com.employed.bar.infrastructure.config;
+package com.employed.bar.security;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
@@ -25,14 +25,14 @@ class AdminInitializerTest {
         // We just need to verify the result.
 
         // Verify MANAGER exists
-        Optional<UserEntity> managerOptional = userEntityRepository.findByRole(EmployeeRole.MANAGER);
+        Optional<UserEntity> managerOptional = userEntityRepository.findByEmail("manager@example.com");
         assertTrue(managerOptional.isPresent(), "Default MANAGER should have been created");
         UserEntity manager = managerOptional.get();
         assertEquals("manager@example.com", manager.getEmail());
         assertEquals(EmployeeRole.MANAGER, manager.getRole());
 
         // Verify ADMIN exists
-        Optional<UserEntity> adminOptional = userEntityRepository.findByRole(EmployeeRole.ADMIN);
+        Optional<UserEntity> adminOptional = userEntityRepository.findByEmail("admin@example.com");
         assertTrue(adminOptional.isPresent(), "Default ADMIN should have been created");
         UserEntity admin = adminOptional.get();
         assertEquals("admin@example.com", admin.getEmail());
