@@ -399,6 +399,97 @@ public class ConsumptionControllerTest {
     }
 
     @Test
+    void getTotalConsumptionByEmployee_WithWaiterRoleAccessingOtherEmployee_ShouldReturnForbidden() throws Exception {
+        // Given - Crear un segundo empleado y un usuario WAITER asociado a él
+        EmployeeEntity otherEmployee = createTestEmployee("Maria Lopez", "maria.lopez@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
+        UserEntity waiterUser = createTestUser("waiter-other@test.com", "password", EmployeeRole.WAITER);
+        String waiterToken = "Bearer " + jwtService.generateToken(waiterUser.getEmail(), waiterUser.getRole().name()).getAccessToken();
+
+        // Crear consumos para el testEmployee original
+        createTestConsumptions();
+
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        LocalDate endDate = LocalDate.now();
+
+        // When - El WAITER intenta acceder a los consumos del testEmployee original
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/total")
+                .header("Authorization", waiterToken)
+                .param("employeeId", testEmployee.getId().toString()) // ID del empleado original
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString()));
+
+        // Then - Se espera un 403 Forbidden
+        response.andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getTotalConsumptionByEmployee_WithSameStartDateAndEndDate_ShouldReturnTotalForThatDay() throws Exception {
+        // Given - Crear consumos para un día específico
+        LocalDate testDate = LocalDate.now().minusDays(2);
+        ConsumptionEntity consumption1 = ConsumptionEntity.builder()
+                .employee(testEmployee)
+                .amount(new BigDecimal("10.00"))
+                .description("Cafe")
+                .consumptionDate(testDate.atTime(10, 0))
+                .build();
+        ConsumptionEntity consumption2 = ConsumptionEntity.builder()
+                .employee(testEmployee)
+                .amount(new BigDecimal("5.00"))
+                .description("Snack")
+                .consumptionDate(testDate.atTime(14, 30))
+                .build();
+        consumptionRepository.save(consumption1);
+        consumptionRepository.save(consumption2);
+
+        // When
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/total")
+                .header("Authorization", managerToken)
+                .param("employeeId", testEmployee.getId().toString())
+                .param("startDate", testDate.toString())
+                .param("endDate", testDate.toString()));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("15.00")); // 10.00 + 5.00
+    }
+
+    @Test
+    void getTotalConsumptionByEmployee_WithDateRangeCrossingMonthAndYearBoundary_ShouldReturnTotal() throws Exception {
+        // Given - Crear consumos que cruzan límites de mes y año
+        LocalDate startDate = LocalDate.of(LocalDate.now().getYear() - 1, 12, 28); // Diciembre del año anterior
+        LocalDate endDate = LocalDate.of(LocalDate.now().getYear(), 1, 5); // Enero del año actual
+
+        ConsumptionEntity consumption1 = ConsumptionEntity.builder()
+                .employee(testEmployee)
+                .amount(new BigDecimal("20.00"))
+                .description("Fiesta Fin Año")
+                .consumptionDate(LocalDate.of(LocalDate.now().getYear() - 1, 12, 30).atTime(20, 0))
+                .build();
+        ConsumptionEntity consumption2 = ConsumptionEntity.builder()
+                .employee(testEmployee)
+                .amount(new BigDecimal("10.00"))
+                .description("Resaca Año Nuevo")
+                .consumptionDate(LocalDate.of(LocalDate.now().getYear(), 1, 1).atTime(12, 0))
+                .build();
+        consumptionRepository.save(consumption1);
+        consumptionRepository.save(consumption2);
+
+        // When
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/total")
+                .header("Authorization", managerToken)
+                .param("employeeId", testEmployee.getId().toString())
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString()));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("30.00")); // 20.00 + 10.00
+    }
+
+    @Test
     void createConsumption_WithUserRoleAdmin_ShouldReturnSuccess() throws Exception {
         // Given - Crear usuario con rol ADMIN (debe tener acceso)
         UserEntity adminUser = createTestUser("admin-consumption@test.com", "password", EmployeeRole.ADMIN);
