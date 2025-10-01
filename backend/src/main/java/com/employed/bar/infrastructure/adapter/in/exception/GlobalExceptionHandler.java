@@ -1,9 +1,6 @@
 package com.employed.bar.infrastructure.adapter.in.exception;
 
-import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
-import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
-import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
-import com.employed.bar.domain.exceptions.UserNotFoundException;
+import com.employed.bar.domain.exceptions.*;
 import com.employed.bar.infrastructure.dto.response.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -44,6 +41,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidAttendanceDataException.class)
     public ResponseEntity<ErrorResponse> handleInvalidAttendanceDataException(InvalidAttendanceDataException ex) {
         ErrorResponse errorResponse = new ErrorResponse("INVALID_ATTENDANCE_DATA", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidDateRangeException(InvalidDateRangeException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("INVALID_DATE_RANGE", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

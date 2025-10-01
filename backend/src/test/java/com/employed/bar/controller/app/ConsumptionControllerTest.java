@@ -88,6 +88,7 @@ public class ConsumptionControllerTest {
                 .name(name)
                 .email(email)
                 .role(role)
+                .hourlyRate(new BigDecimal("10.00"))
                 .salary(new BigDecimal("1500.00"))
                 .status(status)
                 .build();

@@ -1,6 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.exceptions.InvalidDateRangeException;
 import com.employed.bar.domain.model.structure.ConsumptionClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.app.ConsumptionUseCase;
@@ -50,7 +51,11 @@ public class ConsumptionApplicationService implements ConsumptionUseCase {
     
     public BigDecimal calculateTotalConsumptionByEmployee(Long employeeId, LocalDate startDate, LocalDate endDate) {
         EmployeeClass employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found"));
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id " + employeeId));
+
+        if (startDate.isAfter(endDate)) {
+            throw new InvalidDateRangeException("Start date cannot be after end date");
+        }
 
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
@@ -60,7 +65,8 @@ public class ConsumptionApplicationService implements ConsumptionUseCase {
 
     @Override
     public BigDecimal calculateTotalConsumptionForAllEmployees(LocalDateTime startDate, LocalDateTime endDate) {
-        return consumptionRepositoryPort.sumTotalConsumptionByDateRange(startDate, endDate);
+        BigDecimal total = consumptionRepositoryPort.sumTotalConsumptionByDateRange(startDate, endDate);
+        return total != null ? total : BigDecimal.ZERO;
     }
 
     @Override
