@@ -1,5 +1,6 @@
 package com.employed.bar.infrastructure.adapter.in.controller.app;
 
+import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.report.Report;
 import com.employed.bar.infrastructure.adapter.in.mapper.ReportApiMapper;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
@@ -64,11 +65,16 @@ public class ReportController {
             return ResponseEntity.badRequest().body("Las fechas son obligatorias.");
         }
 
+        // Agregar validación de rango de fechas
+        if (startDate.isAfter(endDate)) {
+            return ResponseEntity.badRequest().body("La fecha de inicio no puede ser posterior a la fecha de fin.");
+        }
+
         try {
             Report report = reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employeeId);
             ReportDto reportDto = reportApiMapper.toDto(report);
             return ResponseEntity.ok(reportDto);
-        } catch (EntityNotFoundException e) {
+        } catch (EmployeeNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Empleado no encontrado.");
         } catch (Exception e) {
             // It's good practice to log the exception here
