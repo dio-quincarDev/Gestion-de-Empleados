@@ -15,6 +15,10 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * Data Transfer Object (DTO) for employee information.
+ * Used to transfer employee data between the API layer and the application layer.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

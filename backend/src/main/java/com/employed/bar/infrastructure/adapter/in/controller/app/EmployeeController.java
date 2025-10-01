@@ -24,6 +24,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * REST controller for managing employee information.
+ * This controller handles HTTP requests related to employee CRUD operations, hourly rate updates,
+ * and employee searches. It acts as an inbound adapter to the application's core employee management functionalities.
+ */
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.EMPLOYEE_ROUTE)
 @Tag(name = "1. Gestión de Empleados", description = "Endpoints para la administración del personal")

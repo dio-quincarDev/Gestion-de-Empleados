@@ -7,6 +7,10 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * Data Transfer Object (DTO) for attendance records.
+ * Used to transfer attendance data between the API layer and the application layer.
+ */
 @Data
 public class AttendanceDto {
 

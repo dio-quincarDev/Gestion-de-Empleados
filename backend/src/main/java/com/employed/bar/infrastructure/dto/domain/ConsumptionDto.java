@@ -11,6 +11,10 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object (DTO) for consumption records.
+ * Used to transfer consumption data between the API layer and the application layer.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

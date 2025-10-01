@@ -24,6 +24,11 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * REST controller for managing employee attendance records.
+ * This controller handles HTTP requests related to attendance, acting as an inbound adapter
+ * to the application's core attendance management functionalities.
+ */
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.ATTENDANCE_ROUTE)
 @Tag(name = "3. Gestión de Asistencia", description = "Endpoints para el registro y consulta de asistencia del personal")

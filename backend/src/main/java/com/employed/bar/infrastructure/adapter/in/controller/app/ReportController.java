@@ -27,6 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/**
+ * REST controller for generating various operational reports and calculating employee payments.
+ * This controller acts as an inbound adapter, providing endpoints for accessing reporting
+ * and payment functionalities within the application.
+ */
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE)
 @Tag(name = "Reportes", description = "API para la generación y consulta de reportes operativos.")

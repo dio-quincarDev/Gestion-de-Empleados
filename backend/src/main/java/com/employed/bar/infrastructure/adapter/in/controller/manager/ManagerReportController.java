@@ -18,6 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 
+/**
+ * REST controller for generating and managing manager-specific reports.
+ * This controller provides endpoints for triggering the generation of weekly reports
+ * and downloading them in PDF format. It acts as an inbound adapter to the application's
+ * manager reporting functionalities.
+ */
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE)
 @Tag(name = "Manager Reports", description = "Endpoints for generating manager reports.")

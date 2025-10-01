@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 
+/**
+ * REST controller for retrieving Key Performance Indicators (KPIs).
+ * This controller provides endpoints for accessing various KPI metrics, primarily for management roles.
+ * It acts as an inbound adapter to the application's KPI service functionalities.
+ */
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.KPI_ROUTE)
 @Tag(name = "KPIs", description = "Endpoints for retrieving Key Performance Indicators.")

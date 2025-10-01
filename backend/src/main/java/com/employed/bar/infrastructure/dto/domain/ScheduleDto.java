@@ -9,6 +9,10 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import lombok.Builder;
 
+/**
+ * Data Transfer Object (DTO) for schedule information.
+ * Used to transfer schedule data between the API layer and the application layer.
+ */
 @Getter
 @Setter
 @AllArgsConstructor

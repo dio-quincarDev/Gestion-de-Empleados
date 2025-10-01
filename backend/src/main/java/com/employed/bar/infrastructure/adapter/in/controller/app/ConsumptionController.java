@@ -28,6 +28,11 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * REST controller for managing employee consumption records.
+ * This controller handles HTTP requests related to consumption, acting as an inbound adapter
+ * to the application's core consumption management functionalities.
+ */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.CONSUMPTION_ROUTE)

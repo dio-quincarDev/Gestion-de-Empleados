@@ -11,6 +11,11 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * Configuration class for OpenAPI (Swagger) documentation.
+ * This class defines the metadata and server information for the API documentation,
+ * making it accessible via Swagger UI.
+ */
 @Configuration
 public class ApiDocsConfig {
 

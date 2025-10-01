@@ -13,6 +13,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST controller for managing notifications within the application.
+ * This controller provides endpoints for triggering notification events, such as sending test emails.
+ * It acts as an inbound adapter to the application's notification functionalities.
+ */
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.NOTIFICATION_ROUTE)
 @Tag(name = "Gestión de Notificaciones", description = "API para el envío y la gestión de notificaciones, incluyendo correos electrónicos.")

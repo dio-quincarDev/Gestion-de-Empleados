@@ -13,6 +13,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/**
+ * REST controller for managing user accounts and roles within the application.
+ * This controller provides endpoints for creating, deleting, and updating user roles,
+ * with appropriate authorization checks. It acts as an inbound adapter to the application's
+ * user management services.
+ */
 @RestController
 @RequestMapping("/v1/users")
 @RequiredArgsConstructor
