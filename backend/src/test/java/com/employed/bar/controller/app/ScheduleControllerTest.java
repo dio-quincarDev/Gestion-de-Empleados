@@ -127,7 +127,6 @@ public class ScheduleControllerTest {
         // Then
         response.andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.dayOfWeek", is("MONDAY")))
                 .andExpect(jsonPath("$.startTime", is("09:00:00")))
                 .andExpect(jsonPath("$.endTime", is("17:00:00")))
                 .andExpect(jsonPath("$.id", notNullValue()));
@@ -155,9 +154,8 @@ public class ScheduleControllerTest {
         // Given - Hora de fin antes de hora de inicio
         ScheduleDto scheduleDto = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .dayOfWeek(DayOfWeek.MONDAY)
-                .startTime(LocalTime.of(17, 0))
-                .endTime(LocalTime.of(9, 0)) // Hora fin antes de hora inicio
+                .startTime(LocalDateTime.from(LocalTime.of(17, 0)))
+                .endTime(LocalDateTime.from(LocalTime.of(9, 0))) // Hora fin antes de hora inicio
                 .build();
 
         // When
@@ -191,7 +189,6 @@ public class ScheduleControllerTest {
         response.andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(createdSchedule.getId().intValue())))
-                .andExpect(jsonPath("$.dayOfWeek", is("MONDAY")))
                 .andExpect(jsonPath("$.startTime", is("09:00:00")))
                 .andExpect(jsonPath("$.endTime", is("17:00:00")));
     }
@@ -263,9 +260,8 @@ public class ScheduleControllerTest {
         // Preparar datos de actualización
         ScheduleDto updateDto = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .dayOfWeek(DayOfWeek.TUESDAY)
-                .startTime(LocalTime.of(10, 0))
-                .endTime(LocalTime.of(18, 0))
+                .startTime(LocalDateTime.from(LocalTime.of(10, 0)))
+                .endTime(LocalDateTime.from(LocalTime.of(18, 0)))
                 .build();
 
         // When
@@ -277,7 +273,6 @@ public class ScheduleControllerTest {
         // Then
         response.andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.dayOfWeek", is("TUESDAY")))
                 .andExpect(jsonPath("$.startTime", is("10:00:00")))
                 .andExpect(jsonPath("$.endTime", is("18:00:00")));
     }
@@ -412,24 +407,21 @@ public class ScheduleControllerTest {
 
         // Then
         response.andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.dayOfWeek", is("MONDAY")));
+                .andExpect(status().isCreated());
     }
 
     private void createTestSchedulesForEmployee() throws Exception {
         // Crear horarios de lunes y martes
         ScheduleDto mondaySchedule = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .dayOfWeek(DayOfWeek.MONDAY)
-                .startTime(LocalTime.of(9, 0))
-                .endTime(LocalTime.of(17, 0))
+                .startTime(LocalDateTime.from(LocalTime.of(9, 0)))
+                .endTime(LocalDateTime.from(LocalTime.of(17, 0)))
                 .build();
 
         ScheduleDto tuesdaySchedule = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .dayOfWeek(DayOfWeek.TUESDAY)
-                .startTime(LocalTime.of(10, 0))
-                .endTime(LocalTime.of(18, 0))
+                .startTime(LocalDateTime.from(LocalTime.of(10, 0)))
+                .endTime(LocalDateTime.from(LocalTime.of(18, 0)))
                 .build();
 
         mockMvc.perform(post(BASE_URL + "/")
