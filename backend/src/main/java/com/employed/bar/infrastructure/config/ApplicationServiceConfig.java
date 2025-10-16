@@ -47,8 +47,9 @@ public class ApplicationServiceConfig {
     public GeneratePaymentApplicationService generatePaymentApplicationService(
             AttendanceUseCase attendanceUseCase,
             EmployeeUseCase employeeUseCase,
-            PaymentCalculationUseCase paymentCalculationUseCase) {
-        return new GeneratePaymentApplicationService(attendanceUseCase, employeeUseCase, paymentCalculationUseCase);
+            PaymentCalculationUseCase paymentCalculationUseCase,
+            ReportCalculator reportCalculator) {
+        return new GeneratePaymentApplicationService(attendanceUseCase, employeeUseCase, paymentCalculationUseCase, reportCalculator);
     }
 
     @Bean

@@ -28,7 +28,7 @@ public class ApiDocsConfig {
                 .info(new Info()
                         .title("Sistema de Gestión de Empleados - API")
                         .version("1.0.0")
-                        .description("API REST para la gestión integral del personal del bar 'La Esquina Bohemia'")
+                        .description("API REST para la gestión integral del personal del bar 'Bar 1800'")
                         .termsOfService("https://laesquinabohemia.com/terms")
                         .contact(new Contact()
                                 .name("Equipo de Soporte")

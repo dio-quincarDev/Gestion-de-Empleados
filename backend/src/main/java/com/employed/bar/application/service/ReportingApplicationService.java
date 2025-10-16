@@ -72,6 +72,8 @@ public class ReportingApplicationService implements ReportingUseCase {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalEarnings = paymentCalculationUseCase.calculateTotalPay(
+                employee.getPaymentType(),
+                employee.getSalary(),
                 employee.getHourlyRate(),
                 employee.isPaysOvertime(),
                 employee.getOvertimeRateType(),

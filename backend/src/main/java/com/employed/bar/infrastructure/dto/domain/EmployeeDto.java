@@ -2,6 +2,7 @@ package com.employed.bar.infrastructure.dto.domain;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.OvertimeRateType;
+import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.infrastructure.dto.payment.PaymentMethodDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -31,7 +32,6 @@ public class EmployeeDto {
     private String name;
 
     @NotNull(message = "Hourly rate is required")
-    @Positive(message = "Hourly rate must be positive")
     private BigDecimal hourlyRate;
 
     @NotNull(message = "Role is required")
@@ -41,7 +41,6 @@ public class EmployeeDto {
     private String email;
 
     @NotNull(message = "Salary is required")
-    @Positive(message = "Salary must be positive")
     private BigDecimal salary;
 
     @NotBlank(message = "El estado no puede estar en blanco")
@@ -51,6 +50,9 @@ public class EmployeeDto {
     private boolean paysOvertime;
 
     private OvertimeRateType overtimeRateType;
+
+    @NotNull(message = "Payment type is required")
+    private PaymentType paymentType;
 
     @Valid // This annotation ensures that the nested PaymentMethodDto is also validated.
     @NotNull(message = "Payment method is required")

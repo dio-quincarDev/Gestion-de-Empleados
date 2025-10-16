@@ -4,6 +4,7 @@ import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.model.structure.EmployeeClass;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,6 @@ public interface EmployeeUseCase {
     EmployeeClass updateEmployee(Long id, EmployeeClass updatedEmployee);
     Optional<EmployeeClass> findByEmail(String email);
     EmployeeClass updateHourlyRate(Long employeeId, java.math.BigDecimal newRate);
-    java.math.BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours);
+    BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours);
     boolean doesEmailExist(String email);
 }

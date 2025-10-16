@@ -2,7 +2,6 @@ package com.employed.bar.application.service;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
-import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.structure.EmployeeClass;
@@ -32,6 +31,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
         if (doesEmailExist(employee.getEmail())){
             throw new EmailAlreadyExistException("Este Email ya existe: " + employee.getEmail());
         }
+        validateEmployeePaymentType(employee);
         return employeeRepositoryPort.save(employee);
     }
 
@@ -63,6 +63,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
                             doesEmailExist(updatedEmployee.getEmail())) {
                         throw new EmailAlreadyExistException("Email already in use: " + updatedEmployee.getEmail());
                     }
+                    validateEmployeePaymentType(updatedEmployee);
                     employee.updateWith(updatedEmployee);
                     return employeeRepositoryPort.save(employee);
                 })
@@ -92,17 +93,40 @@ public class EmployeeApplicationService implements EmployeeUseCase {
         return employeeRepositoryPort.findByEmail(email).isPresent();
     }
 
+    private void validateEmployeePaymentType(EmployeeClass employee) {
+        if (employee.getPaymentType() == null) {
+            throw new IllegalArgumentException("Payment type cannot be null");
+        }
+        switch (employee.getPaymentType()) {
+            case HOURLY:
+                if (employee.getHourlyRate() == null || employee.getHourlyRate().compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("Hourly rate must be positive for hourly employees.");
+                }
+                if (employee.getSalary() != null && employee.getSalary().compareTo(BigDecimal.ZERO) != 0) {
+                    throw new IllegalArgumentException("Salary must be zero for hourly employees.");
+                }
+                break;
+            case SALARIED:
+                if (employee.getSalary() == null || employee.getSalary().compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("Salary must be positive for salaried employees.");
+                }
+                if (employee.isPaysOvertime() && (employee.getHourlyRate() == null || employee.getHourlyRate().compareTo(BigDecimal.ZERO) <= 0)) {
+                    throw new IllegalArgumentException("Hourly rate must be positive for salaried employees who are paid overtime.");
+                }
+                break;
+        }
+    }
+
     @Override
     public BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours) {
       EmployeeClass employee = employeeRepositoryPort.findById(employeeId)
               .orElseThrow(()-> new EmployeeNotFoundException("Employee Not Found"));
-      BigDecimal hourlyRate = employee.getHourlyRate();
-      boolean paysOvertime = employee.isPaysOvertime();
-      OvertimeRateType overtimeRateType = employee.getOvertimeRateType();
       return paymentCalculationUseCase.calculateTotalPay(
-              hourlyRate,
-              paysOvertime,
-              overtimeRateType,
+              employee.getPaymentType(),
+              employee.getSalary(),
+              employee.getHourlyRate(),
+              employee.isPaysOvertime(),
+              employee.getOvertimeRateType(),
               regularHours,
               overtimeHours
       );

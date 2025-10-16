@@ -3,6 +3,7 @@ package com.employed.bar.domain.model.structure;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.enums.OvertimeRateType;
+import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.domain.model.payment.PaymentMethod;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,11 +28,16 @@ public class EmployeeClass {
     private boolean paysOvertime;
     private OvertimeRateType overtimeRateType;
     private EmployeeStatus status;
-    private List<com.employed.bar.domain.model.structure.ScheduleClass> schedules = new ArrayList<>();
+    private PaymentType paymentType;
+    private List<ScheduleClass> schedules = new ArrayList<>();
     private List<AttendanceRecordClass> attendanceRecordClasses = new ArrayList<>();
     private List<ConsumptionClass> consumptionClasses = new ArrayList<>();
 
-    public EmployeeClass(Long id, String name, String email, EmployeeRole role, BigDecimal hourlyRate, BigDecimal salary, PaymentMethod paymentMethod, boolean paysOvertime, OvertimeRateType overtimeRateType, EmployeeStatus status, List<ScheduleClass> schedules, List<AttendanceRecordClass> attendanceRecordClasses, List<ConsumptionClass> consumptionClasses) {
+    public EmployeeClass(Long id, String name, String email, EmployeeRole role, BigDecimal hourlyRate,
+                         BigDecimal salary, PaymentMethod paymentMethod, boolean paysOvertime,
+                         OvertimeRateType overtimeRateType, EmployeeStatus status, PaymentType paymentType,
+                         List<ScheduleClass> schedules, List<AttendanceRecordClass> attendanceRecordClasses,
+                         List<ConsumptionClass> consumptionClasses) {
         if (paymentMethod == null) {
             throw new IllegalArgumentException("Payment method cannot be null");
         }
@@ -45,6 +51,7 @@ public class EmployeeClass {
         this.paysOvertime = paysOvertime;
         this.overtimeRateType = overtimeRateType;
         this.status = status;
+        this.paymentType = paymentType;
         this.schedules = schedules;
         this.attendanceRecordClasses = attendanceRecordClasses;
         this.consumptionClasses = consumptionClasses;
@@ -57,6 +64,7 @@ public class EmployeeClass {
         this.email = updatedEmployee.getEmail();
         this.hourlyRate = updatedEmployee.getHourlyRate();
         this.salary = updatedEmployee.getSalary();
+        this.paymentType = updatedEmployee.getPaymentType();
         if (updatedEmployee.getPaymentMethod() == null) {
             throw new IllegalArgumentException("Payment method cannot be null");
         }
