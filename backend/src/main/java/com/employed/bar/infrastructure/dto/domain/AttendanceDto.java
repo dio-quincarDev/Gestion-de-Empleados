@@ -1,5 +1,6 @@
 package com.employed.bar.infrastructure.dto.domain;
 
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -30,5 +31,5 @@ public class AttendanceDto {
   private LocalTime exitTime;
 
   @JsonAlias({"status", "attendanceStatus"})
-  private String status;
+  private AttendanceStatus status;
 }

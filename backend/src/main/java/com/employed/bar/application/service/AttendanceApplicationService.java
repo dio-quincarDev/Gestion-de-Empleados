@@ -1,24 +1,33 @@
 package com.employed.bar.application.service;
 
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
+import com.employed.bar.domain.model.structure.ScheduleClass;
 import com.employed.bar.domain.port.in.app.AttendanceUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class AttendanceApplicationService implements AttendanceUseCase {
     private final EmployeeRepositoryPort employeeRepository;
     private final AttendanceRepositoryPort attendanceRepositoryPort;
+    private final ScheduleRepositoryPort scheduleRepositoryPort;
+
     public AttendanceApplicationService(EmployeeRepositoryPort employeeRepository,
-                                        AttendanceRepositoryPort attendanceRepositoryPort) {
+                                        AttendanceRepositoryPort attendanceRepositoryPort,
+                                        ScheduleRepositoryPort scheduleRepositoryPort) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepositoryPort = attendanceRepositoryPort;
+        this.scheduleRepositoryPort = scheduleRepositoryPort;
     }
 
     @Override
@@ -39,6 +48,24 @@ public class AttendanceApplicationService implements AttendanceUseCase {
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
 
         attendanceRecord.setEmployee(employee);
+
+        // New logic to calculate and set status
+        if (attendanceRecord.getEntryTime() != null && attendanceRecord.getDate() != null) {
+            LocalDateTime startOfDay = attendanceRecord.getDate().atStartOfDay();
+            LocalDateTime endOfDay = attendanceRecord.getDate().atTime(LocalTime.MAX);
+
+            List<ScheduleClass> schedules = scheduleRepositoryPort.findByEmployeeAndDate(employee, startOfDay, endOfDay);
+
+            if (!schedules.isEmpty()) {
+                ScheduleClass schedule = schedules.get(0); // Assume the first schedule is the relevant one for the day
+                if (attendanceRecord.getEntryTime().isAfter(schedule.getStartTime().toLocalTime())) {
+                    attendanceRecord.setStatus(AttendanceStatus.LATE);
+                } else {
+                    attendanceRecord.setStatus(AttendanceStatus.PRESENT);
+                }
+            }
+        }
+
         return attendanceRepositoryPort.save(attendanceRecord);
     }
 

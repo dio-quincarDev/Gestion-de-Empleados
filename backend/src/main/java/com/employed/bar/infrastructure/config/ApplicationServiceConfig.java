@@ -22,8 +22,9 @@ public class ApplicationServiceConfig {
     @Transactional
     public AttendanceApplicationService attendanceApplicationService(
             EmployeeRepositoryPort employeeRepository,
-            AttendanceRepositoryPort attendanceRepositoryPort) {
-        return new AttendanceApplicationService(employeeRepository, attendanceRepositoryPort);
+            AttendanceRepositoryPort attendanceRepositoryPort,
+            ScheduleRepositoryPort scheduleRepositoryPort) {
+        return new AttendanceApplicationService(employeeRepository, attendanceRepositoryPort, scheduleRepositoryPort);
     }
 
     @Bean

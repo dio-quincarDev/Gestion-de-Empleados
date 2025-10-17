@@ -1,5 +1,6 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.entity;
 
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -35,8 +36,9 @@ public class AttendanceRecordEntity {
    @Column(name = "exit_time")
     private LocalTime exitTime;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private AttendanceStatus status;
 
 
 }

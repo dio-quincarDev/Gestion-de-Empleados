@@ -36,14 +36,11 @@ CREATE TABLE Attendance_Records (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     date DATE NOT NULL,
     entry_time TIME,
-    entry_hour INT,
-    entry_minute INT,
     exit_time TIME,
-    exit_hour INT,
-    exit_minute INT,
     status VARCHAR(50),
     employee_id BIGINT,
-    FOREIGN KEY (employee_id) REFERENCES Employee(id)
+    FOREIGN KEY (employee_id) REFERENCES Employee(id),
+    CONSTRAINT chk_status CHECK (status IN ('Present', 'Absent', 'Late'))
 );
 
 -- Indexes (from V6)
@@ -52,6 +49,3 @@ CREATE INDEX idx_employee_role ON Employee(role);
 CREATE INDEX idx_attendance_date ON Attendance_Records(date);
 CREATE INDEX idx_consumption_date ON Consumption(consumption_date);
 CREATE INDEX idx_schedule_start_time ON Schedule(start_time);
-
--- Constraints (from V6)
-ALTER TABLE Attendance_Records ADD CONSTRAINT chk_status CHECK (status IN ('Present', 'Absent', 'Late'));

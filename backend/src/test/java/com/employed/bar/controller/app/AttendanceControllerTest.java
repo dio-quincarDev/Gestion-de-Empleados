@@ -1,6 +1,7 @@
 package com.employed.bar.controller.app;
 
 import com.employed.bar.application.service.AttendanceApplicationService;
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
@@ -116,7 +117,7 @@ public class AttendanceControllerTest {
         attendanceDto.setDate(LocalDate.now());
         attendanceDto.setEntryTime(LocalTime.of(9, 0));
         attendanceDto.setExitTime(LocalTime.of(17, 0));
-        attendanceDto.setStatus("PRESENT");
+        attendanceDto.setStatus(AttendanceStatus.PRESENT);
 
         when(attendanceApplicationService.registerAttendance(any(AttendanceRecordClass.class))).thenReturn(new AttendanceRecordClass());
 
@@ -215,7 +216,7 @@ public class AttendanceControllerTest {
         attendanceDto.setDate(LocalDate.now());
         attendanceDto.setEntryTime(LocalTime.of(17, 0)); // Entry: 5 PM
         attendanceDto.setExitTime(LocalTime.of(9, 0));   // Exit: 9 AM
-        attendanceDto.setStatus("PRESENT");
+        attendanceDto.setStatus(AttendanceStatus.PRESENT);
 
         when(attendanceApplicationService.registerAttendance(any(AttendanceRecordClass.class)))
                 .thenThrow(new InvalidAttendanceDataException("Exit time cannot be before entry time."));
