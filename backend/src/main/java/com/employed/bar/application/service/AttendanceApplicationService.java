@@ -36,9 +36,9 @@ public class AttendanceApplicationService implements AttendanceUseCase {
             throw new IllegalArgumentException("Employee ID cannot be null in AttendanceRecord");
         }
 
-        // Add business rule validation
-        if (attendanceRecord.getEntryTime() != null && attendanceRecord.getExitTime() != null &&
-            attendanceRecord.getExitTime().isBefore(attendanceRecord.getEntryTime())) {
+        // Updated business rule validation for LocalDateTime
+        if (attendanceRecord.getEntryDateTime() != null && attendanceRecord.getExitDateTime() != null &&
+            attendanceRecord.getExitDateTime().isBefore(attendanceRecord.getEntryDateTime())) {
             throw new InvalidAttendanceDataException("Exit time cannot be before entry time.");
         }
 
@@ -49,16 +49,17 @@ public class AttendanceApplicationService implements AttendanceUseCase {
 
         attendanceRecord.setEmployee(employee);
 
-        // New logic to calculate and set status
-        if (attendanceRecord.getEntryTime() != null && attendanceRecord.getDate() != null) {
-            LocalDateTime startOfDay = attendanceRecord.getDate().atStartOfDay();
-            LocalDateTime endOfDay = attendanceRecord.getDate().atTime(LocalTime.MAX);
+        // Updated logic to calculate and set status
+        if (attendanceRecord.getEntryDateTime() != null) {
+            LocalDate attendanceDate = attendanceRecord.getEntryDateTime().toLocalDate();
+            LocalDateTime startOfDay = attendanceDate.atStartOfDay();
+            LocalDateTime endOfDay = attendanceDate.atTime(LocalTime.MAX);
 
             List<ScheduleClass> schedules = scheduleRepositoryPort.findByEmployeeAndDate(employee, startOfDay, endOfDay);
 
             if (!schedules.isEmpty()) {
                 ScheduleClass schedule = schedules.get(0); // Assume the first schedule is the relevant one for the day
-                if (attendanceRecord.getEntryTime().isAfter(schedule.getStartTime().toLocalTime())) {
+                if (attendanceRecord.getEntryDateTime().isAfter(schedule.getStartTime())) {
                     attendanceRecord.setStatus(AttendanceStatus.LATE);
                 } else {
                     attendanceRecord.setStatus(AttendanceStatus.PRESENT);
@@ -74,7 +75,7 @@ public class AttendanceApplicationService implements AttendanceUseCase {
         EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
         return attendanceRepositoryPort.findByEmployee(employee).stream()
-                .filter(record -> record.getDate().equals(date))
+                .filter(record -> record.getEntryDateTime() != null && record.getEntryDateTime().toLocalDate().equals(date))
                 .collect(Collectors.toList());
     }
 
@@ -89,7 +90,8 @@ public class AttendanceApplicationService implements AttendanceUseCase {
         List<AttendanceRecordClass> records = getAttendanceListByEmployeeAndDateRange(employeeId, startOfMonth, endOfMonth);
 
         long daysWithAttendance = records.stream()
-                .map(AttendanceRecordClass::getDate)
+                .filter(record -> record.getEntryDateTime() != null)
+                .map(record -> record.getEntryDateTime().toLocalDate())
                 .distinct()
                 .count();
 
@@ -106,6 +108,8 @@ public class AttendanceApplicationService implements AttendanceUseCase {
     public List<AttendanceRecordClass> getAttendanceListByEmployeeAndDateRange(Long employeeId, LocalDate startDate, LocalDate endDate) {
         EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
-        return attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        return attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
     }
 }

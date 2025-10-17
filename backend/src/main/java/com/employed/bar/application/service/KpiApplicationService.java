@@ -53,12 +53,12 @@ public class KpiApplicationService implements KpiServicePort {
                 .filter(e -> EmployeeStatus.ACTIVE.equals(e.getStatus()))
                 .map(employee -> {
                     List<AttendanceRecordClass> attendanceRecords =
-                            attendanceRepository.findByEmployeeAndDateRange(employee, startDate, endDate);
+                            attendanceRepository.findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
 
                     double totalHoursWorked = attendanceRecords.stream()
                             .mapToDouble(record -> {
-                                if (record.getEntryTime() != null && record.getExitTime() != null) {
-                                    return Duration.between(record.getEntryTime(), record.getExitTime()).toMinutes() / 60.0;
+                                if (record.getEntryDateTime() != null && record.getExitDateTime() != null) {
+                                    return Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes() / 60.0;
                                 }
                                 return 0;
                             })

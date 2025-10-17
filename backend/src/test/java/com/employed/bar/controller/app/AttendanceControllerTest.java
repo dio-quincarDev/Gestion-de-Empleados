@@ -6,7 +6,6 @@ import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
-import com.employed.bar.infrastructure.adapter.out.persistence.entity.AttendanceRecordEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringAttendanceJpaRepository;
@@ -29,7 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -114,9 +113,8 @@ public class AttendanceControllerTest {
     void whenRegisterAttendance_shouldSucceed() throws Exception {
         AttendanceDto attendanceDto = new AttendanceDto();
         attendanceDto.setEmployeeId(testEmployee.getId());
-        attendanceDto.setDate(LocalDate.now());
-        attendanceDto.setEntryTime(LocalTime.of(9, 0));
-        attendanceDto.setExitTime(LocalTime.of(17, 0));
+        attendanceDto.setEntryDateTime(LocalDateTime.of(2023, 1, 1, 9, 0));
+        attendanceDto.setExitDateTime(LocalDateTime.of(2023, 1, 1, 17, 0));
         attendanceDto.setStatus(AttendanceStatus.PRESENT);
 
         when(attendanceApplicationService.registerAttendance(any(AttendanceRecordClass.class))).thenReturn(new AttendanceRecordClass());
@@ -213,9 +211,8 @@ public class AttendanceControllerTest {
     void whenRegisterAttendance_withExitTimeBeforeEntryTime_shouldReturnBadRequest() throws Exception {
         AttendanceDto attendanceDto = new AttendanceDto();
         attendanceDto.setEmployeeId(testEmployee.getId());
-        attendanceDto.setDate(LocalDate.now());
-        attendanceDto.setEntryTime(LocalTime.of(17, 0)); // Entry: 5 PM
-        attendanceDto.setExitTime(LocalTime.of(9, 0));   // Exit: 9 AM
+        attendanceDto.setEntryDateTime(LocalDateTime.of(2023, 1, 1, 17, 0)); // Entry: 5 PM
+        attendanceDto.setExitDateTime(LocalDateTime.of(2023, 1, 1, 9, 0));   // Exit: 9 AM
         attendanceDto.setStatus(AttendanceStatus.PRESENT);
 
         when(attendanceApplicationService.registerAttendance(any(AttendanceRecordClass.class)))

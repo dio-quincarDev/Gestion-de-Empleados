@@ -56,7 +56,7 @@ public class ReportingApplicationService implements ReportingUseCase {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
-        List<AttendanceRecordClass> attendanceRecords = attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate);
+        List<AttendanceRecordClass> attendanceRecords = attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
         List<AttendanceReportLine> attendanceLines = attendanceRecords.stream()
                 .map(reportCalculator::mapToAttendanceReportLine)
                 .collect(Collectors.toList());

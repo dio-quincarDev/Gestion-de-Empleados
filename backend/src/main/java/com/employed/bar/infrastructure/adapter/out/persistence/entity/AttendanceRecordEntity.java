@@ -8,8 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -27,14 +26,11 @@ public class AttendanceRecordEntity {
     @JsonBackReference
     private EmployeeEntity employee;
 
-   @Column(name = "date")
-    private LocalDate date;
+    @Column(name = "entry_date_time")
+    private LocalDateTime entryDateTime;
 
-   @Column(name = "entry_time")
-    private LocalTime entryTime;
-
-   @Column(name = "exit_time")
-    private LocalTime exitTime;
+    @Column(name = "exit_date_time")
+    private LocalDateTime exitDateTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")

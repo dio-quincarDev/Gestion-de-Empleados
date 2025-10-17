@@ -37,21 +37,19 @@ public class OvertimeSuggestionApplicationService implements OvertimeSuggestionU
         for (EmployeeClass employee : employeesWithoutOvertimePay) {
             List<AttendanceRecordClass> records = attendanceRepositoryPort.findByEmployee(employee);
 
-            // Group records by day using the 'date' field
+            // Group records by day using the 'entryDateTime' field
             Map<LocalDate, List<AttendanceRecordClass>> recordsByDay = records.stream()
-                    .filter(record -> record.getDate() != null)
-                    .collect(Collectors.groupingBy(AttendanceRecordClass::getDate));
+                    .filter(record -> record.getEntryDateTime() != null)
+                    .collect(Collectors.groupingBy(record -> record.getEntryDateTime().toLocalDate()));
 
             for (Map.Entry<LocalDate, List<AttendanceRecordClass>> entry : recordsByDay.entrySet()) {
                 LocalDate day = entry.getKey();
                 List<AttendanceRecordClass> dayRecords = entry.getValue();
 
                 long totalMinutesWorked = dayRecords.stream()
-                        .filter(record -> record.getEntryTime() != null && record.getExitTime() != null)
+                        .filter(record -> record.getEntryDateTime() != null && record.getExitDateTime() != null)
                         .mapToLong(record -> {
-                            LocalDateTime entryDateTime = day.atTime(record.getEntryTime());
-                            LocalDateTime exitDateTime = day.atTime(record.getExitTime());
-                            return Duration.between(entryDateTime, exitDateTime).toMinutes();
+                            return Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes();
                         })
                         .sum();
 

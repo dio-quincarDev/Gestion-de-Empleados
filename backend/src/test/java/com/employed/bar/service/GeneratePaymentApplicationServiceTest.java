@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,12 +66,12 @@ public class GeneratePaymentApplicationServiceTest {
     @Test
     void testGeneratePayment_SuccessWithAttendance() {
         AttendanceRecordClass record1 = new AttendanceRecordClass();
-        record1.setEntryTime(LocalTime.of(9, 0));
-        record1.setExitTime(LocalTime.of(17, 0)); // 8 hours
+        record1.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
+        record1.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(17, 0))); // 8 hours
 
         AttendanceRecordClass record2 = new AttendanceRecordClass();
-        record2.setEntryTime(LocalTime.of(9, 0));
-        record2.setExitTime(LocalTime.of(13, 0)); // 4 hours
+        record2.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
+        record2.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(13, 0))); // 4 hours
 
         HoursCalculation hoursCalculation = new HoursCalculation(12.0, 12.0, 0.0);
 

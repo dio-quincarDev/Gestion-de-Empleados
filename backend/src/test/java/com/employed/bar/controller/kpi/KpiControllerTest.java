@@ -131,9 +131,8 @@ public class KpiControllerTest {
     private AttendanceRecordEntity createAttendance(EmployeeEntity employee, LocalDateTime entry, LocalDateTime exit) {
         AttendanceRecordEntity attendance = new AttendanceRecordEntity();
         attendance.setEmployee(employee);
-        attendance.setDate(entry.toLocalDate());
-        attendance.setEntryTime(entry.toLocalTime());
-        attendance.setExitTime(exit.toLocalTime());
+        attendance.setEntryDateTime(entry);
+        attendance.setExitDateTime(exit);
         attendance.setStatus(AttendanceStatus.PRESENT); // Default status
         return attendanceRepository.save(attendance);
     }

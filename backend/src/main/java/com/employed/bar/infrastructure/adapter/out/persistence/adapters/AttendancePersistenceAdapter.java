@@ -10,6 +10,7 @@ import com.employed.bar.infrastructure.adapter.out.persistence.repository.Spring
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,8 +35,8 @@ public class AttendancePersistenceAdapter implements AttendanceRepositoryPort {
     }
 
     @Override
-    public List<AttendanceRecordClass> findByEmployeeAndDateRange(EmployeeClass employee, LocalDate startDate, LocalDate endDate) {
-        return springAttendanceJpaRepository.findByEmployeeAndDateBetween(employeeMapper.toEntity(employee), startDate, endDate).stream()
+    public List<AttendanceRecordClass> findByEmployeeAndDateRange(EmployeeClass employee, LocalDateTime startDate, LocalDateTime endDate) {
+        return springAttendanceJpaRepository.findByEmployeeAndEntryDateTimeBetween(employeeMapper.toEntity(employee), startDate, endDate).stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());
     }

@@ -7,6 +7,7 @@ import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.domain.model.structure.ConsumptionClass;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.List;
 
 @Component
@@ -15,8 +16,9 @@ public class ReportCalculator {
     public HoursCalculation calculateHours(List<AttendanceRecordClass> records) {
         double totalHours = records.stream()
                 .mapToDouble(record -> {
-                    if (record.getEntryTime() != null && record.getExitTime() != null) {
-                        return java.time.Duration.between(record.getEntryTime(), record.getExitTime()).toMinutes() / 60.0;
+                    if (record.getEntryDateTime() != null && record.getExitDateTime() != null) {
+                        // Duration.between handles overnight shifts correctly with LocalDateTime
+                        return Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes() / 60.0;
                     }
                     return 0;
                 })
@@ -31,14 +33,13 @@ public class ReportCalculator {
 
     public AttendanceReportLine mapToAttendanceReportLine(AttendanceRecordClass record) {
         double workedHours = 0;
-        if (record.getEntryTime() != null && record.getExitTime() != null) {
-            workedHours = java.time.Duration.between(record.getEntryTime(), record.getExitTime()).toMinutes() / 60.0;
+        if (record.getEntryDateTime() != null && record.getExitDateTime() != null) {
+            workedHours = Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes() / 60.0;
         }
         return new AttendanceReportLine(
                 record.getEmployee().getName(),
-                record.getDate(),
-                record.getEntryTime(),
-                record.getExitTime(),
+                record.getEntryDateTime(),
+                record.getExitDateTime(),
                 workedHours,
                 100.0 // Placeholder for percentage
         );

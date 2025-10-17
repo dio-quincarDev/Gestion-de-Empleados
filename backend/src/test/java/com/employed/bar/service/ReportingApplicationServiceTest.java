@@ -3,7 +3,6 @@ package com.employed.bar.service;
 import com.employed.bar.application.service.ReportingApplicationService;
 import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.enums.PaymentType;
-import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.report.AttendanceReportLine;
 import com.employed.bar.domain.model.report.ConsumptionReportLine;
 import com.employed.bar.domain.model.report.Report;
@@ -76,14 +75,16 @@ public class ReportingApplicationServiceTest {
         employee.setSalary(BigDecimal.ZERO);
 
         attendanceRecord = new AttendanceRecordClass();
-        attendanceRecord.setEntryTime(LocalTime.of(9, 0));
-        attendanceRecord.setExitTime(LocalTime.of(17, 0));
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
+        attendanceRecord.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(17, 0)));
 
         consumptionClass = new ConsumptionClass();
         consumptionClass.setAmount(BigDecimal.valueOf(50.0));
 
-        attendanceReportLine = new AttendanceReportLine("Test Employee", LocalDate.now(),
-                LocalTime.of(9, 0), LocalTime.of(17, 0), 8.0, 100.0);
+        attendanceReportLine = new AttendanceReportLine("Test Employee",
+                LocalDateTime.of(startDate, LocalTime.of(9, 0)),
+                LocalDateTime.of(startDate, LocalTime.of(17, 0)),
+                8.0, 100.0);
         consumptionReportLine = new ConsumptionReportLine("Test Employee", LocalDateTime.now(),
                 BigDecimal.valueOf(50.0), "Lunch");
 
@@ -93,7 +94,7 @@ public class ReportingApplicationServiceTest {
     @Test
     void testGenerateCompleteReportForEmployeeById_Success() {
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Collections.singletonList(attendanceRecord));
         when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class),
                 eq(null)))
@@ -117,7 +118,7 @@ public class ReportingApplicationServiceTest {
         assertEquals(BigDecimal.valueOf(80.0), result.getTotalEarnings());
 
         verify(employeeRepository, times(1)).findById(employee.getId());
-        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, times(1)).findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), eq(null));
         verify(reportCalculator, times(1)).mapToAttendanceReportLine(attendanceRecord);
         verify(reportCalculator, times(1)).mapToConsumptionReportLine(consumptionClass);
@@ -138,9 +139,9 @@ public class ReportingApplicationServiceTest {
         HoursCalculation overtimeHours = new HoursCalculation(45, 40, 5); // 5 hours of overtime
 
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(any(), any(), any())).thenReturn(Collections.singletonList(new AttendanceRecordClass()));
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(Collections.singletonList(new AttendanceRecordClass()));
         when(reportCalculator.calculateHours(anyList())).thenReturn(overtimeHours);
-        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(any(), any(), any(), isNull())).thenReturn(Collections.emptyList());
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), isNull())).thenReturn(Collections.emptyList());
 
         // Mock the payment calculation
         // Even with overtime hours, the overtime pay should be zero.
@@ -182,9 +183,9 @@ public class ReportingApplicationServiceTest {
         ConsumptionReportLine consumptionLine = new ConsumptionReportLine(employee.getName(), LocalDateTime.now(), new BigDecimal("25.00"), "Snacks");
 
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(any(), any(), any())).thenReturn(Collections.emptyList());
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(Collections.emptyList());
         when(reportCalculator.calculateHours(anyList())).thenReturn(new HoursCalculation(0, 0, 0));
-        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(any(), any(), any(), isNull())).thenReturn(Collections.singletonList(consumption));
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), isNull())).thenReturn(Collections.singletonList(consumption));
         when(reportCalculator.mapToConsumptionReportLine(any())).thenReturn(consumptionLine);
         when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(0.0), eq(0.0)))
                 .thenReturn(BigDecimal.ZERO);

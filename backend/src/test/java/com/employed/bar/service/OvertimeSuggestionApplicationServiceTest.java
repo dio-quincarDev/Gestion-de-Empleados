@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
@@ -50,9 +51,8 @@ public class OvertimeSuggestionApplicationServiceTest {
 
         AttendanceRecordClass record = new AttendanceRecordClass();
         record.setEmployee(employee);
-        record.setDate(LocalDate.of(2024, 5, 20));
-        record.setEntryTime(LocalTime.of(9, 0));
-        record.setExitTime(LocalTime.of(18, 0)); // 9 hours
+        record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(9, 0)));
+        record.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(18, 0))); // 9 hours
 
         when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
@@ -81,9 +81,8 @@ public class OvertimeSuggestionApplicationServiceTest {
 
         AttendanceRecordClass record = new AttendanceRecordClass();
         record.setEmployee(employee);
-        record.setDate(LocalDate.of(2024, 5, 21));
-        record.setEntryTime(LocalTime.of(9, 0));
-        record.setExitTime(LocalTime.of(17, 0)); // 8 hours
+        record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 21), LocalTime.of(9, 0)));
+        record.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 21), LocalTime.of(17, 0))); // 8 hours
 
         when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
@@ -159,15 +158,13 @@ public class OvertimeSuggestionApplicationServiceTest {
 
         AttendanceRecordClass overtimeRecord = new AttendanceRecordClass();
         overtimeRecord.setEmployee(employeeWithOvertime);
-        overtimeRecord.setDate(LocalDate.of(2024, 5, 23));
-        overtimeRecord.setEntryTime(LocalTime.of(9, 0));
-        overtimeRecord.setExitTime(LocalTime.of(18, 0)); // 9 hours
+        overtimeRecord.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 23), LocalTime.of(9, 0)));
+        overtimeRecord.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 23), LocalTime.of(18, 0))); // 9 hours
 
         AttendanceRecordClass noOvertimeRecord = new AttendanceRecordClass();
         noOvertimeRecord.setEmployee(employeeNoOvertime);
-        noOvertimeRecord.setDate(LocalDate.of(2024, 5, 23));
-        noOvertimeRecord.setEntryTime(LocalTime.of(9, 0));
-        noOvertimeRecord.setExitTime(LocalTime.of(17, 0)); // 8 hours
+        noOvertimeRecord.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 23), LocalTime.of(9, 0)));
+        noOvertimeRecord.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 23), LocalTime.of(17, 0))); // 8 hours
 
         when(employeeRepositoryPort.findAll()).thenReturn(List.of(employeeWithOvertime, employeePaysOvertime, employeeNoOvertime));
         when(attendanceRepositoryPort.findByEmployee(employeeWithOvertime)).thenReturn(Collections.singletonList(overtimeRecord));
@@ -218,9 +215,8 @@ public class OvertimeSuggestionApplicationServiceTest {
 
         AttendanceRecordClass record = new AttendanceRecordClass();
         record.setEmployee(employee);
-        record.setDate(null); // Null date
-        record.setEntryTime(LocalTime.of(9, 0));
-        record.setExitTime(LocalTime.of(18, 0));
+        record.setEntryDateTime(null); // Null date, so entryDateTime is null
+        record.setExitDateTime(null); // Null date, so exitDateTime is null
 
         when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
@@ -241,9 +237,8 @@ public class OvertimeSuggestionApplicationServiceTest {
 
         AttendanceRecordClass record = new AttendanceRecordClass();
         record.setEmployee(employee);
-        record.setDate(LocalDate.of(2024, 5, 20));
-        record.setEntryTime(LocalTime.of(9, 0));
-        record.setExitTime(LocalTime.of(17, 0)); // 8 hours
+        record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(9, 0)));
+        record.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(17, 0))); // 8 hours
 
         when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
@@ -264,9 +259,8 @@ public class OvertimeSuggestionApplicationServiceTest {
 
         AttendanceRecordClass record = new AttendanceRecordClass();
         record.setEmployee(employee);
-        record.setDate(LocalDate.of(2024, 5, 20));
-        record.setEntryTime(LocalTime.of(9, 0));
-        record.setExitTime(LocalTime.of(16, 0)); // 7 hours
+        record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(9, 0)));
+        record.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(16, 0))); // 7 hours
 
         when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));

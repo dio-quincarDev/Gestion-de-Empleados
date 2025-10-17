@@ -1,11 +1,15 @@
 package com.employed.bar.service;
 
 import com.employed.bar.application.service.AttendanceApplicationService;
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
+import com.employed.bar.domain.model.structure.ScheduleClass;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +35,9 @@ public class AttendanceApplicationServiceTest {
     @Mock
     private AttendanceRepositoryPort attendanceRepositoryPort;
 
+    @Mock
+    private ScheduleRepositoryPort scheduleRepositoryPort;
+
     @InjectMocks
     private AttendanceApplicationService attendanceApplicationService;
 
@@ -44,9 +52,8 @@ public class AttendanceApplicationServiceTest {
 
         attendanceRecord = new AttendanceRecordClass();
         attendanceRecord.setEmployee(employee);
-        attendanceRecord.setDate(LocalDate.now());
-        attendanceRecord.setEntryTime(LocalTime.of(9, 0));
-        attendanceRecord.setExitTime(LocalTime.of(17, 0));
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0)));
+        attendanceRecord.setExitDateTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(17, 0)));
     }
 
     @Test
@@ -130,8 +137,10 @@ public class AttendanceApplicationServiceTest {
     void testGetAttendanceListByEmployeeAndDateRange_Success() {
         LocalDate startDate = LocalDate.now().minusDays(7);
         LocalDate endDate = LocalDate.now();
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate)).thenReturn(java.util.Collections.singletonList(attendanceRecord));
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime)).thenReturn(java.util.Collections.singletonList(attendanceRecord));
 
         java.util.List<AttendanceRecordClass> result = attendanceApplicationService.getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate);
 
@@ -140,22 +149,24 @@ public class AttendanceApplicationServiceTest {
         assertEquals(1, result.size());
         assertEquals(attendanceRecord, result.get(0));
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
     }
 
     @Test
     void testGetAttendanceListByEmployeeAndDateRange_NoRecords() {
         LocalDate startDate = LocalDate.now().minusDays(7);
         LocalDate endDate = LocalDate.now();
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate)).thenReturn(java.util.Collections.emptyList());
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime)).thenReturn(java.util.Collections.emptyList());
 
         java.util.List<AttendanceRecordClass> result = attendanceApplicationService.getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
     }
 
     @Test
@@ -169,22 +180,24 @@ public class AttendanceApplicationServiceTest {
         });
 
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDate.class), any(LocalDate.class));
+        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
     void testGetAttendanceListByEmployeeAndDateRange_StartDateAfterEndDate() {
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().minusDays(7);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate)).thenReturn(java.util.Collections.emptyList());
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime)).thenReturn(java.util.Collections.emptyList());
 
         java.util.List<AttendanceRecordClass> result = attendanceApplicationService.getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
     }
 
     @Test
@@ -196,35 +209,39 @@ public class AttendanceApplicationServiceTest {
         });
 
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(), any());
+        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
     void testCalculateAttendancePercentage_NoRecords() {
         LocalDate startDate = LocalDate.of(2024, 10, 1);
         LocalDate endDate = LocalDate.of(2024, 10, 31);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate)).thenReturn(java.util.Collections.emptyList());
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime)).thenReturn(java.util.Collections.emptyList());
 
         double percentage = attendanceApplicationService.calculateAttendancePercentage(1L, 2024, 10, 1);
 
         assertEquals(0.0, percentage, 0.01);
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
     }
 
     @Test
     void testCalculateAttendancePercentage_SomeRecords() {
         LocalDate startDate = LocalDate.of(2024, 10, 1);
         LocalDate endDate = LocalDate.of(2024, 10, 31);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
         AttendanceRecordClass record1 = new AttendanceRecordClass();
-        record1.setDate(LocalDate.of(2024, 10, 5));
+        record1.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 10, 5), LocalTime.MIDNIGHT));
         AttendanceRecordClass record2 = new AttendanceRecordClass();
-        record2.setDate(LocalDate.of(2024, 10, 10));
+        record2.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 10, 10), LocalTime.MIDNIGHT));
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime))
                 .thenReturn(java.util.Arrays.asList(record1, record2));
 
         double percentage = attendanceApplicationService.calculateAttendancePercentage(1L, 2024, 10, 1);
@@ -232,30 +249,32 @@ public class AttendanceApplicationServiceTest {
         // October has 31 days, 2 days with attendance
         assertEquals((2.0 / 31.0) * 100.0, percentage, 0.01);
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
     }
 
     @Test
     void testCalculateAttendancePercentage_FullAttendance() {
         LocalDate startDate = LocalDate.of(2024, 10, 1);
         LocalDate endDate = LocalDate.of(2024, 10, 31);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
         List<AttendanceRecordClass> records = new java.util.ArrayList<>();
         for (int i = 1; i <= 31; i++) {
             AttendanceRecordClass record = new AttendanceRecordClass();
-            record.setDate(LocalDate.of(2024, 10, i));
+            record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 10, i), LocalTime.MIDNIGHT));
             records.add(record);
         }
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate))
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime))
                 .thenReturn(records);
 
         double percentage = attendanceApplicationService.calculateAttendancePercentage(1L, 2024, 10, 1);
 
         assertEquals(100.0, percentage, 0.01);
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
     }
 
     @Test
@@ -290,7 +309,7 @@ public class AttendanceApplicationServiceTest {
         });
 
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(), any());
+        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
@@ -302,6 +321,78 @@ public class AttendanceApplicationServiceTest {
         });
 
         verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(), any());
+        verify(attendanceRepositoryPort, never()).findByEmployeeAndDateRange(any(), any(LocalDateTime.class), any(LocalDateTime.class));
+    }
+
+    @Test
+    void testRegisterAttendance_ExitTimeBeforeEntryTime() {
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 0)));
+        attendanceRecord.setExitDateTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0)));
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+
+        assertThrows(InvalidAttendanceDataException.class, () -> {
+            attendanceApplicationService.registerAttendance(attendanceRecord);
+        });
+
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, never()).save(any(AttendanceRecordClass.class));
+    }
+
+    @Test
+    void testRegisterAttendance_StatusPresent() {
+        LocalDateTime entryTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0));
+        LocalDateTime exitTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(17, 0));
+        ScheduleClass schedule = new ScheduleClass();
+        schedule.setStartTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0))); // Schedule starts at 9:00
+
+        attendanceRecord.setEntryDateTime(entryTime);
+        attendanceRecord.setExitDateTime(exitTime);
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(scheduleRepositoryPort.findByEmployeeAndDate(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(java.util.Collections.singletonList(schedule));
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(invocation -> {
+            AttendanceRecordClass record = invocation.getArgument(0);
+            assertNotNull(record.getStatus());
+            assertEquals(AttendanceStatus.PRESENT, record.getStatus());
+            return record;
+        });
+
+        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
+
+        assertNotNull(result);
+        assertEquals(AttendanceStatus.PRESENT, result.getStatus());
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, times(1)).save(attendanceRecord);
+    }
+
+    @Test
+    void testRegisterAttendance_StatusLate() {
+        LocalDateTime entryTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 30)); // Arrives late
+        LocalDateTime exitTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(17, 0));
+        ScheduleClass schedule = new ScheduleClass();
+        schedule.setStartTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0))); // Schedule starts at 9:00
+
+        attendanceRecord.setEntryDateTime(entryTime);
+        attendanceRecord.setExitDateTime(exitTime);
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(scheduleRepositoryPort.findByEmployeeAndDate(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(java.util.Collections.singletonList(schedule));
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(invocation -> {
+            AttendanceRecordClass record = invocation.getArgument(0);
+            assertNotNull(record.getStatus());
+            assertEquals(AttendanceStatus.LATE, record.getStatus());
+            return record;
+        });
+
+        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
+
+        assertNotNull(result);
+        assertEquals(AttendanceStatus.LATE, result.getStatus());
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(scheduleRepositoryPort, times(1)).findByEmployeeAndDate(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(attendanceRepositoryPort, times(1)).save(attendanceRecord);
     }
 }
