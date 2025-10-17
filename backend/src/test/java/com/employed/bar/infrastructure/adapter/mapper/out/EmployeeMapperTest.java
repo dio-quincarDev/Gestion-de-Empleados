@@ -113,4 +113,30 @@ class EmployeeMapperTest {
         assertNotNull(domain.getPaymentMethod());
         assertTrue(domain.getPaymentMethod() instanceof CashPaymentMethod);
     }
+
+    @Test
+    void toEntity_shouldMapContactPhone() {
+        // Arrange
+        EmployeeClass domain = new EmployeeClass();
+        domain.setContactPhone("+5074567890");
+
+        // Act
+        EmployeeEntity entity = mapper.toEntity(domain);
+
+        // Assert
+        assertEquals("+5074567890", entity.getContactPhone());
+    }
+
+    @Test
+    void toDomain_shouldMapContactPhone() {
+        // Arrange
+        EmployeeEntity entity = new EmployeeEntity();
+        entity.setContactPhone("+1234567890");
+
+        // Act
+        EmployeeClass domain = mapper.toDomain(entity);
+
+        // Assert
+        assertEquals("+1234567890", domain.getContactPhone());
+    }
 }

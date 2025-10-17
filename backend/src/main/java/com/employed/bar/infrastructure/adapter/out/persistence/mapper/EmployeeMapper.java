@@ -26,6 +26,7 @@ public interface EmployeeMapper {
         entity.setOvertimeRateType(domain.getOvertimeRateType());
         entity.setStatus(domain.getStatus());
         entity.setPaymentType(domain.getPaymentType());
+        entity.setContactPhone(domain.getContactPhone());
 
         // Mapeo del payment method
         mapPaymentMethodToEntity(entity, domain);

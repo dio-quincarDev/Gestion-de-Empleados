@@ -21,6 +21,7 @@ public class EmployeeClass {
     private Long id;
     private String name;
     private String email;
+    private String contactPhone;
     private EmployeeRole role;
     private BigDecimal hourlyRate;
     private BigDecimal salary;
@@ -33,7 +34,7 @@ public class EmployeeClass {
     private List<AttendanceRecordClass> attendanceRecordClasses = new ArrayList<>();
     private List<ConsumptionClass> consumptionClasses = new ArrayList<>();
 
-    public EmployeeClass(Long id, String name, String email, EmployeeRole role, BigDecimal hourlyRate,
+    public EmployeeClass(Long id, String name, String email, String contactPhone, EmployeeRole role, BigDecimal hourlyRate,
                          BigDecimal salary, PaymentMethod paymentMethod, boolean paysOvertime,
                          OvertimeRateType overtimeRateType, EmployeeStatus status, PaymentType paymentType,
                          List<ScheduleClass> schedules, List<AttendanceRecordClass> attendanceRecordClasses,
@@ -44,6 +45,7 @@ public class EmployeeClass {
         this.id = id;
         this.name = name;
         this.email = email;
+        this.contactPhone = contactPhone;
         this.role = role;
         this.hourlyRate = hourlyRate;
         this.salary = salary;
@@ -59,9 +61,10 @@ public class EmployeeClass {
 
     public void updateWith(EmployeeClass updatedEmployee) {
         this.name = updatedEmployee.getName();
+        this.email = updatedEmployee.getEmail();
+        this.contactPhone = updatedEmployee.getContactPhone();
         this.role = updatedEmployee.getRole();
         this.status = updatedEmployee.getStatus();
-        this.email = updatedEmployee.getEmail();
         this.hourlyRate = updatedEmployee.getHourlyRate();
         this.salary = updatedEmployee.getSalary();
         this.paymentType = updatedEmployee.getPaymentType();

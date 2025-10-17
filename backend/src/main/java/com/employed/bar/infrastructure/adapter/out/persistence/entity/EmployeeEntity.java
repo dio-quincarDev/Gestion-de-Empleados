@@ -30,6 +30,9 @@ public class EmployeeEntity {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
+    @Column(name = "contact_phone", unique = true, nullable = false)
+    private String contactPhone;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private EmployeeRole role;

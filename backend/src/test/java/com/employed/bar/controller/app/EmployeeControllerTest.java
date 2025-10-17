@@ -106,7 +106,9 @@ public class EmployeeControllerTest {
 
     @Test
     void whenCreateEmployee_asAdmin_shouldSucceed() throws Exception {
-        EmployeeDto employeeDto = new EmployeeDto(null, "New Employee", new BigDecimal("12.50"), EmployeeRole.WAITER, "new@test.com", BigDecimal.ZERO, "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
+        EmployeeDto employeeDto = new EmployeeDto(null, "New Employee", new BigDecimal("12.50"),
+                EmployeeRole.WAITER, "new@test.com", BigDecimal.ZERO, "+50761234567",
+                "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -119,7 +121,9 @@ public class EmployeeControllerTest {
 
     @Test
     void whenCreateEmployee_salaried_shouldSucceed() throws Exception {
-        EmployeeDto employeeDto = new EmployeeDto(null, "Salaried Employee", BigDecimal.ZERO, EmployeeRole.MANAGER, "salaried@test.com", new BigDecimal("3000.00"), "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
+        EmployeeDto employeeDto = new EmployeeDto(null, "Salaried Employee", BigDecimal.ZERO, EmployeeRole.MANAGER,
+                "salaried@test.com", new BigDecimal("3000.00"), "+50761234567",
+                "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -133,7 +137,7 @@ public class EmployeeControllerTest {
     @Test
     void whenCreateEmployee_withExistingEmail_shouldFail() throws Exception {
         createTestEmployee("Existing Employee", "existing@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
-        EmployeeDto employeeDto = new EmployeeDto(null, "New Employee", new BigDecimal("12.50"), EmployeeRole.WAITER, "existing@test.com", BigDecimal.ZERO, "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
+        EmployeeDto employeeDto = new EmployeeDto(null, "New Employee", new BigDecimal("12.50"), EmployeeRole.WAITER, "existing@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -167,7 +171,7 @@ public class EmployeeControllerTest {
     @Test
     void whenUpdateEmployee_shouldSucceed() throws Exception {
         EmployeeEntity employee = createTestEmployee("Old Name", "old.email@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
-        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "New Name", new BigDecimal("20.00"), EmployeeRole.BARTENDER, "new.email@test.com", BigDecimal.ZERO, "INACTIVE", true, null, PaymentType.HOURLY, new CashPaymentMethodDto());
+        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "New Name", new BigDecimal("20.00"), EmployeeRole.BARTENDER, "new.email@test.com", BigDecimal.ZERO, "+50761234567", "INACTIVE", true, null, PaymentType.HOURLY, new CashPaymentMethodDto());
 
         mockMvc.perform(put(BASE_URL + "/{id}", employee.getId())
                         .header("Authorization", adminToken)
@@ -178,7 +182,7 @@ public class EmployeeControllerTest {
 
     @Test
     void whenCreateHourlyEmployee_withNonZeroSalary_shouldFail() throws Exception {
-        EmployeeDto employeeDto = new EmployeeDto(null, "Test", new BigDecimal("10"), EmployeeRole.WAITER, "test@test.com", new BigDecimal("100"), "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
+        EmployeeDto employeeDto = new EmployeeDto(null, "Test", new BigDecimal("10"), EmployeeRole.WAITER, "test@test.com", new BigDecimal("100"), "+50761234567", "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -189,7 +193,7 @@ public class EmployeeControllerTest {
 
     @Test
     void whenCreateSalariedEmployee_withZeroSalary_shouldFail() throws Exception {
-        EmployeeDto employeeDto = new EmployeeDto(null, "Test", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", BigDecimal.ZERO, "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
+        EmployeeDto employeeDto = new EmployeeDto(null, "Test", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -201,7 +205,7 @@ public class EmployeeControllerTest {
     @Test
     void whenUpdateFromHourlyToSalaried_withZeroSalary_shouldFail() throws Exception {
         EmployeeEntity employee = createTestEmployee("Test", "test@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
-        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "Updated", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", BigDecimal.ZERO, "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
+        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "Updated", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
 
         mockMvc.perform(put(BASE_URL + "/{id}", employee.getId())
                         .header("Authorization", adminToken)
@@ -213,7 +217,7 @@ public class EmployeeControllerTest {
     @Test
     void whenUpdateSalariedEmployee_withOvertimeAndZeroHourlyRate_shouldFail() throws Exception {
         EmployeeEntity employee = createTestEmployee("Test", "test@test.com", EmployeeRole.MANAGER, EmployeeStatus.ACTIVE, PaymentType.SALARIED);
-        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "Updated", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", new BigDecimal("3000"), "ACTIVE", true, null, PaymentType.SALARIED, new CashPaymentMethodDto());
+        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "Updated", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", new BigDecimal("3000"), "+50761234567", "ACTIVE", true, null, PaymentType.SALARIED, new CashPaymentMethodDto());
 
         mockMvc.perform(put(BASE_URL + "/{id}", employee.getId())
                         .header("Authorization", adminToken)
@@ -225,7 +229,7 @@ public class EmployeeControllerTest {
     @Test
     void whenCreateEmployee_withAchPayment_shouldReturnAchDetails() throws Exception {
         AchPaymentMethodDto achDto = new AchPaymentMethodDto("Banco General", "123456789", BankAccount.SAVINGS);
-        EmployeeDto employeeDto = new EmployeeDto(null, "Ach Employee", new BigDecimal("15.00"), EmployeeRole.CHEF, "ach@test.com", BigDecimal.ZERO, "ACTIVE", false, null, PaymentType.HOURLY, achDto);
+        EmployeeDto employeeDto = new EmployeeDto(null, "Ach Employee", new BigDecimal("15.00"), EmployeeRole.CHEF, "ach@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.HOURLY, achDto);
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -242,7 +246,7 @@ public class EmployeeControllerTest {
     @Test
     void whenCreateEmployee_withYappyPayment_shouldReturnYappyDetails() throws Exception {
         YappyPaymentMethodDto yappyDto = new YappyPaymentMethodDto("65432100");
-        EmployeeDto employeeDto = new EmployeeDto(null, "Yappy Employee", new BigDecimal("10.00"), EmployeeRole.DJ, "yappy@test.com", BigDecimal.ZERO, "ACTIVE", false, null, PaymentType.HOURLY, yappyDto);
+        EmployeeDto employeeDto = new EmployeeDto(null, "Yappy Employee", new BigDecimal("10.00"), EmployeeRole.DJ, "yappy@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.HOURLY, yappyDto);
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)

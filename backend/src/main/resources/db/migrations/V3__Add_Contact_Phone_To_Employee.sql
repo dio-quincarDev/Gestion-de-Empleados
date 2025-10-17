@@ -1,0 +1,1 @@
+ALTER TABLE employee ADD COLUMN contact_phone VARCHAR(20);
