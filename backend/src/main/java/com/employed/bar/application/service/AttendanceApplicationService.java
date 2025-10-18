@@ -72,6 +72,9 @@ public class AttendanceApplicationService implements AttendanceUseCase {
 
     @Override
     public List<AttendanceRecordClass> findEmployeeAttendances(Long employeeId, LocalDate date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
         EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
         return attendanceRepositoryPort.findByEmployee(employee).stream()
@@ -81,9 +84,6 @@ public class AttendanceApplicationService implements AttendanceUseCase {
 
     @Override
     public double calculateAttendancePercentage(Long employeeId, int year, int month, int day) {
-        employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found: " + employeeId));
-
         LocalDate startOfMonth = LocalDate.of(year, month, 1);
         LocalDate endOfMonth = LocalDate.of(year, month, startOfMonth.lengthOfMonth());
 

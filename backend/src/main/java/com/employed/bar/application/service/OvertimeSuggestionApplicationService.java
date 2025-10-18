@@ -28,7 +28,11 @@ public class OvertimeSuggestionApplicationService implements OvertimeSuggestionU
 
     @Override
     public List<OvertimeSuggestion> generateSuggestions() {
-        List<EmployeeClass> employeesWithoutOvertimePay = employeeRepositoryPort.findAll().stream()
+        List<EmployeeClass> employees = employeeRepositoryPort.findAll();
+        if (employees == null) {
+            return new ArrayList<>();
+        }
+        List<EmployeeClass> employeesWithoutOvertimePay = employees.stream()
                 .filter(employee -> !employee.isPaysOvertime())
                 .collect(Collectors.toList());
 
@@ -36,6 +40,10 @@ public class OvertimeSuggestionApplicationService implements OvertimeSuggestionU
 
         for (EmployeeClass employee : employeesWithoutOvertimePay) {
             List<AttendanceRecordClass> records = attendanceRepositoryPort.findByEmployee(employee);
+
+            if (records == null) {
+                continue;
+            }
 
             // Group records by day using the 'entryDateTime' field
             Map<LocalDate, List<AttendanceRecordClass>> recordsByDay = records.stream()

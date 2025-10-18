@@ -74,9 +74,6 @@ public class AttendanceController {
                     )
             )
             @RequestBody @Valid AttendanceDto attendanceDto) {
-        if (attendanceDto.getEmployeeId() == null) {
-            return ResponseEntity.badRequest().body("Employee ID is required");
-        }
         AttendanceRecordClass attendanceRecord = attendanceApiMapper.toDomain(attendanceDto);
         AttendanceRecordClass createdRecord = attendanceApplicationService.registerAttendance(attendanceRecord);
         return ResponseEntity.ok(attendanceApiMapper.toDto(createdRecord));

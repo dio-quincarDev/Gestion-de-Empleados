@@ -333,7 +333,7 @@ public class KpiApplicationServiceTest {
 
     @Test
     void testGetManagerKpis_NullStartDate() {
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             kpiApplicationService.getManagerKpis(null, endDate);
         });
 
@@ -344,7 +344,7 @@ public class KpiApplicationServiceTest {
 
     @Test
     void testGetManagerKpis_NullEndDate() {
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             kpiApplicationService.getManagerKpis(startDate, null);
         });
 

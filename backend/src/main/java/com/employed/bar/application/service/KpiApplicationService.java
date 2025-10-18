@@ -36,6 +36,9 @@ public class KpiApplicationService implements KpiServicePort {
 
     @Override
     public ManagerKpis getManagerKpis(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Start date and end date must not be null");
+        }
         List<EmployeeClass> allEmployees = employeeRepository.findAll();
 
         long totalActiveEmployees = allEmployees.stream()

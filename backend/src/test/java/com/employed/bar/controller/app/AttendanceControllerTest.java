@@ -87,6 +87,7 @@ public class AttendanceControllerTest {
         testEmployee = createTestEmployee("Test Employee", "employee@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
     }
 
+
     private UserEntity createTestUser(String email, String password, EmployeeRole role) {
         UserEntity user = UserEntity.builder()
                 .email(email)
@@ -117,13 +118,23 @@ public class AttendanceControllerTest {
         attendanceDto.setExitDateTime(LocalDateTime.of(2023, 1, 1, 17, 0));
         attendanceDto.setStatus(AttendanceStatus.PRESENT);
 
-        when(attendanceApplicationService.registerAttendance(any(AttendanceRecordClass.class))).thenReturn(new AttendanceRecordClass());
+        AttendanceRecordClass savedRecord = new AttendanceRecordClass();
+        savedRecord.setId(1L);
+        com.employed.bar.domain.model.structure.EmployeeClass employee = new com.employed.bar.domain.model.structure.EmployeeClass();
+        employee.setId(testEmployee.getId());
+        savedRecord.setEmployee(employee);
+        savedRecord.setEntryDateTime(attendanceDto.getEntryDateTime());
+        savedRecord.setExitDateTime(attendanceDto.getExitDateTime());
+        savedRecord.setStatus(attendanceDto.getStatus());
+
+        when(attendanceApplicationService.registerAttendance(any(AttendanceRecordClass.class))).thenReturn(savedRecord);
 
         mockMvc.perform(post(BASE_URL + "/")
                         .header("Authorization", managerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(attendanceDto)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.employeeId", is(testEmployee.getId().intValue())));
     }
 
     @Test
@@ -140,8 +151,17 @@ public class AttendanceControllerTest {
 
     @Test
     void whenGetAttendanceList_shouldReturnRecords() throws Exception {
+        AttendanceRecordClass record = new AttendanceRecordClass();
+        record.setId(1L);
+        com.employed.bar.domain.model.structure.EmployeeClass employee = new com.employed.bar.domain.model.structure.EmployeeClass();
+        employee.setId(testEmployee.getId());
+        record.setEmployee(employee);
+        record.setEntryDateTime(LocalDateTime.now().minusDays(1));
+        record.setExitDateTime(LocalDateTime.now());
+        record.setStatus(AttendanceStatus.PRESENT);
+
         when(attendanceApplicationService.getAttendanceListByEmployeeAndDateRange(anyLong(), any(LocalDate.class), any(LocalDate.class)))
-                .thenReturn(Collections.singletonList(new AttendanceRecordClass()));
+                .thenReturn(Collections.singletonList(record));
 
         mockMvc.perform(get(BASE_URL + "/list")
                         .header("Authorization", managerToken)
@@ -149,7 +169,8 @@ public class AttendanceControllerTest {
                         .param("startDate", LocalDate.now().minusDays(2).toString())
                         .param("endDate", LocalDate.now().toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].employeeId", is(testEmployee.getId().intValue())));
     }
 
     @Test

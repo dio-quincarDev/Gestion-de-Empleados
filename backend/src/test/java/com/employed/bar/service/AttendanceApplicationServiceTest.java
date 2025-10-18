@@ -60,6 +60,8 @@ public class AttendanceApplicationServiceTest {
     void testRegisterAttendance_Success() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenReturn(attendanceRecord);
+        when(scheduleRepositoryPort.findByEmployeeAndDate(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(java.util.Collections.emptyList());
 
         AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
 
@@ -289,15 +291,12 @@ public class AttendanceApplicationServiceTest {
 
     @Test
     void testFindEmployeeAttendances_NullDate() {
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(java.util.Collections.singletonList(attendanceRecord));
-
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             attendanceApplicationService.findEmployeeAttendances(1L, null);
         });
 
-        verify(employeeRepository, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, times(1)).findByEmployee(employee);
+        verify(employeeRepository, never()).findById(anyLong());
+        verify(attendanceRepositoryPort, never()).findByEmployee(any(EmployeeClass.class));
     }
 
     @Test
@@ -329,13 +328,11 @@ public class AttendanceApplicationServiceTest {
         attendanceRecord.setEntryDateTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 0)));
         attendanceRecord.setExitDateTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0)));
 
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-
         assertThrows(InvalidAttendanceDataException.class, () -> {
             attendanceApplicationService.registerAttendance(attendanceRecord);
         });
 
-        verify(employeeRepository, times(1)).findById(1L);
+        verify(employeeRepository, never()).findById(anyLong());
         verify(attendanceRepositoryPort, never()).save(any(AttendanceRecordClass.class));
     }
 
