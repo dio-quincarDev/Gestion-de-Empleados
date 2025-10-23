@@ -20,6 +20,13 @@ public class EventConfig {
 
     @EventListener
     public void handleTestEmailRequest(TestEmailRequestedEvent event) {
-        reportingUseCase.sendTestEmailToEmployee(event.getEmployeeId());
+        System.out.println("🎯 EVENTO CAPTURADO - EmployeeId: " + event.getEmployeeId());
+        try {
+            reportingUseCase.sendTestEmailToEmployee(event.getEmployeeId());
+            System.out.println("✅ EVENTO PROCESADO EXITOSAMENTE");
+        } catch (Exception e) {
+            System.out.println("❌ ERROR en handleTestEmailRequest: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

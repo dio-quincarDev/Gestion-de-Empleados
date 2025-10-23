@@ -87,14 +87,29 @@ public class ReportingApplicationService implements ReportingUseCase {
 
     @Override
     public void sendTestEmailToEmployee(Long employeeId) {
-        EmployeeClass employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+        System.out.println("🔍 [SERVICE] Buscando employee con ID: " + employeeId);
+        try {
+            EmployeeClass employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+            System.out.println("✅ [SERVICE] Employee encontrado: " + employee.getName());
 
-        LocalDate testDate = LocalDate.parse("2025-10-28");
+            LocalDate testDate = LocalDate.parse("2025-10-28");
+            System.out.println("📊 [SERVICE] Generando reporte para fecha: " + testDate);
 
-        Report report = generateCompleteReportForEmployee(testDate, testDate, employee);
+            Report report = generateCompleteReportForEmployee(testDate, testDate, employee);
+            System.out.println("📈 [SERVICE] Reporte generado:");
+            System.out.println("   - AttendanceLines: " + report.getAttendanceLines().size());
+            System.out.println("   - ConsumptionLines: " + report.getConsumptionLines().size());
+            System.out.println("   - TotalHours: " + report.getTotalAttendanceHours());
+            System.out.println("   - TotalConsumption: " + report.getTotalConsumptionAmount());
 
-        sendEmployeeReportNotificationUseCase.sendReport(Collections.singletonList(employee), Collections.singletonList(report));
+            System.out.println("📧 [SERVICE] Enviando a notificación...");
+            sendEmployeeReportNotificationUseCase.sendReport(Collections.singletonList(employee), Collections.singletonList(report));
+            System.out.println("🚀 [SERVICE] Notificación enviada exitosamente");
+        } catch (Exception e) {
+            System.out.println("❌ [SERVICE] ERROR: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override
