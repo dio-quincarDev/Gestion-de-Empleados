@@ -23,5 +23,7 @@ public interface ConsumptionUseCase {
 
     void deleteConsumption(Long id);
 
+    List<ConsumptionClass> getAllConsumptions();
+
 
 }

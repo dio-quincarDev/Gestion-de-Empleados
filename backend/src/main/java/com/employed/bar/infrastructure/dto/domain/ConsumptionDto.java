@@ -1,5 +1,6 @@
 package com.employed.bar.infrastructure.dto.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -26,6 +27,7 @@ public class ConsumptionDto {
     private Long employeeId;
 
     @NotNull(message = "La fecha de consumo no puede ser nula")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime date;
 
     @Size(max = 255, message = "La descripción no puede exceder los 255 caracteres")

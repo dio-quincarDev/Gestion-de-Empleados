@@ -22,7 +22,7 @@ public class ScheduleEntity {
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "employee_id", nullable = false)
     @JsonBackReference
     private EmployeeEntity employee;

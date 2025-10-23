@@ -36,7 +36,8 @@ public class AttendancePersistenceAdapter implements AttendanceRepositoryPort {
 
     @Override
     public List<AttendanceRecordClass> findByEmployeeAndDateRange(EmployeeClass employee, LocalDateTime startDate, LocalDateTime endDate) {
-        return springAttendanceJpaRepository.findByEmployeeAndEntryDateTimeBetween(employeeMapper.toEntity(employee), startDate, endDate).stream()
+                        return springAttendanceJpaRepository.findByEmployeeAndEntryDateTimeBetween(
+                                employeeMapper.toEntity(employee), startDate, endDate).stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());
     }

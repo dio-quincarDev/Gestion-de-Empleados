@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
     id CHAR(36) PRIMARY KEY, -- Usamos CHAR(36) para UUID (consistente con UserEntity)
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
+    firstname VARCHAR(50) NOT NULL,
+    lastname VARCHAR(50) NOT NULL,
     role VARCHAR(50) NOT NULL, -- Corresponde al rol de seguridad/autorización
     is_active BOOLEAN NOT NULL DEFAULT TRUE, -- Para deshabilitar la cuenta sin eliminar el registro
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -103,17 +103,17 @@ CREATE INDEX idx_schedule_employee_start ON schedule(employee_id, start_time);
 CREATE TABLE IF NOT EXISTS attendance_records (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     employee_id BIGINT NOT NULL,
-    recorded_by_user_id CHAR(36) NULL, -- FK si fue registrado por un administrador
-
-    entry_date_time DATETIME NULL,
-    exit_date_time DATETIME NULL,
-    time_zone VARCHAR(50) NULL, -- e.g., 'America/Panama'
-
-    status VARCHAR(50) NOT NULL, -- PRESENT, LATE, ABSENT (ENUM en Java)
-    device_used VARCHAR(50) NULL, -- Terminal, Mobile, Web
-
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        recorded_by_user_id CHAR(36) NULL, -- FK si fue registrado por un administrador
+    
+        entry_date_time DATETIME NULL,
+        exit_date_time DATETIME NULL,
+        time_zone VARCHAR(50) NULL, -- e.g., 'America/Panama'
+    
+        status VARCHAR(50) NOT NULL, -- PRESENT, LATE, ABSENT (ENUM en Java)
+        device_used VARCHAR(50) NULL, -- Terminal, Mobile, Web
+    
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (employee_id) REFERENCES employee(id),
     FOREIGN KEY (recorded_by_user_id) REFERENCES users(id)

@@ -90,7 +90,7 @@ public class ReportingApplicationService implements ReportingUseCase {
         EmployeeClass employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
 
-        LocalDate testDate = LocalDate.parse("2024-10-10");
+        LocalDate testDate = LocalDate.parse("2025-10-28");
 
         Report report = generateCompleteReportForEmployee(testDate, testDate, employee);
 

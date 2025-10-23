@@ -37,8 +37,8 @@ public class EmailAdapter implements NotificationPort {
         Context context = new Context();
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("employeeName", employee.getName());
-        dataMap.put("attendanceLines", report.getAttendanceLines());
-        dataMap.put("consumptionLines", report.getConsumptionLines());
+        dataMap.put("attendanceReports", report.getAttendanceLines());
+        dataMap.put("individualConsumptionReports", report.getConsumptionLines());
         dataMap.put("totalAttendanceHours", report.getTotalAttendanceHours());
         dataMap.put("totalConsumptionAmount", report.getTotalConsumptionAmount());
 
