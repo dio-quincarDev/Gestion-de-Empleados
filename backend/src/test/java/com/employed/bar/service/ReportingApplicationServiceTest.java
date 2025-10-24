@@ -210,4 +210,41 @@ public class ReportingApplicationServiceTest {
                 0
         );
     }
-}
+
+    @Test
+    void testSendTestEmailToEmployee_Success() {
+        // GIVEN
+        LocalDate lastActivityDate = LocalDate.of(2025, 10, 28);
+        LocalDateTime lastActivityDateTime = lastActivityDate.atStartOfDay();
+        LocalDate expectedStartDate = lastActivityDate.minusDays(6);
+        LocalDate expectedEndDate = lastActivityDate;
+
+        AttendanceRecordClass latestAttendance = new AttendanceRecordClass();
+        latestAttendance.setEntryDateTime(lastActivityDateTime);
+
+        when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+        when(attendanceRepositoryPort.findTopByEmployeeOrderByEntryDateTimeDesc(employee)).thenReturn(Optional.of(latestAttendance));
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), eq(expectedStartDate.atStartOfDay()), eq(expectedEndDate.atTime(23, 59, 59))))
+                .thenReturn(Collections.singletonList(attendanceRecord));
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), eq(expectedStartDate.atStartOfDay()), eq(expectedEndDate.atTime(23, 59, 59)), eq(null)))
+                .thenReturn(Collections.singletonList(consumptionClass));
+        when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
+        when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
+        when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
+        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), anyDouble(), anyDouble()))
+                .thenReturn(BigDecimal.valueOf(80.0));
+
+        // WHEN
+        reportingApplicationService.sendTestEmailToEmployee(employee.getId());
+
+        // THEN
+        verify(employeeRepository, times(1)).findById(employee.getId());
+        verify(attendanceRepositoryPort, times(1)).findTopByEmployeeOrderByEntryDateTimeDesc(employee);
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(eq(employee), eq(expectedStartDate.atStartOfDay()), eq(expectedEndDate.atTime(23, 59, 59)));
+        verify(consumptionRepositoryPort, times(1)).findByEmployeeAndDateTimeBetween(eq(employee), eq(expectedStartDate.atStartOfDay()), eq(expectedEndDate.atTime(23, 59, 59)), eq(null));
+        verify(reportCalculator, times(1)).mapToAttendanceReportLine(attendanceRecord);
+        verify(reportCalculator, times(1)).mapToConsumptionReportLine(consumptionClass);
+        verify(reportCalculator, times(1)).calculateHours(Collections.singletonList(attendanceRecord));
+        verify(paymentCalculationUseCase, times(1)).calculateTotalPay(any(), any(), any(), anyBoolean(), any(), anyDouble(), anyDouble());
+        verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(anyList(), anyList());
+    }}

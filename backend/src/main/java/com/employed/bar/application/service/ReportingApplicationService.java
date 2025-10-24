@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ReportingApplicationService implements ReportingUseCase {
@@ -93,10 +94,16 @@ public class ReportingApplicationService implements ReportingUseCase {
                     .orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
             System.out.println("✅ [SERVICE] Employee encontrado: " + employee.getName());
 
-            LocalDate testDate = LocalDate.parse("2025-10-28");
-            System.out.println("📊 [SERVICE] Generando reporte para fecha: " + testDate);
+            // Find the last activity date for the employee
+            LocalDate endDate = attendanceRepositoryPort.findTopByEmployeeOrderByEntryDateTimeDesc(employee)
+                    .map(att -> att.getEntryDateTime().toLocalDate())
+                    .orElse(LocalDate.now()); // Fallback to today if no activity found
 
-            Report report = generateCompleteReportForEmployee(testDate, testDate, employee);
+            LocalDate startDate = endDate.minusDays(6);
+
+            System.out.println("📊 [SERVICE] Generando reporte para el rango de fechas: " + startDate + " a " + endDate);
+
+            Report report = generateCompleteReportForEmployee(startDate, endDate, employee);
             System.out.println("📈 [SERVICE] Reporte generado:");
             System.out.println("   - AttendanceLines: " + report.getAttendanceLines().size());
             System.out.println("   - ConsumptionLines: " + report.getConsumptionLines().size());

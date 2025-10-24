@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -47,5 +48,11 @@ public class AttendancePersistenceAdapter implements AttendanceRepositoryPort {
         return springAttendanceJpaRepository.findByEmployee(employeeMapper.toEntity(employee)).stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<AttendanceRecordClass> findTopByEmployeeOrderByEntryDateTimeDesc(EmployeeClass employee) {
+        return springAttendanceJpaRepository.findTopByEmployeeOrderByEntryDateTimeDesc(employeeMapper.toEntity(employee))
+                .map(attendanceMapper::toDomain);
     }
 }

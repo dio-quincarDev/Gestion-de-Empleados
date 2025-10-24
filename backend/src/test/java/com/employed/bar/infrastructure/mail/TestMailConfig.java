@@ -22,39 +22,41 @@ public class TestMailConfig {
     @Bean
     public JavaMailSender javaMailSender() {
         JavaMailSender mockMailSender = Mockito.mock(JavaMailSender.class);
+        JavaMailSenderImpl realMailSender = new JavaMailSenderImpl();
 
-        // Return real MimeMessage instances
-        when(mockMailSender.createMimeMessage()).thenAnswer(invocation -> {
-            JavaMailSenderImpl realMailSender = new JavaMailSenderImpl();
-            return realMailSender.createMimeMessage();
-        });
+        // When createMimeMessage is called, return a real MimeMessage
+        when(mockMailSender.createMimeMessage()).thenAnswer(invocation -> realMailSender.createMimeMessage());
 
-        // Capture and ensure content is properly set
+        // When send is called, capture the MimeMessage with its actual content
         doAnswer(invocation -> {
-            MimeMessage message = invocation.getArgument(0);
+            MimeMessage originalMessage = invocation.getArgument(0);
+
             try {
-                // Ensure the message has valid content for testing
-                if (message.getContent() == null) {
-                    // If content is null, set a basic HTML content for testing
-                    message.setContent("<html><body><h1>Test Email Content</h1></body></html>", "text/html");
-                }
+                // Crear una copia COMPLETA del mensaje
+                MimeMessage capturedMessage = realMailSender.createMimeMessage();
+
+                // Copiar TODO el contenido y propiedades
+                capturedMessage.setContent(originalMessage.getContent(), originalMessage.getContentType());
+                capturedMessage.setSubject(originalMessage.getSubject());
+                capturedMessage.setRecipients(MimeMessage.RecipientType.TO, originalMessage.getRecipients(MimeMessage.RecipientType.TO));
+
+                // Forzar la serialización del contenido
+                capturedMessage.saveChanges();
+
+                sentMimeMessages.add(capturedMessage);
+                System.out.println("✅ [TEST MAIL] Email capturado - Subject: " + capturedMessage.getSubject());
+                System.out.println("✅ [TEST MAIL] Content Type: " + capturedMessage.getContentType());
             } catch (Exception e) {
-                // If there's an issue with the content, set basic content
-                try {
-                    message.setContent("<html><body><h1>Test Email Content</h1></body></html>", "text/html");
-                } catch (Exception ex) {
-                    throw new RuntimeException("Failed to set email content", ex);
-                }
+                System.out.println("❌ [TEST MAIL] Error capturando email: " + e.getMessage());
+                e.printStackTrace();
             }
-            sentMimeMessages.add(message);
             return null;
         }).when(mockMailSender).send(any(MimeMessage.class));
-
         return mockMailSender;
     }
 
     public static List<MimeMessage> getSentMimeMessages() {
-        return new ArrayList<>(sentMimeMessages);
+        return new ArrayList<>(TestMailConfig.sentMimeMessages);
     }
 
     public static void clearSentMimeMessages() {

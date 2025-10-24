@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SpringAttendanceJpaRepository extends JpaRepository<AttendanceRecordEntity, Long> {
@@ -17,4 +18,6 @@ public interface SpringAttendanceJpaRepository extends JpaRepository<AttendanceR
     List<AttendanceRecordEntity> findByEmployeeAndEntryDateTimeBetween(@Param("employeeId") Long employeeId, @Param("startDateTime") LocalDateTime startDateTime, @Param("endDateTime") LocalDateTime endDateTime);
 
     List<AttendanceRecordEntity> findByEmployee(EmployeeEntity employee);
+
+    Optional<AttendanceRecordEntity> findTopByEmployeeOrderByEntryDateTimeDesc(EmployeeEntity employee);
 }

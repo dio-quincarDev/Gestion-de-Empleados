@@ -17,7 +17,9 @@ public class NotificationApplicationService implements SendEmployeeReportNotific
 
     @Override
     public void sendReport(List<EmployeeClass> employees, List<Report> reports) {
+        System.out.println("📨 [NOTIFICATION SERVICE] Enviando reportes para " + employees.size() + " empleados");
         for (int i = 0; i < employees.size(); i++) {
+            System.out.println("   - Enviando email a: " + employees.get(i).getEmail());
             notificationPort.sendReportByEmail(employees.get(i), reports.get(i));
         }
     }
