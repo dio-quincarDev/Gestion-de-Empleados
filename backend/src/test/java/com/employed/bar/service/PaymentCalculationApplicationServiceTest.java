@@ -24,8 +24,8 @@ public class PaymentCalculationApplicationServiceTest {
     void testCalculateTotalPay_NoOvertime() {
         // Given
         BigDecimal hourlyRate = new BigDecimal("10.00");
-        double regularHours = 8.0;
-        double overtimeHours = 0.0;
+        BigDecimal regularHours = new BigDecimal("8.0");
+        BigDecimal overtimeHours = new BigDecimal("0.0");
 
         // When
         BigDecimal totalPay = paymentCalculationService.calculateTotalPay(PaymentType.HOURLY, BigDecimal.ZERO, hourlyRate, false, null, regularHours, overtimeHours);
@@ -39,8 +39,8 @@ public class PaymentCalculationApplicationServiceTest {
     void testCalculateTotalPay_WithOvertime_ButOvertimeNotPaid() {
         // Given
         BigDecimal hourlyRate = new BigDecimal("10.00");
-        double regularHours = 8.0;
-        double overtimeHours = 2.0;
+        BigDecimal regularHours = new BigDecimal("8.0");
+        BigDecimal overtimeHours = new BigDecimal("2.0");
 
         // When
         BigDecimal totalPay = paymentCalculationService.calculateTotalPay(PaymentType.HOURLY, BigDecimal.ZERO, hourlyRate, false, null, regularHours, overtimeHours);
@@ -54,8 +54,8 @@ public class PaymentCalculationApplicationServiceTest {
     void testCalculateTotalPay_WithOvertime_PaidAtOneHundredPercent() {
         // Given
         BigDecimal hourlyRate = new BigDecimal("10.00");
-        double regularHours = 8.0;
-        double overtimeHours = 2.0;
+        BigDecimal regularHours = new BigDecimal("8.0");
+        BigDecimal overtimeHours = new BigDecimal("2.0");
 
         // When
         BigDecimal totalPay = paymentCalculationService.calculateTotalPay(PaymentType.HOURLY, BigDecimal.ZERO, hourlyRate, true, OvertimeRateType.ONE_HUNDRED_PERCENT, regularHours, overtimeHours);
@@ -69,8 +69,8 @@ public class PaymentCalculationApplicationServiceTest {
     void testCalculateTotalPay_WithOvertime_PaidAtFiftyPercent() {
         // Given
         BigDecimal hourlyRate = new BigDecimal("10.00");
-        double regularHours = 8.0;
-        double overtimeHours = 2.0;
+        BigDecimal regularHours = new BigDecimal("8.0");
+        BigDecimal overtimeHours = new BigDecimal("2.0");
 
         // When
         BigDecimal totalPay = paymentCalculationService.calculateTotalPay(PaymentType.HOURLY, BigDecimal.ZERO, hourlyRate, true, OvertimeRateType.FIFTY_PERCENT, regularHours, overtimeHours);
@@ -84,8 +84,8 @@ public class PaymentCalculationApplicationServiceTest {
     void testCalculateTotalPay_ZeroHours() {
         // Given
         BigDecimal hourlyRate = new BigDecimal("10.00");
-        double regularHours = 0.0;
-        double overtimeHours = 0.0;
+        BigDecimal regularHours = new BigDecimal("0.0");
+        BigDecimal overtimeHours = new BigDecimal("0.0");
 
         // When
         BigDecimal totalPay = paymentCalculationService.calculateTotalPay(PaymentType.HOURLY, BigDecimal.ZERO, hourlyRate, true, OvertimeRateType.ONE_HUNDRED_PERCENT, regularHours, overtimeHours);
@@ -98,7 +98,7 @@ public class PaymentCalculationApplicationServiceTest {
     @Test
     void testCalculateTotalPay_NullHourlyRate() {
         assertThrows(NullPointerException.class, () -> {
-            paymentCalculationService.calculateTotalPay(PaymentType.HOURLY, BigDecimal.ZERO, null, false, null, 8.0, 0.0);
+            paymentCalculationService.calculateTotalPay(PaymentType.HOURLY, BigDecimal.ZERO, null, false, null, new BigDecimal("8.0"), new BigDecimal("0.0"));
         });
     }
 
@@ -106,8 +106,8 @@ public class PaymentCalculationApplicationServiceTest {
     void testCalculateTotalPay_NullOvertimeRateType_PaysOvertime() {
         // Given
         BigDecimal hourlyRate = new BigDecimal("10.00");
-        double regularHours = 8.0;
-        double overtimeHours = 2.0;
+        BigDecimal regularHours = new BigDecimal("8.0");
+        BigDecimal overtimeHours = new BigDecimal("2.0");
 
         // When
         BigDecimal totalPay = paymentCalculationService.calculateTotalPay(PaymentType.HOURLY, BigDecimal.ZERO, hourlyRate, true, null, regularHours, overtimeHours);
@@ -122,8 +122,8 @@ public class PaymentCalculationApplicationServiceTest {
         // Given
         BigDecimal salary = new BigDecimal("2000.00");
         BigDecimal hourlyRate = new BigDecimal("20.00");
-        double regularHours = 40.0; // Not used for salaried employees
-        double overtimeHours = 5.0;
+        BigDecimal regularHours = new BigDecimal("40.0"); // Not used for salaried employees
+        BigDecimal overtimeHours = new BigDecimal("5.0");
 
         // When
         BigDecimal totalPay = paymentCalculationService.calculateTotalPay(PaymentType.SALARIED, salary, hourlyRate, true, OvertimeRateType.FIFTY_PERCENT, regularHours, overtimeHours);

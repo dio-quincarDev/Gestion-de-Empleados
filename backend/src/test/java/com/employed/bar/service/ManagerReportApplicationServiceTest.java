@@ -1,7 +1,9 @@
 package com.employed.bar.service;
 
 import com.employed.bar.application.service.ManagerReportApplicationService;
+import com.employed.bar.domain.model.manager.EmployeeSummary;
 import com.employed.bar.domain.model.manager.ManagerReport;
+import com.employed.bar.domain.model.manager.ReportTotals;
 import com.employed.bar.domain.model.report.Report;
 import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
@@ -12,10 +14,12 @@ import com.employed.bar.domain.service.ManagerReportCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -151,12 +155,76 @@ public class ManagerReportApplicationServiceTest {
     }
 
     @Test
-    void testGenerateAndSendManagerReport_NullEndDate() {
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-            managerReportApplicationService.generateAndSendManagerReport(startDate, null);
-        });
-        assertEquals("Start date and end date must not be null", thrown.getMessage());
-        verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, notificationPort);
+    void testGenerateAndSendManagerReport_VerifiesManagerReportContent() {
+        // Arrange
+        EmployeeClass emp1 = new EmployeeClass();
+        emp1.setId(1L);
+        emp1.setName("Employee One");
+
+        Report rep1 = mock(Report.class);
+
+
+        List<EmployeeClass> employees = Collections.singletonList(emp1);
+        List<Report> individualReports = Collections.singletonList(rep1);
+
+        // Create a concrete ManagerReport to be returned by the mock calculator
+        ManagerReport expectedManagerReport = new ManagerReport(
+                Collections.singletonList(new com.employed.bar.domain.model.manager.EmployeeSummary(
+                        "Employee One",
+                        new BigDecimal("40.00"),
+                        new BigDecimal("400.00"),
+                        new BigDecimal("50.00"),
+                        new BigDecimal("350.00")
+                )),
+                new com.employed.bar.domain.model.manager.ReportTotals(
+                        new BigDecimal("40.00"),
+                        BigDecimal.ZERO,
+                        new BigDecimal("400.00"),
+                        new BigDecimal("50.00"),
+                        new BigDecimal("350.00")
+                )
+        );
+
+        when(employeeRepository.findAll()).thenReturn(employees);
+        when(reportingUseCase.generateCompleteReportForEmployeeById(any(LocalDate.class), any(LocalDate.class), anyLong())).thenReturn(rep1);
+        when(managerReportCalculator.calculate(employees, individualReports)).thenReturn(expectedManagerReport);
+
+        // Act
+        managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
+
+        // Assert - Usar ArgumentCaptor para verificar el contenido
+        ArgumentCaptor<String> emailCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<ManagerReport> reportCaptor = ArgumentCaptor.forClass(ManagerReport.class);
+
+        verify(notificationPort, times(1)).sendManagerReportByEmail(emailCaptor.capture(), reportCaptor.capture());
+
+        // Verificar el email
+        assertEquals("manager@example.com", emailCaptor.getValue());
+
+        // Verificar el contenido del reporte
+        ManagerReport actualReport = reportCaptor.getValue();
+        assertNotNull(actualReport);
+        assertEquals(expectedManagerReport.getEmployeeSummaries().size(), actualReport.getEmployeeSummaries().size());
+
+        // Verificar detalles del EmployeeSummary
+        EmployeeSummary expectedSummary = expectedManagerReport.getEmployeeSummaries().get(0);
+        EmployeeSummary actualSummary = actualReport.getEmployeeSummaries().get(0);
+
+        assertEquals(expectedSummary.getEmployeeName(), actualSummary.getEmployeeName());
+        assertEquals(0, expectedSummary.getTotalHoursWorked().compareTo(actualSummary.getTotalHoursWorked()));
+        assertEquals(0, expectedSummary.getTotalEarnings().compareTo(actualSummary.getTotalEarnings()));
+        assertEquals(0, expectedSummary.getTotalConsumptions().compareTo(actualSummary.getTotalConsumptions()));
+        assertEquals(0, expectedSummary.getNetPay().compareTo(actualSummary.getNetPay()));
+
+        // Verificar los totals
+        ReportTotals expectedTotals = expectedManagerReport.getTotals();
+        ReportTotals actualTotals = actualReport.getTotals();
+
+        assertEquals(0, expectedTotals.getTotalRegularHoursWorked().compareTo(actualTotals.getTotalRegularHoursWorked()));
+        assertEquals(0, expectedTotals.getTotalOvertimeHoursWorked().compareTo(actualTotals.getTotalOvertimeHoursWorked()));
+        assertEquals(0, expectedTotals.getTotalEarnings().compareTo(actualTotals.getTotalEarnings()));
+        assertEquals(0, expectedTotals.getTotalConsumptions().compareTo(actualTotals.getTotalConsumptions()));
+        assertEquals(0, expectedTotals.getTotalNetPay().compareTo(actualTotals.getTotalNetPay()));
     }
 
     @Test

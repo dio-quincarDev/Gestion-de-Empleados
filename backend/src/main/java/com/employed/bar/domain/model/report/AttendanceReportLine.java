@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -13,6 +14,6 @@ public class AttendanceReportLine {
     private String employeeName;
     private LocalDateTime entryDateTime;
     private LocalDateTime exitDateTime;
-    private double workedHours;
+    private BigDecimal workedHours;
     private double attendancePercentage;
 }

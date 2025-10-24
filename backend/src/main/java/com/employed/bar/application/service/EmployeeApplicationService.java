@@ -118,7 +118,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    public BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours) {
+    public BigDecimal calculateEmployeePay(Long employeeId, BigDecimal regularHours, BigDecimal overtimeHours) {
       EmployeeClass employee = employeeRepositoryPort.findById(employeeId)
               .orElseThrow(()-> new EmployeeNotFoundException("Employee Not Found"));
       return paymentCalculationUseCase.calculateTotalPay(

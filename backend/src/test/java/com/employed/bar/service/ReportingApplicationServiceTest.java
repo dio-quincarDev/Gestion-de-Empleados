@@ -84,11 +84,11 @@ public class ReportingApplicationServiceTest {
         attendanceReportLine = new AttendanceReportLine("Test Employee",
                 LocalDateTime.of(startDate, LocalTime.of(9, 0)),
                 LocalDateTime.of(startDate, LocalTime.of(17, 0)),
-                8.0, 100.0);
+                BigDecimal.valueOf(8.0), 100.0);
         consumptionReportLine = new ConsumptionReportLine("Test Employee", LocalDateTime.now(),
                 BigDecimal.valueOf(50.0), "Lunch");
 
-        hoursCalculation = new HoursCalculation(8.0, 8.0, 0.0);
+        hoursCalculation = new HoursCalculation(BigDecimal.valueOf(8.0), BigDecimal.valueOf(8.0), BigDecimal.ZERO);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class ReportingApplicationServiceTest {
         when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
         when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
         when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
-        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), anyDouble(), anyDouble()))
+        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class)))
                 .thenReturn(BigDecimal.valueOf(80.0)); // Example total pay
 
         Report result = reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
@@ -113,7 +113,7 @@ public class ReportingApplicationServiceTest {
         assertEquals(attendanceReportLine, result.getAttendanceLines().get(0));
         assertEquals(1, result.getConsumptionLines().size());
         assertEquals(consumptionReportLine, result.getConsumptionLines().get(0));
-        assertEquals(8.0, result.getTotalAttendanceHours());
+        assertEquals(BigDecimal.valueOf(8.0), result.getTotalAttendanceHours());
         assertEquals(BigDecimal.valueOf(50.0), result.getTotalConsumptionAmount());
         assertEquals(BigDecimal.valueOf(80.0), result.getTotalEarnings());
 
@@ -136,7 +136,7 @@ public class ReportingApplicationServiceTest {
         employee.setHourlyRate(BigDecimal.ZERO); // No hourly rate for overtime
         employee.setPaysOvertime(true);
 
-        HoursCalculation overtimeHours = new HoursCalculation(45, 40, 5); // 5 hours of overtime
+        HoursCalculation overtimeHours = new HoursCalculation(new BigDecimal("45"), new BigDecimal("40"), new BigDecimal("5")); // 5 hours of overtime
 
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(Collections.singletonList(new AttendanceRecordClass()));
@@ -151,8 +151,8 @@ public class ReportingApplicationServiceTest {
                 eq(employee.getHourlyRate()),
                 eq(true),
                 any(),
-                eq(40.0),
-                eq(5.0)
+                eq(new BigDecimal("40")),
+                eq(new BigDecimal("5"))
         )).thenReturn(employee.getSalary()); // Total pay is just the salary
 
         // WHEN
@@ -167,8 +167,8 @@ public class ReportingApplicationServiceTest {
                 BigDecimal.ZERO,
                 true,
                 employee.getOvertimeRateType(),
-                40,
-                5
+                new BigDecimal("40"),
+                new BigDecimal("5")
         );
     }
 
@@ -184,10 +184,10 @@ public class ReportingApplicationServiceTest {
 
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(Collections.emptyList());
-        when(reportCalculator.calculateHours(anyList())).thenReturn(new HoursCalculation(0, 0, 0));
+        when(reportCalculator.calculateHours(anyList())).thenReturn(new HoursCalculation(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
         when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), isNull())).thenReturn(Collections.singletonList(consumption));
         when(reportCalculator.mapToConsumptionReportLine(any())).thenReturn(consumptionLine);
-        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(0.0), eq(0.0)))
+        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(BigDecimal.ZERO), eq(BigDecimal.ZERO)))
                 .thenReturn(BigDecimal.ZERO);
 
         // WHEN
@@ -195,7 +195,7 @@ public class ReportingApplicationServiceTest {
 
         // THEN
         assertNotNull(result);
-        assertEquals(0, result.getTotalAttendanceHours());
+        assertEquals(BigDecimal.ZERO, result.getTotalAttendanceHours());
         assertEquals(BigDecimal.ZERO, result.getTotalEarnings());
         assertEquals(new BigDecimal("25.00"), result.getTotalConsumptionAmount());
         assertTrue(result.getAttendanceLines().isEmpty());
@@ -206,8 +206,8 @@ public class ReportingApplicationServiceTest {
                 employee.getHourlyRate(),
                 employee.isPaysOvertime(),
                 employee.getOvertimeRateType(),
-                0,
-                0
+                BigDecimal.ZERO,
+                BigDecimal.ZERO
         );
     }
 
@@ -231,7 +231,7 @@ public class ReportingApplicationServiceTest {
         when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
         when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
         when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
-        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), anyDouble(), anyDouble()))
+        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class)))
                 .thenReturn(BigDecimal.valueOf(80.0));
 
         // WHEN
@@ -245,6 +245,6 @@ public class ReportingApplicationServiceTest {
         verify(reportCalculator, times(1)).mapToAttendanceReportLine(attendanceRecord);
         verify(reportCalculator, times(1)).mapToConsumptionReportLine(consumptionClass);
         verify(reportCalculator, times(1)).calculateHours(Collections.singletonList(attendanceRecord));
-        verify(paymentCalculationUseCase, times(1)).calculateTotalPay(any(), any(), any(), anyBoolean(), any(), anyDouble(), anyDouble());
+        verify(paymentCalculationUseCase, times(1)).calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class));
         verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(anyList(), anyList());
     }}

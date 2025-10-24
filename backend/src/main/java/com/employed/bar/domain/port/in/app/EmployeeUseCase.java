@@ -16,7 +16,7 @@ public interface EmployeeUseCase {
     void deleteEmployee(Long id);
     EmployeeClass updateEmployee(Long id, EmployeeClass updatedEmployee);
     Optional<EmployeeClass> findByEmail(String email);
-    EmployeeClass updateHourlyRate(Long employeeId, java.math.BigDecimal newRate);
-    BigDecimal calculateEmployeePay(Long employeeId, double regularHours, double overtimeHours);
+    EmployeeClass updateHourlyRate(Long employeeId, BigDecimal newRate);
+    BigDecimal calculateEmployeePay(Long employeeId, BigDecimal regularHours, BigDecimal overtimeHours);
     boolean doesEmailExist(String email);
 }

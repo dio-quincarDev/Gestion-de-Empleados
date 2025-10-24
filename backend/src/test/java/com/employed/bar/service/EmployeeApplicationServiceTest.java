@@ -1,8 +1,6 @@
 package com.employed.bar.service;
 
 import com.employed.bar.application.service.EmployeeApplicationService;
-import com.employed.bar.domain.enums.EmployeeRole;
-import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.domain.exceptions.EmailAlreadyExistException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
@@ -124,9 +122,9 @@ public class EmployeeApplicationServiceTest {
 
     @Test
     void testCalculateEmployeePay_Success() {
-        double regularHours = 40.0;
-        double overtimeHours = 10.0;
-        BigDecimal expectedPay = BigDecimal.valueOf(500.0);
+        BigDecimal regularHours = new BigDecimal("40.0");
+        BigDecimal overtimeHours = new BigDecimal("10.0");
+        BigDecimal expectedPay = new BigDecimal("500.0");
 
         when(employeeRepositoryPort.findById(1L)).thenReturn(Optional.of(employee));
         when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(regularHours), eq(overtimeHours)))

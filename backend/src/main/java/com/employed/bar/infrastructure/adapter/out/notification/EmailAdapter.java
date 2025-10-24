@@ -109,6 +109,9 @@ public class EmailAdapter implements NotificationPort {
         dataMap.put("employeeSummaries", managerReport.getEmployeeSummaries());
         dataMap.put("totals", managerReport.getTotals());
 
+        // ✅ SOLUCIÓN: Pasar el Map al Context
+        context.setVariables(dataMap);
+
         System.out.println("📋 [TEMPLATE] Datos para plantilla de manager:");
         System.out.println("   - employeeSummaries: " + managerReport.getEmployeeSummaries().size() + " empleados");
         System.out.println("   - totals: " + managerReport.getTotals());

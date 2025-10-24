@@ -16,36 +16,34 @@ import java.util.List;
 public class ReportCalculator {
 
     public HoursCalculation calculateHours(List<AttendanceRecordClass> records) {
-        double totalHoursDouble = records.stream()
-                .mapToDouble(record -> {
+        BigDecimal totalHours = records.stream()
+                .map(record -> {
                     if (record.getEntryDateTime() != null && record.getExitDateTime() != null) {
-                        return Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes() / 60.0;
+                        return BigDecimal.valueOf(Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes())
+                                .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
                     }
-                    return 0;
+                    return BigDecimal.ZERO;
                 })
-                .sum();
-
-        BigDecimal totalHours = BigDecimal.valueOf(totalHoursDouble).setScale(2, RoundingMode.HALF_UP);
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // TODO: Implement overtime calculation logic
         BigDecimal regularHours = totalHours;
         BigDecimal overtimeHours = BigDecimal.ZERO;
 
-        return new HoursCalculation(totalHours.doubleValue(), regularHours.doubleValue(), overtimeHours.doubleValue());
+        return new HoursCalculation(totalHours, regularHours, overtimeHours);
     }
 
     public AttendanceReportLine mapToAttendanceReportLine(AttendanceRecordClass record) {
-        double workedHoursDouble = 0;
+        BigDecimal workedHours = BigDecimal.ZERO;
         if (record.getEntryDateTime() != null && record.getExitDateTime() != null) {
-            workedHoursDouble = Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes() / 60.0;
+            workedHours = BigDecimal.valueOf(Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes())
+                    .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
         }
-        BigDecimal workedHours = BigDecimal.valueOf(workedHoursDouble).setScale(2, RoundingMode.HALF_UP);
-
         return new AttendanceReportLine(
                 record.getEmployee().getName(),
                 record.getEntryDateTime(),
                 record.getExitDateTime(),
-                workedHours.doubleValue(),
+                workedHours,
                 100.0 // Placeholder for percentage
         );
     }

@@ -2,9 +2,11 @@ package com.employed.bar.domain.model.report;
 
 import lombok.Value;
 
+import java.math.BigDecimal;
+
 @Value
 public class HoursCalculation {
-    double totalHours;
-    double regularHours;
-    double overtimeHours;
+    BigDecimal totalHours;
+    BigDecimal regularHours;
+    BigDecimal overtimeHours;
 }

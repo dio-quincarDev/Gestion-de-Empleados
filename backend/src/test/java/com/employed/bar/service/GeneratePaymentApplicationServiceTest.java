@@ -73,13 +73,13 @@ public class GeneratePaymentApplicationServiceTest {
         record2.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
         record2.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(13, 0))); // 4 hours
 
-        HoursCalculation hoursCalculation = new HoursCalculation(12.0, 12.0, 0.0);
+        HoursCalculation hoursCalculation = new HoursCalculation(new BigDecimal("12.0"), new BigDecimal("12.0"), BigDecimal.ZERO);
 
         when(employeeUseCase.getEmployeeById(1L)).thenReturn(Optional.of(employee));
         when(attendanceUseCase.getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate))
                 .thenReturn(Arrays.asList(record1, record2));
         when(reportCalculator.calculateHours(anyList())).thenReturn(hoursCalculation);
-        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(12.0), eq(0.0)))
+        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class)))
                 .thenReturn(BigDecimal.valueOf(120.0));
 
         BigDecimal result = generatePaymentApplicationService.generatePayment(1L, startDate, endDate);
@@ -88,7 +88,7 @@ public class GeneratePaymentApplicationServiceTest {
         assertEquals(BigDecimal.valueOf(120.0), result);
         verify(employeeUseCase, times(1)).getEmployeeById(1L);
         verify(attendanceUseCase, times(1)).getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate);
-        verify(paymentCalculationUseCase, times(1)).calculateTotalPay(employee.getPaymentType(), employee.getSalary(), employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(), 12.0, 0.0);
+        verify(paymentCalculationUseCase, times(1)).calculateTotalPay(employee.getPaymentType(), employee.getSalary(), employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(), new BigDecimal("12.0"), BigDecimal.ZERO);
     }
 
     @Test
@@ -101,17 +101,17 @@ public class GeneratePaymentApplicationServiceTest {
 
         verify(employeeUseCase, times(1)).getEmployeeById(1L);
         verify(attendanceUseCase, never()).getAttendanceListByEmployeeAndDateRange(anyLong(), any(), any());
-        verify(paymentCalculationUseCase, never()).calculateTotalPay(any(), any(), any(), anyBoolean(), any(), anyDouble(), anyDouble());
+        verify(paymentCalculationUseCase, never()).calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class));
     }
 
     @Test
     void testGeneratePayment_NoAttendanceRecords() {
-        HoursCalculation hoursCalculation = new HoursCalculation(0.0, 0.0, 0.0);
+        HoursCalculation hoursCalculation = new HoursCalculation(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
         when(employeeUseCase.getEmployeeById(1L)).thenReturn(Optional.of(employee));
         when(attendanceUseCase.getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate))
                 .thenReturn(Collections.emptyList());
         when(reportCalculator.calculateHours(anyList())).thenReturn(hoursCalculation);
-        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(0.0), eq(0.0)))
+        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(BigDecimal.ZERO), eq(BigDecimal.ZERO)))
                 .thenReturn(BigDecimal.ZERO);
 
         BigDecimal result = generatePaymentApplicationService.generatePayment(1L, startDate, endDate);
@@ -120,6 +120,6 @@ public class GeneratePaymentApplicationServiceTest {
         assertEquals(BigDecimal.ZERO, result);
         verify(employeeUseCase, times(1)).getEmployeeById(1L);
         verify(attendanceUseCase, times(1)).getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate);
-        verify(paymentCalculationUseCase, times(1)).calculateTotalPay(employee.getPaymentType(), employee.getSalary(), employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(), 0.0, 0.0);
+        verify(paymentCalculationUseCase, times(1)).calculateTotalPay(employee.getPaymentType(), employee.getSalary(), employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(), BigDecimal.ZERO, BigDecimal.ZERO);
     }
 }

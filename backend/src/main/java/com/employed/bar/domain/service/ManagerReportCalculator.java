@@ -28,7 +28,7 @@ public class ManagerReportCalculator {
 
                     return new EmployeeSummary(
                             employee.getName(),
-                            report.getTotalAttendanceHours(),
+                            report.getHoursCalculation().getTotalHours(), // Use BigDecimal from HoursCalculation
                             totalEarnings,
                             totalConsumptions,
                             netPay
@@ -36,12 +36,25 @@ public class ManagerReportCalculator {
                 })
                 .collect(Collectors.toList());
 
-        double totalRegularHoursWorked = employeeSummaries.stream().mapToDouble(EmployeeSummary::getTotalHoursWorked).sum();
+        BigDecimal totalRegularHoursWorked = employeeSummaries.stream()
+                .map(summary -> summary.getTotalHoursWorked())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Assuming totalHoursWorked in EmployeeSummary is now the total hours from HoursCalculation
+        // We need to sum regular and overtime hours separately from the original reports
+        BigDecimal aggregatedRegularHours = reports.stream()
+                .map(report -> report.getHoursCalculation().getRegularHours())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal aggregatedOvertimeHours = reports.stream()
+                .map(report -> report.getHoursCalculation().getOvertimeHours())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         BigDecimal totalEarnings = employeeSummaries.stream().map(EmployeeSummary::getTotalEarnings).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal totalConsumptions = employeeSummaries.stream().map(EmployeeSummary::getTotalConsumptions).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal totalNetPay = employeeSummaries.stream().map(EmployeeSummary::getNetPay).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        ReportTotals totals = new ReportTotals(totalRegularHoursWorked, 0, totalEarnings, totalConsumptions, totalNetPay);
+        ReportTotals totals = new ReportTotals(aggregatedRegularHours, aggregatedOvertimeHours, totalEarnings, totalConsumptions, totalNetPay);
 
         return new ManagerReport(employeeSummaries, totals);
     }

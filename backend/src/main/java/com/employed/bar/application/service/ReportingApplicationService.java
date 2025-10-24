@@ -82,7 +82,7 @@ public class ReportingApplicationService implements ReportingUseCase {
                 hoursCalculation.getOvertimeHours()
         );
 
-        return new Report(employee.getId(), attendanceLines, consumptionLines, hoursCalculation.getTotalHours(), totalConsumption, totalEarnings);
+        return new Report(employee.getId(), attendanceLines, consumptionLines, hoursCalculation, totalConsumption, totalEarnings);
     }
 
 

@@ -17,9 +17,9 @@ public interface PaymentCalculationUseCase {
 
                                  OvertimeRateType overtimeRateType,
 
-                                 double regularHours,
+                                 BigDecimal regularHours,
 
-                                 double overtimeHours);
+                                 BigDecimal overtimeHours);
 
-    BigDecimal calculateTotalPay(BigDecimal hourlyRate, boolean paysOvertime, OvertimeRateType overtimeRateType, double totalHours, int i);
+    BigDecimal calculateTotalPay(BigDecimal hourlyRate, boolean paysOvertime, OvertimeRateType overtimeRateType, BigDecimal totalHours, int i);
 }
