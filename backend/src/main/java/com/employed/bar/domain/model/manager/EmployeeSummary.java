@@ -1,5 +1,6 @@
 package com.employed.bar.domain.model.manager;
 
+import com.employed.bar.domain.model.payment.PaymentMethod;
 import lombok.Value;
 
 import java.math.BigDecimal;
@@ -11,4 +12,5 @@ public class EmployeeSummary {
     BigDecimal totalEarnings;
     BigDecimal totalConsumptions;
     BigDecimal netPay;
+    PaymentMethod paymentMethod;
 }

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Service
 public class ManagerReportCalculator {
 
@@ -28,20 +27,16 @@ public class ManagerReportCalculator {
 
                     return new EmployeeSummary(
                             employee.getName(),
-                            report.getHoursCalculation().getTotalHours(), // Use BigDecimal from HoursCalculation
+                            report.getHoursCalculation().getTotalHours(), // Total hours (regular + overtime)
                             totalEarnings,
                             totalConsumptions,
-                            netPay
+                            netPay,
+                            employee.getPaymentMethod()
                     );
                 })
                 .collect(Collectors.toList());
 
-        BigDecimal totalRegularHoursWorked = employeeSummaries.stream()
-                .map(summary -> summary.getTotalHoursWorked())
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // Assuming totalHoursWorked in EmployeeSummary is now the total hours from HoursCalculation
-        // We need to sum regular and overtime hours separately from the original reports
+        // ✅ CORRECCIÓN: Calcular horas de manera consistente desde los reports
         BigDecimal aggregatedRegularHours = reports.stream()
                 .map(report -> report.getHoursCalculation().getRegularHours())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -50,11 +45,27 @@ public class ManagerReportCalculator {
                 .map(report -> report.getHoursCalculation().getOvertimeHours())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal totalEarnings = employeeSummaries.stream().map(EmployeeSummary::getTotalEarnings).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalConsumptions = employeeSummaries.stream().map(EmployeeSummary::getTotalConsumptions).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalNetPay = employeeSummaries.stream().map(EmployeeSummary::getNetPay).reduce(BigDecimal.ZERO, BigDecimal::add);
+        // ✅ Calcular totales desde los employeeSummaries
+        BigDecimal totalEarnings = employeeSummaries.stream()
+                .map(EmployeeSummary::getTotalEarnings)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        ReportTotals totals = new ReportTotals(aggregatedRegularHours, aggregatedOvertimeHours, totalEarnings, totalConsumptions, totalNetPay);
+        BigDecimal totalConsumptions = employeeSummaries.stream()
+                .map(EmployeeSummary::getTotalConsumptions)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalNetPay = employeeSummaries.stream()
+                .map(EmployeeSummary::getNetPay)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // ✅ ELIMINAR la variable inconsistente totalRegularHoursWorked
+        ReportTotals totals = new ReportTotals(
+                aggregatedRegularHours,
+                aggregatedOvertimeHours,
+                totalEarnings,
+                totalConsumptions,
+                totalNetPay
+        );
 
         return new ManagerReport(employeeSummaries, totals);
     }

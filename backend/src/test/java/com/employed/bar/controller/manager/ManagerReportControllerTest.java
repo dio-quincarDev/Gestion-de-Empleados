@@ -168,4 +168,3 @@ public class ManagerReportControllerTest {
                 .andExpect(status().isBadRequest());
     }
 }
-

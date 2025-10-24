@@ -48,27 +48,14 @@ public class ManagerReportController {
         return ResponseEntity.ok("Manager report generation triggered successfully.");
     }
 
-    @Operation(summary = "Download Manager Weekly Report as PDF",
-            description = "Downloads the manager's weekly report as a PDF for a given date range.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "PDF report generated and downloaded successfully.",
-                    content = @io.swagger.v3.oas.annotations.media.Content(mediaType = "application/pdf")),
-            @ApiResponse(responseCode = "500", description = "Error generating PDF report.")
-    })
     @GetMapping("/weekly/pdf")
-    public ResponseEntity<byte[]> downloadManagerWeeklyReportPdf(
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate) {
-        if (endDate.isBefore(startDate)) {
-            return ResponseEntity.badRequest().build();
-        }
-        byte[] pdfBytes = managerReportServicePort.generateManagerReportPdf(startDate, endDate);
-
+    public ResponseEntity<byte[]> downloadManagerReportPdf() {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(6);
+        byte[] pdf = managerReportServicePort.generateManagerReportPdf(startDate, endDate);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"manager_weekly_report.pdf\"");
-        headers.setContentLength(pdfBytes.length);
-
-        return new ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);
+        headers.setContentDispositionFormData("attachment", "manager-report.pdf");
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 }
