@@ -6,6 +6,7 @@ import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.security.jwt.JwtService;
+import com.employed.bar.infrastructure.mail.TestMailConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestMailConfig.class)
 public class ManagerReportControllerTest {
 
     @Autowired
@@ -165,4 +168,3 @@ public class ManagerReportControllerTest {
                 .andExpect(status().isBadRequest());
     }
 }
-

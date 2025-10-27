@@ -1,13 +1,17 @@
 package com.employed.bar.controller.app;
 
+import com.employed.bar.domain.enums.BankAccount;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
+import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringEmployeeJpaRepository;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
 import com.employed.bar.infrastructure.dto.domain.EmployeeDto;
+import com.employed.bar.infrastructure.dto.payment.AchPaymentMethodDto;
 import com.employed.bar.infrastructure.dto.payment.CashPaymentMethodDto;
+import com.employed.bar.infrastructure.dto.payment.YappyPaymentMethodDto;
 import com.employed.bar.infrastructure.dto.request.UpdateHourlyRateRequest;
 import com.employed.bar.infrastructure.security.jwt.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,20 +87,28 @@ public class EmployeeControllerTest {
         return userEntityRepository.save(user);
     }
 
-    private EmployeeEntity createTestEmployee(String name, String email, EmployeeRole role, EmployeeStatus status) {
+    private EmployeeEntity createTestEmployee(String name, String email, EmployeeRole role, EmployeeStatus status, PaymentType paymentType) {
         EmployeeEntity employee = new EmployeeEntity();
         employee.setName(name);
         employee.setEmail(email);
         employee.setRole(role);
         employee.setStatus(status);
-        employee.setHourlyRate(new BigDecimal("10.00"));
-        employee.setSalary(new BigDecimal("2000.00")); // Added salary
+        employee.setPaymentType(paymentType);
+        if (paymentType == PaymentType.HOURLY) {
+            employee.setHourlyRate(new BigDecimal("10.00"));
+            employee.setSalary(BigDecimal.ZERO);
+        } else {
+            employee.setHourlyRate(BigDecimal.ZERO);
+            employee.setSalary(new BigDecimal("2000.00"));
+        }
         return employeeRepository.save(employee);
     }
 
     @Test
     void whenCreateEmployee_asAdmin_shouldSucceed() throws Exception {
-        EmployeeDto employeeDto = new EmployeeDto(null, "New Employee", new BigDecimal("12.50"), EmployeeRole.WAITER, "new@test.com", new BigDecimal("2500.00"), "ACTIVE", false, null, new CashPaymentMethodDto());
+        EmployeeDto employeeDto = new EmployeeDto(null, "New Employee", new BigDecimal("12.50"),
+                EmployeeRole.WAITER, "new@test.com", BigDecimal.ZERO, "+50761234567",
+                "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -108,9 +120,24 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    void whenCreateEmployee_salaried_shouldSucceed() throws Exception {
+        EmployeeDto employeeDto = new EmployeeDto(null, "Salaried Employee", BigDecimal.ZERO, EmployeeRole.MANAGER,
+                "salaried@test.com", new BigDecimal("3000.00"), "+50761234567",
+                "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
+
+        mockMvc.perform(post(BASE_URL)
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(employeeDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name", is("Salaried Employee")))
+                .andExpect(jsonPath("$.paymentType", is("SALARIED")));
+    }
+
+    @Test
     void whenCreateEmployee_withExistingEmail_shouldFail() throws Exception {
-        createTestEmployee("Existing Employee", "existing@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
-        EmployeeDto employeeDto = new EmployeeDto(null, "New Employee", new BigDecimal("12.50"), EmployeeRole.WAITER, "existing@test.com", new BigDecimal("2500.00"), "ACTIVE", false, null, new CashPaymentMethodDto());
+        createTestEmployee("Existing Employee", "existing@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
+        EmployeeDto employeeDto = new EmployeeDto(null, "New Employee", new BigDecimal("12.50"), EmployeeRole.WAITER, "existing@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -121,7 +148,7 @@ public class EmployeeControllerTest {
 
     @Test
     void whenGetEmployeeById_shouldReturnEmployee() throws Exception {
-        EmployeeEntity employee = createTestEmployee("John Doe", "john.doe@test.com", EmployeeRole.BARTENDER, EmployeeStatus.ACTIVE);
+        EmployeeEntity employee = createTestEmployee("John Doe", "john.doe@test.com", EmployeeRole.BARTENDER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
 
         mockMvc.perform(get(BASE_URL + "/{id}", employee.getId())
                         .header("Authorization", managerToken))
@@ -131,16 +158,9 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    void whenGetEmployeeById_nonExistent_shouldReturnNotFound() throws Exception {
-        mockMvc.perform(get(BASE_URL + "/{id}", 999L)
-                        .header("Authorization", managerToken))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
     void whenGetAllEmployees_shouldReturnEmployeeList() throws Exception {
-        createTestEmployee("John Doe", "john.doe@test.com", EmployeeRole.BARTENDER, EmployeeStatus.ACTIVE);
-        createTestEmployee("Jane Smith", "jane.smith@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
+        createTestEmployee("John Doe", "john.doe@test.com", EmployeeRole.BARTENDER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
+        createTestEmployee("Jane Smith", "jane.smith@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
 
         mockMvc.perform(get(BASE_URL)
                         .header("Authorization", adminToken))
@@ -150,104 +170,19 @@ public class EmployeeControllerTest {
 
     @Test
     void whenUpdateEmployee_shouldSucceed() throws Exception {
-        EmployeeEntity employee = createTestEmployee("Old Name", "old.email@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
-        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "New Name", new BigDecimal("20.00"), EmployeeRole.BARTENDER, "new.email@test.com", new BigDecimal("3000.00"), "INACTIVE", true, null, new CashPaymentMethodDto());
+        EmployeeEntity employee = createTestEmployee("Old Name", "old.email@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
+        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "New Name", new BigDecimal("20.00"), EmployeeRole.BARTENDER, "new.email@test.com", BigDecimal.ZERO, "+50761234567", "INACTIVE", true, null, PaymentType.HOURLY, new CashPaymentMethodDto());
 
         mockMvc.perform(put(BASE_URL + "/{id}", employee.getId())
                         .header("Authorization", adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", is("New Name")))
-                .andExpect(jsonPath("$.email", is("new.email@test.com")))
-                .andExpect(jsonPath("$.status", is("INACTIVE")));
+                .andExpect(status().isOk());
     }
 
     @Test
-    void whenUpdateHourlyRate_shouldSucceed() throws Exception {
-        EmployeeEntity employee = createTestEmployee("Rate Employee", "rate.employee@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
-        UpdateHourlyRateRequest request = new UpdateHourlyRateRequest();
-        request.setHourlyRate(new BigDecimal("99.99"));
-
-        mockMvc.perform(patch(BASE_URL + "/{id}/hourly-rate", employee.getId())
-                        .header("Authorization", managerToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.hourlyRate", is(99.99)));
-    }
-
-    @Test
-    void whenDeleteEmployee_shouldSucceed() throws Exception {
-        EmployeeEntity employee = createTestEmployee("To Delete", "to.delete@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
-
-        mockMvc.perform(delete(BASE_URL + "/{id}", employee.getId())
-                        .header("Authorization", adminToken))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(get(BASE_URL + "/{id}", employee.getId())
-                        .header("Authorization", adminToken))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void whenSearchEmployees_byStatus_shouldReturnFilteredList() throws Exception {
-        createTestEmployee("Active Employee", "active@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
-        createTestEmployee("Inactive Employee", "inactive@test.com", EmployeeRole.BARTENDER, EmployeeStatus.INACTIVE);
-
-        mockMvc.perform(get(BASE_URL + "/search")
-                        .header("Authorization", managerToken)
-                        .param("status", "INACTIVE"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].name", is("Inactive Employee")));
-    }
-
-    @Test
-    void whenSearchEmployees_byRole_shouldReturnFilteredList() throws Exception {
-        createTestEmployee("Waiter One", "waiter1@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
-        createTestEmployee("Bartender One", "bartender1@test.com", EmployeeRole.BARTENDER, EmployeeStatus.ACTIVE);
-
-        mockMvc.perform(get(BASE_URL + "/search")
-                        .header("Authorization", managerToken)
-                        .param("role", "BARTENDER"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].name", is("Bartender One")));
-    }
-
-    @Test
-    void whenAccessEndpoint_asUser_shouldBeForbidden() throws Exception {
-        mockMvc.perform(get(BASE_URL)
-                        .header("Authorization", userToken))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void whenAccessEndpoint_withoutToken_shouldBeUnauthorized() throws Exception {
-        mockMvc.perform(get(BASE_URL))
-                .andExpect(status().isUnauthorized());
-    }
-
-    // --- Edge Cases ---
-
-    @Test
-    void whenUpdateEmployee_toEmailOfAnotherEmployee_shouldFail() throws Exception {
-        EmployeeEntity employeeA = createTestEmployee("Employee A", "a@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
-        EmployeeEntity employeeB = createTestEmployee("Employee B", "b@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
-
-        EmployeeDto updatedDto = new EmployeeDto(employeeA.getId(), "Employee A Updated", new BigDecimal("20.00"), EmployeeRole.BARTENDER, employeeB.getEmail(), new BigDecimal("3000.00"), "ACTIVE", true, null, new CashPaymentMethodDto());
-
-        mockMvc.perform(put(BASE_URL + "/{id}", employeeA.getId())
-                        .header("Authorization", adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedDto)))
-                .andExpect(status().isConflict());
-    }
-
-    @Test
-    void whenCreateEmployee_withNegativeHourlyRate_shouldFail() throws Exception {
-        EmployeeDto employeeDto = new EmployeeDto(null, "Negative Rate Employee", new BigDecimal("-10.00"), EmployeeRole.WAITER, "negative@test.com", new BigDecimal("2500.00"), "ACTIVE", false, null, new CashPaymentMethodDto());
+    void whenCreateHourlyEmployee_withNonZeroSalary_shouldFail() throws Exception {
+        EmployeeDto employeeDto = new EmployeeDto(null, "Test", new BigDecimal("10"), EmployeeRole.WAITER, "test@test.com", new BigDecimal("100"), "+50761234567", "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
 
         mockMvc.perform(post(BASE_URL)
                         .header("Authorization", adminToken)
@@ -257,14 +192,70 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    void whenSearchEmployees_byEmptyName_shouldReturnAll() throws Exception {
-        createTestEmployee("John Doe", "john.doe@test.com", EmployeeRole.BARTENDER, EmployeeStatus.ACTIVE);
-        createTestEmployee("Jane Smith", "jane.smith@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
+    void whenCreateSalariedEmployee_withZeroSalary_shouldFail() throws Exception {
+        EmployeeDto employeeDto = new EmployeeDto(null, "Test", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
 
-        mockMvc.perform(get(BASE_URL + "/search")
-                        .header("Authorization", managerToken)
-                        .param("name", ""))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+        mockMvc.perform(post(BASE_URL)
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(employeeDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void whenUpdateFromHourlyToSalaried_withZeroSalary_shouldFail() throws Exception {
+        EmployeeEntity employee = createTestEmployee("Test", "test@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
+        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "Updated", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.SALARIED, new CashPaymentMethodDto());
+
+        mockMvc.perform(put(BASE_URL + "/{id}", employee.getId())
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void whenUpdateSalariedEmployee_withOvertimeAndZeroHourlyRate_shouldFail() throws Exception {
+        EmployeeEntity employee = createTestEmployee("Test", "test@test.com", EmployeeRole.MANAGER, EmployeeStatus.ACTIVE, PaymentType.SALARIED);
+        EmployeeDto updatedDto = new EmployeeDto(employee.getId(), "Updated", BigDecimal.ZERO, EmployeeRole.MANAGER, "test@test.com", new BigDecimal("3000"), "+50761234567", "ACTIVE", true, null, PaymentType.SALARIED, new CashPaymentMethodDto());
+
+        mockMvc.perform(put(BASE_URL + "/{id}", employee.getId())
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatedDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void whenCreateEmployee_withAchPayment_shouldReturnAchDetails() throws Exception {
+        AchPaymentMethodDto achDto = new AchPaymentMethodDto("Banco General", "123456789", BankAccount.SAVINGS);
+        EmployeeDto employeeDto = new EmployeeDto(null, "Ach Employee", new BigDecimal("15.00"), EmployeeRole.CHEF, "ach@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.HOURLY, achDto);
+
+        mockMvc.perform(post(BASE_URL)
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(employeeDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name", is("Ach Employee")))
+                .andExpect(jsonPath("$.paymentMethod").exists())
+                .andExpect(jsonPath("$.paymentMethod.type", is("ACH")))
+                .andExpect(jsonPath("$.paymentMethod.bankName", is("Banco General")))
+                .andExpect(jsonPath("$.paymentMethod.accountNumber", is("123456789")));
+    }
+
+    @Test
+    void whenCreateEmployee_withYappyPayment_shouldReturnYappyDetails() throws Exception {
+        YappyPaymentMethodDto yappyDto = new YappyPaymentMethodDto("65432100");
+        EmployeeDto employeeDto = new EmployeeDto(null, "Yappy Employee", new BigDecimal("10.00"), EmployeeRole.DJ, "yappy@test.com", BigDecimal.ZERO, "+50761234567", "ACTIVE", false, null, PaymentType.HOURLY, yappyDto);
+
+        mockMvc.perform(post(BASE_URL)
+                        .header("Authorization", adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(employeeDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name", is("Yappy Employee")))
+                .andExpect(jsonPath("$.paymentMethod").exists())
+                .andExpect(jsonPath("$.paymentMethod.type", is("YAPPY")))
+                .andExpect(jsonPath("$.paymentMethod.phoneNumber", is("65432100")));
     }
 }

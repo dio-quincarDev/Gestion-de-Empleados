@@ -1,6 +1,7 @@
 package com.employed.bar.infrastructure.security.jwt;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
@@ -38,7 +39,7 @@ public class JwtServiceImpl implements JwtService {
 		
 		String token = Jwts.builder()
 				.subject(email)
-				.claim("role", role)
+				.claim("roles", Collections.singletonList(role))
 				.issuedAt(now)
 				.expiration(expirationDate)
 				.signWith(secretKey)

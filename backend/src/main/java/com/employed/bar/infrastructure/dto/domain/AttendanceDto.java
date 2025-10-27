@@ -1,30 +1,35 @@
 package com.employed.bar.infrastructure.dto.domain;
 
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.NonNull;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object (DTO) for attendance records.
+ * Used to transfer attendance data between the API layer and the application layer.
+ */
 @Data
 public class AttendanceDto {
 
+  @NotNull(message = "Employee ID cannot be null")
   @JsonAlias({"employee_id", "employeeId"})
   private Long employeeId;
 
-  @JsonFormat(pattern = "yyyy-MM-dd")
-  @JsonAlias({"date", "attendanceDate"})
-  private LocalDate date;
+  @NotNull
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+  @JsonAlias({"entry_date_time", "entryDateTime"})
+  private LocalDateTime entryDateTime;
 
-  @JsonFormat(pattern = "HH:mm")
-  @JsonAlias({"entry_time", "entryTime"})
-  private LocalTime entryTime;
-
-  @JsonFormat(pattern = "HH:mm")
-  @JsonAlias({"exit_time", "exitTime"})
-  private LocalTime exitTime;
+  @NotNull
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+  @JsonAlias({"exit_date_time", "exitDateTime"})
+  private LocalDateTime exitDateTime;
 
   @JsonAlias({"status", "attendanceStatus"})
-  private String status;
+  private AttendanceStatus status;
 }

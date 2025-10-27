@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ReportingApplicationService implements ReportingUseCase {
@@ -56,7 +57,7 @@ public class ReportingApplicationService implements ReportingUseCase {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
-        List<AttendanceRecordClass> attendanceRecords = attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDate, endDate);
+        List<AttendanceRecordClass> attendanceRecords = attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
         List<AttendanceReportLine> attendanceLines = attendanceRecords.stream()
                 .map(reportCalculator::mapToAttendanceReportLine)
                 .collect(Collectors.toList());
@@ -72,6 +73,8 @@ public class ReportingApplicationService implements ReportingUseCase {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalEarnings = paymentCalculationUseCase.calculateTotalPay(
+                employee.getPaymentType(),
+                employee.getSalary(),
                 employee.getHourlyRate(),
                 employee.isPaysOvertime(),
                 employee.getOvertimeRateType(),
@@ -79,20 +82,41 @@ public class ReportingApplicationService implements ReportingUseCase {
                 hoursCalculation.getOvertimeHours()
         );
 
-        return new Report(employee.getId(), attendanceLines, consumptionLines, hoursCalculation.getTotalHours(), totalConsumption, totalEarnings);
+        return new Report(employee.getId(), attendanceLines, consumptionLines, hoursCalculation, totalConsumption, totalEarnings);
     }
 
 
     @Override
     public void sendTestEmailToEmployee(Long employeeId) {
-        EmployeeClass employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+        System.out.println("🔍 [SERVICE] Buscando employee con ID: " + employeeId);
+        try {
+            EmployeeClass employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+            System.out.println("✅ [SERVICE] Employee encontrado: " + employee.getName());
 
-        LocalDate testDate = LocalDate.parse("2024-10-10");
+            // Find the last activity date for the employee
+            LocalDate endDate = attendanceRepositoryPort.findTopByEmployeeOrderByEntryDateTimeDesc(employee)
+                    .map(att -> att.getEntryDateTime().toLocalDate())
+                    .orElse(LocalDate.now()); // Fallback to today if no activity found
 
-        Report report = generateCompleteReportForEmployee(testDate, testDate, employee);
+            LocalDate startDate = endDate.minusDays(6);
 
-        sendEmployeeReportNotificationUseCase.sendReport(Collections.singletonList(employee), Collections.singletonList(report));
+            System.out.println("📊 [SERVICE] Generando reporte para el rango de fechas: " + startDate + " a " + endDate);
+
+            Report report = generateCompleteReportForEmployee(startDate, endDate, employee);
+            System.out.println("📈 [SERVICE] Reporte generado:");
+            System.out.println("   - AttendanceLines: " + report.getAttendanceLines().size());
+            System.out.println("   - ConsumptionLines: " + report.getConsumptionLines().size());
+            System.out.println("   - TotalHours: " + report.getTotalAttendanceHours());
+            System.out.println("   - TotalConsumption: " + report.getTotalConsumptionAmount());
+
+            System.out.println("📧 [SERVICE] Enviando a notificación...");
+            sendEmployeeReportNotificationUseCase.sendReport(Collections.singletonList(employee), Collections.singletonList(report));
+            System.out.println("🚀 [SERVICE] Notificación enviada exitosamente");
+        } catch (Exception e) {
+            System.out.println("❌ [SERVICE] ERROR: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override

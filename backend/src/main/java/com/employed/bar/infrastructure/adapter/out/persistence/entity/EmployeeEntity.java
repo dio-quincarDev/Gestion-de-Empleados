@@ -5,6 +5,7 @@ import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.enums.OvertimeRateType;
 import com.employed.bar.domain.enums.PaymentMethodType;
+import com.employed.bar.domain.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,6 +30,9 @@ public class EmployeeEntity {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
+    @Column(name = "contact_phone", unique = true, nullable = false)
+    private String contactPhone;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private EmployeeRole role;
@@ -49,6 +53,10 @@ public class EmployeeEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "overtime_rate_type")
     private OvertimeRateType overtimeRateType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_type")
+    private PaymentType paymentType;
 
     // Payment Method Fields (Flattened)
     @Enumerated(EnumType.STRING)

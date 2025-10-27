@@ -10,7 +10,9 @@ import com.employed.bar.infrastructure.adapter.out.persistence.repository.Spring
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -34,8 +36,9 @@ public class AttendancePersistenceAdapter implements AttendanceRepositoryPort {
     }
 
     @Override
-    public List<AttendanceRecordClass> findByEmployeeAndDateRange(EmployeeClass employee, LocalDate startDate, LocalDate endDate) {
-        return springAttendanceJpaRepository.findByEmployeeAndDateBetween(employeeMapper.toEntity(employee), startDate, endDate).stream()
+    public List<AttendanceRecordClass> findByEmployeeAndDateRange(EmployeeClass employee, LocalDateTime startDate, LocalDateTime endDate) {
+                                return springAttendanceJpaRepository.findByEmployeeAndEntryDateTimeBetween(
+                                        employee.getId(), startDate, endDate).stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());
     }
@@ -45,5 +48,11 @@ public class AttendancePersistenceAdapter implements AttendanceRepositoryPort {
         return springAttendanceJpaRepository.findByEmployee(employeeMapper.toEntity(employee)).stream()
                 .map(attendanceMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<AttendanceRecordClass> findTopByEmployeeOrderByEntryDateTimeDesc(EmployeeClass employee) {
+        return springAttendanceJpaRepository.findTopByEmployeeOrderByEntryDateTimeDesc(employeeMapper.toEntity(employee))
+                .map(attendanceMapper::toDomain);
     }
 }

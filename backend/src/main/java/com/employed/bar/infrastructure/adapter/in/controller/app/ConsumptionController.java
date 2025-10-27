@@ -26,8 +26,14 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+/**
+ * REST controller for managing employee consumption records.
+ * This controller handles HTTP requests related to consumption, acting as an inbound adapter
+ * to the application's core consumption management functionalities.
+ */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.CONSUMPTION_ROUTE)
@@ -69,6 +75,51 @@ public class ConsumptionController {
         ConsumptionClass consumptionClass = consumptionApiMapper.toDomain(consumptionDto);
         ConsumptionClass createdConsumption = consumptionApplicationService.createConsumption(consumptionClass);
         return ResponseEntity.ok(createdConsumption);
+    }
+
+    @Operation(
+            summary = "Obtener todos los consumos",
+            description = "Obtiene una lista de todos los registros de consumo",
+            operationId = "getAllConsumptions"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Lista de consumos",
+                    content = @Content(schema = @Schema(implementation = ConsumptionDto.class))
+            )
+    })
+    @GetMapping("/")
+    public ResponseEntity<List<ConsumptionDto>> getAllConsumptions() {
+        List<ConsumptionClass> consumptions = consumptionApplicationService.getAllConsumptions();
+        return ResponseEntity.ok(consumptionApiMapper.toDtoList(consumptions));
+    }
+
+    @Operation(
+            summary = "Obtener consumo por ID",
+            description = "Obtiene los detalles de un registro de consumo específico por su ID",
+            operationId = "getConsumptionById"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Detalles del consumo",
+                    content = @Content(schema = @Schema(implementation = ConsumptionDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Consumo no encontrado",
+                    content = @Content(schema = @Schema(example = "{\"message\": \"Consumption not found\"}"))
+            )
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<ConsumptionDto> getConsumptionById(
+            @Parameter(description = "ID del consumo", required = true, example = "1")
+            @PathVariable Long id) {
+        return consumptionApplicationService.getConsumptionById(id)
+                .map(consumptionApiMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 

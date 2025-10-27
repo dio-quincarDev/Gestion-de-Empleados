@@ -19,11 +19,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * REST controller for managing employee information.
+ * This controller handles HTTP requests related to employee CRUD operations, hourly rate updates,
+ * and employee searches. It acts as an inbound adapter to the application's core employee management functionalities.
+ */
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.EMPLOYEE_ROUTE)
 @Tag(name = "1. Gestión de Empleados", description = "Endpoints para la administración del personal")
@@ -57,6 +63,7 @@ public class EmployeeController {
             )
     })
     @PostMapping
+    @PreAuthorize("hasAnyRole('MANAGER, ADMIN')")
     public ResponseEntity<EmployeeDto> createEmployee(@RequestBody @Valid EmployeeDto employeeDto) {
         EmployeeClass employeeToCreate = employeeApiMapper.toDomain(employeeDto);
         EmployeeClass createdEmployee = employeeUseCase.createEmployee(employeeToCreate);
@@ -80,6 +87,7 @@ public class EmployeeController {
             )
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER, ADMIN')")
     public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable Long id) {
         return employeeUseCase.getEmployeeById(id)
                 .map(employee -> ResponseEntity.ok(employeeApiMapper.toDto(employee)))
@@ -97,6 +105,7 @@ public class EmployeeController {
             content = @Content(array = @ArraySchema(schema = @Schema(implementation = EmployeeDto.class)))
     )
     @GetMapping
+    @PreAuthorize("hasAnyRole('MANAGER, ADMIN')")
     public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
         List<EmployeeDto> employees = employeeUseCase.getEmployees().stream()
                 .map(employeeApiMapper::toDto)
@@ -125,6 +134,7 @@ public class EmployeeController {
             )
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER, ADMIN')")
     public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable Long id, @RequestBody @Valid EmployeeDto employeeDto) {
         EmployeeClass employeeToUpdate = employeeApiMapper.toDomain(employeeDto);
         EmployeeClass updatedEmployee = employeeUseCase.updateEmployee(id, employeeToUpdate);
@@ -142,6 +152,7 @@ public class EmployeeController {
             @ApiResponse(responseCode = "404", description = "Empleado no encontrado")
     })
     @PatchMapping("/{id}/hourly-rate")
+    @PreAuthorize("hasAnyRole('MANAGER, ADMIN')")
     public ResponseEntity<EmployeeDto> updateHourlyRate(@PathVariable Long id, @RequestBody @Valid UpdateHourlyRateRequest request) {
         EmployeeClass updatedEmployee = employeeUseCase.updateHourlyRate(id, request.getHourlyRate());
         return ResponseEntity.ok(employeeApiMapper.toDto(updatedEmployee));
@@ -163,6 +174,7 @@ public class EmployeeController {
             )
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MANAGER)")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeUseCase.deleteEmployee(id);
         return ResponseEntity.noContent().build();
@@ -174,6 +186,7 @@ public class EmployeeController {
             operationId = "searchEmployees"
     )
     @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('MANAGER, ADMIN')")
     public ResponseEntity<List<EmployeeDto>> searchEmployees(
             @Parameter(description = "Estado del empleado (ej. 'ACTIVE', 'INACTIVE')") @RequestParam(required = false) EmployeeStatus status,
             @Parameter(description = "Nombre completo o parcial del empleado") @RequestParam(required = false) String name,

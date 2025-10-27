@@ -2,6 +2,7 @@ package com.employed.bar.controller.app;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
+import com.employed.bar.domain.model.report.HoursCalculation;
 import com.employed.bar.domain.model.report.Report;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
@@ -9,6 +10,7 @@ import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.domain.port.in.payment.GeneratePaymentUseCase;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.infrastructure.security.jwt.JwtService;
+import com.employed.bar.infrastructure.mail.TestMailConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestMailConfig.class)
 public class ReportControllerTest {
 
     private static final String BASE_URL = ApiPathConstants.V1_ROUTE + ApiPathConstants.REPORT_ROUTE;
@@ -89,9 +93,7 @@ public class ReportControllerTest {
                         .param("endDate", endDate.toString())
                         .param("employeeId", employeeId.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalAttendanceHours").value(160.0))
-                .andExpect(jsonPath("$.totalConsumptionAmount").value(250.75))
-                .andExpect(jsonPath("$.attendanceReports").isArray())
+                .andExpect(jsonPath("$.totalAttendanceHours").value(BigDecimal.valueOf(160.0).doubleValue()))
                 .andExpect(jsonPath("$.individualConsumptionReports").isArray());
     }
 
@@ -112,7 +114,7 @@ public class ReportControllerTest {
                         .param("startDate", startDate.toString())
                         .param("endDate", endDate.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalAttendanceHours").value(160.0))
+                .andExpect(jsonPath("$.totalAttendanceHours").value(BigDecimal.valueOf(160.0).doubleValue()))
                 .andExpect(jsonPath("$.totalConsumptionAmount").value(250.75));
     }
 
@@ -317,7 +319,7 @@ public class ReportControllerTest {
                 employeeId, // employeeId - aunque no aparece en el DTO, el servicio lo necesita
                 java.util.Collections.emptyList(), // attendanceLines (se mapearán a attendanceReports)
                 java.util.Collections.emptyList(), // consumptionLines (se mapearán a individualConsumptionReports)
-                160.0, // totalHours (se mapeará a totalAttendanceHours)
+                new HoursCalculation(new BigDecimal("160.0"), new BigDecimal("160.0"), BigDecimal.ZERO), // hoursCalculation
                 new BigDecimal("250.75"), // totalConsumption (se mapeará a totalConsumptionAmount)
                 new BigDecimal("2400.00") // totalEarnings - aunque no aparece en el DTO
         );

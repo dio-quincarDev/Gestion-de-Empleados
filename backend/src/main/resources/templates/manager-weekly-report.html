@@ -31,6 +31,7 @@
                 <th>Total Earnings</th>
                 <th>Total Consumptions</th>
                 <th>Net Pay</th>
+                <th>Payment Method</th>
             </tr>
         </thead>
         <tbody>
@@ -40,6 +41,19 @@
                 <td th:text="${summary.totalEarnings}"></td>
                 <td th:text="${summary.totalConsumptions}"></td>
                 <td th:text="${summary.netPay}"></td>
+                <td>
+                    <div th:switch="${summary.paymentMethod.getType().name()}">
+                        <div th:case="'CASH'">
+                            Cash
+                        </div>
+                        <div th:case="'ACH'">
+                            ACH - <span th:text="${summary.paymentMethod.bankName}"></span> - <span th:text="${summary.paymentMethod.accountNumber}"></span>
+                        </div>
+                        <div th:case="'YAPPY'">
+                            Yappy - <span th:text="${summary.paymentMethod.phoneNumber}"></span>
+                        </div>
+                    </div>
+                </td>
             </tr>
         </tbody>
     </table>

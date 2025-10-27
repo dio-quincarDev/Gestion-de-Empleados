@@ -1,5 +1,6 @@
 package com.employed.bar.infrastructure.adapter.out.persistence.entity;
 
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,8 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -26,17 +26,15 @@ public class AttendanceRecordEntity {
     @JsonBackReference
     private EmployeeEntity employee;
 
-   @Column(name = "date")
-    private LocalDate date;
+    @Column(name = "entry_date_time")
+    private LocalDateTime entryDateTime;
 
-   @Column(name = "entry_time")
-    private LocalTime entryTime;
+    @Column(name = "exit_date_time")
+    private LocalDateTime exitDateTime;
 
-   @Column(name = "exit_time")
-    private LocalTime exitTime;
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private AttendanceStatus status;
 
 
 }

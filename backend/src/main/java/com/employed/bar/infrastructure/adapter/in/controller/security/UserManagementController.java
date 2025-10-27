@@ -1,6 +1,8 @@
 package com.employed.bar.infrastructure.adapter.in.controller.security;
 
 import com.employed.bar.domain.enums.EmployeeRole;
+import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
+import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.dto.security.request.CreateUserRequest;
 import com.employed.bar.infrastructure.security.user.UserManagementService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,8 +15,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/**
+ * REST controller for managing user accounts and roles within the application.
+ * This controller provides endpoints for creating, deleting, and updating user roles,
+ * with appropriate authorization checks. It acts as an inbound adapter to the application's
+ * user management services.
+ */
 @RestController
-@RequestMapping("/v1/users")
+@RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.USERS_ROUTE)
 @RequiredArgsConstructor
 @Tag(name = "User Management", description = "Endpoints for managing users")
 public class UserManagementController {
@@ -23,20 +31,20 @@ public class UserManagementController {
 
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Void> createUser(@Valid @RequestBody CreateUserRequest request) {
-        userManagementService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<UserEntity> createUser(@Valid @RequestBody CreateUserRequest request) {
+        UserEntity createdUser = userManagementService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userManagementService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/role")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<Void> updateUserRole(@PathVariable UUID id, @RequestParam EmployeeRole role) {
         userManagementService.updateUserRole(id, role);
         return ResponseEntity.noContent().build();

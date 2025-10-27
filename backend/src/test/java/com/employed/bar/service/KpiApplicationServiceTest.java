@@ -103,7 +103,7 @@ public class KpiApplicationServiceTest {
         assertTrue(result.getTopEmployeesByConsumptions().isEmpty());
 
         verify(employeeRepository, times(1)).findAll();
-        verify(attendanceRepository, never()).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDate.class), any(LocalDate.class));
+        verify(attendanceRepository, never()).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, never()).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), any());
     }
 
@@ -127,18 +127,18 @@ public class KpiApplicationServiceTest {
         when(employeeRepository.findAll()).thenReturn(allEmployees);
 
         AttendanceRecordClass arNullEntry = new AttendanceRecordClass();
-        arNullEntry.setEntryTime(null);
-        arNullEntry.setExitTime(LocalTime.of(17, 0));
+        arNullEntry.setEntryDateTime(null);
+        arNullEntry.setExitDateTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(17, 0)));
 
         AttendanceRecordClass arNullExit = new AttendanceRecordClass();
-        arNullExit.setEntryTime(LocalTime.of(9, 0));
-        arNullExit.setExitTime(null);
+        arNullExit.setEntryDateTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 0)));
+        arNullExit.setExitDateTime(null);
 
         AttendanceRecordClass arBothNull = new AttendanceRecordClass();
-        arBothNull.setEntryTime(null);
-        arBothNull.setExitTime(null);
+        arBothNull.setEntryDateTime(null);
+        arBothNull.setExitDateTime(null);
 
-        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee1), any(LocalDate.class), any(LocalDate.class)))
+        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee1), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Arrays.asList(arNullEntry, arNullExit, arBothNull));
         when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(activeEmployee1), any(LocalDateTime.class), any(LocalDateTime.class), eq(null)))
                 .thenReturn(Collections.emptyList());
@@ -154,7 +154,7 @@ public class KpiApplicationServiceTest {
         assertTrue(result.getTopEmployeesByConsumptions().isEmpty());
 
         verify(employeeRepository, times(1)).findAll();
-        verify(attendanceRepository, times(1)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDate.class), any(LocalDate.class));
+        verify(attendanceRepository, times(1)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, times(1)).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), any());
     }
 
@@ -167,16 +167,16 @@ public class KpiApplicationServiceTest {
         // 🔹 Asistencia activa
         // Employee 1 → 8 horas (9-17)
         AttendanceRecordClass ar1 = new AttendanceRecordClass();
-        ar1.setEntryTime(LocalTime.of(9, 0));
-        ar1.setExitTime(LocalTime.of(17, 0));
-        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee1), any(LocalDate.class), any(LocalDate.class)))
+        ar1.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
+        ar1.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(17, 0)));
+        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee1), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Collections.singletonList(ar1));
 
         // Employee 2 → 4 horas (9-13)
         AttendanceRecordClass ar2 = new AttendanceRecordClass();
-        ar2.setEntryTime(LocalTime.of(9, 0));
-        ar2.setExitTime(LocalTime.of(13, 0));
-        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee2), any(LocalDate.class), any(LocalDate.class)))
+        ar2.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
+        ar2.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(13, 0)));
+        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee2), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Collections.singletonList(ar2));
 
         // 🔹 Consumos activos
@@ -218,7 +218,7 @@ public class KpiApplicationServiceTest {
 
         // ✅ Verificaciones de interacciones (solo activos)
         verify(employeeRepository, times(1)).findAll();
-        verify(attendanceRepository, times(2)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDate.class), any(LocalDate.class));
+        verify(attendanceRepository, times(2)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, times(2)).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(null));
     }
 
@@ -243,34 +243,34 @@ public class KpiApplicationServiceTest {
         // 🔹 Asistencia variada (solo para activos)
         // Employee 1 → 8 horas (9-17) + 4 horas extra (18-22) en otro día
         AttendanceRecordClass ar1_day1 = new AttendanceRecordClass();
-        ar1_day1.setEntryTime(LocalTime.of(9, 0));
-        ar1_day1.setExitTime(LocalTime.of(17, 0));
+        ar1_day1.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
+        ar1_day1.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(17, 0)));
 
         AttendanceRecordClass ar1_day2 = new AttendanceRecordClass();
-        ar1_day2.setEntryTime(LocalTime.of(18, 0));
-        ar1_day2.setExitTime(LocalTime.of(22, 0));
+        ar1_day2.setEntryDateTime(LocalDateTime.of(startDate.plusDays(1), LocalTime.of(18, 0))); // Otro día
+        ar1_day2.setExitDateTime(LocalDateTime.of(startDate.plusDays(1), LocalTime.of(22, 0))); // Otro día
 
-        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee1), any(LocalDate.class), any(LocalDate.class)))
+        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee1), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Arrays.asList(ar1_day1, ar1_day2));
 
         // Employee 2 → 2 horas (10-12) + 3 horas (13-16) = 5 horas
         AttendanceRecordClass ar2_morning = new AttendanceRecordClass();
-        ar2_morning.setEntryTime(LocalTime.of(10, 0));
-        ar2_morning.setExitTime(LocalTime.of(12, 0));
+        ar2_morning.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(10, 0)));
+        ar2_morning.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(12, 0)));
 
         AttendanceRecordClass ar2_afternoon = new AttendanceRecordClass();
-        ar2_afternoon.setEntryTime(LocalTime.of(13, 0));
-        ar2_afternoon.setExitTime(LocalTime.of(16, 0));
+        ar2_afternoon.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(13, 0)));
+        ar2_afternoon.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(16, 0)));
 
-        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee2), any(LocalDate.class), any(LocalDate.class)))
+        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee2), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Arrays.asList(ar2_morning, ar2_afternoon));
 
         // Employee 3 → Solo medio día (9-13) = 4 horas
         AttendanceRecordClass ar3 = new AttendanceRecordClass();
-        ar3.setEntryTime(LocalTime.of(9, 0));
-        ar3.setExitTime(LocalTime.of(13, 0));
+        ar3.setEntryDateTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
+        ar3.setExitDateTime(LocalDateTime.of(startDate, LocalTime.of(13, 0)));
 
-        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee3), any(LocalDate.class), any(LocalDate.class)))
+        when(attendanceRepository.findByEmployeeAndDateRange(eq(activeEmployee3), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(Collections.singletonList(ar3));
 
         // 🔹 Consumos variados (solo para activos)
@@ -327,13 +327,13 @@ public class KpiApplicationServiceTest {
 
         // ✅ Verificaciones de interacciones (solo para empleados activos)
         verify(employeeRepository, times(1)).findAll();
-        verify(attendanceRepository, times(3)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDate.class), any(LocalDate.class));
+        verify(attendanceRepository, times(3)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, times(3)).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(null));
     }
 
     @Test
     void testGetManagerKpis_NullStartDate() {
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             kpiApplicationService.getManagerKpis(null, endDate);
         });
 
@@ -344,7 +344,7 @@ public class KpiApplicationServiceTest {
 
     @Test
     void testGetManagerKpis_NullEndDate() {
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             kpiApplicationService.getManagerKpis(startDate, null);
         });
 

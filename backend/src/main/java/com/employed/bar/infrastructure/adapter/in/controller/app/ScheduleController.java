@@ -23,6 +23,11 @@ import java.util.stream.Collectors;
 
 // ... (rest of the imports)
 
+/**
+ * REST controller for managing employee schedules.
+ * This controller handles HTTP requests related to schedule CRUD operations and retrieval,
+ * acting as an inbound adapter to the application's core schedule management functionalities.
+ */
 @RestController
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE)
 @Tag(name = "2. Gestión de Horarios", description = "Endpoints para la administración de horarios del personal")

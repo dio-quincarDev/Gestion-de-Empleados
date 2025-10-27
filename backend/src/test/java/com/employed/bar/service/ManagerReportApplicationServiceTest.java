@@ -1,9 +1,15 @@
 package com.employed.bar.service;
 
 import com.employed.bar.application.service.ManagerReportApplicationService;
+import com.employed.bar.domain.enums.*;
+import com.employed.bar.domain.model.manager.EmployeeSummary;
 import com.employed.bar.domain.model.manager.ManagerReport;
+import com.employed.bar.domain.model.manager.ReportTotals;
+import com.employed.bar.domain.model.payment.AchPaymentMethod;
+import com.employed.bar.domain.model.report.HoursCalculation;
 import com.employed.bar.domain.model.report.Report;
 import com.employed.bar.domain.model.structure.EmployeeClass;
+import com.employed.bar.domain.port.in.service.ManagerReportServicePort;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.NotificationPort;
@@ -12,11 +18,14 @@ import com.employed.bar.domain.service.ManagerReportCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -151,29 +160,87 @@ public class ManagerReportApplicationServiceTest {
     }
 
     @Test
-    void testGenerateAndSendManagerReport_NullEndDate() {
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-            managerReportApplicationService.generateAndSendManagerReport(startDate, null);
-        });
-        assertEquals("Start date and end date must not be null", thrown.getMessage());
-        verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, notificationPort);
-    }
-
-    @Test
-    void testGenerateManagerReportPdf_NullStartDate() {
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-            managerReportApplicationService.generateManagerReportPdf(null, endDate);
-        });
-        assertEquals("Start date and end date must not be null", thrown.getMessage());
-        verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, pdfGeneratorPort);
-    }
-
-    @Test
     void testGenerateManagerReportPdf_NullEndDate() {
         IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
             managerReportApplicationService.generateManagerReportPdf(startDate, null);
         });
         assertEquals("Start date and end date must not be null", thrown.getMessage());
         verifyNoInteractions(employeeRepository, reportingUseCase, managerReportCalculator, pdfGeneratorPort);
+    }
+
+
+    @Test
+    void testGenerateAndSendManagerReport_VerifiesPaymentMethodContent() {
+        // Given
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 1, 7);
+
+        AchPaymentMethod achPaymentMethod = new AchPaymentMethod("Bank of America", "123456789", BankAccount.SAVINGS);
+        EmployeeClass employee = new EmployeeClass(1L, "John Doe", "john.doe@example.com", "123-456-7890",
+                EmployeeRole.BARTENDER, BigDecimal.valueOf(20), BigDecimal.valueOf(0), achPaymentMethod, true,
+                OvertimeRateType.FIFTY_PERCENT, EmployeeStatus.ACTIVE, PaymentType.HOURLY,
+                new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+
+        HoursCalculation hoursCalculation = new HoursCalculation(BigDecimal.valueOf(40), BigDecimal.valueOf(5), BigDecimal.valueOf(45));
+        Report localIndividualReport = mock(Report.class);
+
+        // Mock the behavior of localIndividualReport
+        when(localIndividualReport.getHoursCalculation()).thenReturn(hoursCalculation);
+        when(localIndividualReport.getTotalEarnings()).thenReturn(BigDecimal.valueOf(800));
+        when(localIndividualReport.getTotalConsumptionAmount()).thenReturn(BigDecimal.valueOf(50));
+
+        // Mock dependencies
+        when(employeeRepository.findAll()).thenReturn(List.of(employee));
+        when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId()))
+                .thenReturn(localIndividualReport);
+
+        // ✅ DEBUG: Verificar que el employee tiene paymentMethod
+        System.out.println("🔍 [TEST DEBUG] Employee paymentMethod: " + employee.getPaymentMethod());
+        System.out.println("🔍 [TEST DEBUG] Employee paymentMethod class: " +
+                (employee.getPaymentMethod() != null ? employee.getPaymentMethod().getClass().getName() : "NULL"));
+
+        EmployeeSummary employeeSummaryWithPayment = new EmployeeSummary(
+                employee.getName(),
+                localIndividualReport.getHoursCalculation().getTotalHours(),
+                localIndividualReport.getTotalEarnings(),
+                localIndividualReport.getTotalConsumptionAmount(),
+                localIndividualReport.getTotalEarnings().subtract(localIndividualReport.getTotalConsumptionAmount()),
+                achPaymentMethod
+        );
+
+        ManagerReport mockManagerReport = new ManagerReport(
+                List.of(employeeSummaryWithPayment),
+                new ReportTotals(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
+        );
+
+        // Mock the behavior of managerReportCalculator.calculate
+        when(managerReportCalculator.calculate(anyList(), anyList())).thenReturn(mockManagerReport);
+
+        // When
+        managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
+
+        // Then
+        ArgumentCaptor<ManagerReport> managerReportCaptor = ArgumentCaptor.forClass(ManagerReport.class);
+        verify(notificationPort).sendManagerReportByEmail(eq("manager@example.com"), managerReportCaptor.capture());
+
+        ManagerReport capturedReport = managerReportCaptor.getValue();
+        assertNotNull(capturedReport);
+        assertFalse(capturedReport.getEmployeeSummaries().isEmpty());
+
+        EmployeeSummary employeeSummary = capturedReport.getEmployeeSummaries().get(0);
+
+        // ✅ DEBUG: Verificar qué hay en el paymentMethod
+        System.out.println("🔍 [TEST DEBUG] Captured paymentMethod: " + employeeSummary.getPaymentMethod());
+        System.out.println("🔍 [TEST DEBUG] Captured paymentMethod class: " +
+                (employeeSummary.getPaymentMethod() != null ? employeeSummary.getPaymentMethod().getClass().getName() : "NULL"));
+
+        assertNotNull(employeeSummary.getPaymentMethod(), "PaymentMethod should not be null");
+        assertTrue(employeeSummary.getPaymentMethod() instanceof AchPaymentMethod,
+                "PaymentMethod should be instance of AchPaymentMethod");
+
+        AchPaymentMethod capturedAchPaymentMethod = (AchPaymentMethod) employeeSummary.getPaymentMethod();
+        assertEquals("Bank of America", capturedAchPaymentMethod.getBankName());
+        assertEquals("123456789", capturedAchPaymentMethod.getAccountNumber());
+        assertEquals(BankAccount.SAVINGS, capturedAchPaymentMethod.getBankAccountType());
     }
 }

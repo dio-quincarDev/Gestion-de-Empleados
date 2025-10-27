@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
 @Component
 @RequiredArgsConstructor
 public class AdminInitializer implements CommandLineRunner {
@@ -17,15 +16,30 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userEntityRepository.findByEmail("admin@example.com").isEmpty()) {
+        // Verificar si ya existe un MANAGER
+        if (userEntityRepository.findByRole(EmployeeRole.MANAGER).isEmpty()) {
+            UserEntity managerUser = UserEntity.builder()
+                    .email("manager@system.com")
+                    .password(passwordEncoder.encode("manager123"))
+                    .firstname("System")
+                    .lastname("Manager")
+                    .role(EmployeeRole.MANAGER) // ← CAMBIAR A MANAGER
+                    .build();
+            userEntityRepository.save(managerUser);
+            System.out.println("✅ MANAGER user created: manager@system.com");
+        }
+
+        // Opcional: Crear ADMIN inicial si no existe
+        if (userEntityRepository.findByRole(EmployeeRole.ADMIN).isEmpty()) {
             UserEntity adminUser = UserEntity.builder()
-                    .email("admin@example.com")
-                    .password(passwordEncoder.encode("adminpassword"))
-                    .firstname("Admin")
-                    .lastname("User")
+                    .email("admin@system.com")
+                    .password(passwordEncoder.encode("admin123"))
+                    .firstname("System")
+                    .lastname("Admin")
                     .role(EmployeeRole.ADMIN)
                     .build();
             userEntityRepository.save(adminUser);
+            System.out.println("✅ ADMIN user created: admin@system.com");
         }
     }
 }

@@ -2,19 +2,18 @@ package com.employed.bar.infrastructure.dto.domain;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.OvertimeRateType;
+import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.infrastructure.dto.payment.PaymentMethodDto;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 
+/**
+ * Data Transfer Object (DTO) for employee information.
+ * Used to transfer employee data between the API layer and the application layer.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
@@ -27,7 +26,6 @@ public class EmployeeDto {
     private String name;
 
     @NotNull(message = "Hourly rate is required")
-    @Positive(message = "Hourly rate must be positive")
     private BigDecimal hourlyRate;
 
     @NotNull(message = "Role is required")
@@ -37,8 +35,12 @@ public class EmployeeDto {
     private String email;
 
     @NotNull(message = "Salary is required")
-    @Positive(message = "Salary must be positive")
     private BigDecimal salary;
+
+    @NotBlank(message = "El número de contacto es requerido")
+    @Pattern(regexp = "^\\+[1-9]\\d{0,3}[\\s-]?\\d{6,14}$",
+            message = "Formato internacional: +CódigoPaís Número. Ejemplo: +507 61234567")
+    private String contactPhone = "+507 ";
 
     @NotBlank(message = "El estado no puede estar en blanco")
     private String status;
@@ -47,6 +49,9 @@ public class EmployeeDto {
     private boolean paysOvertime;
 
     private OvertimeRateType overtimeRateType;
+
+    @NotNull(message = "Payment type is required")
+    private PaymentType paymentType;
 
     @Valid // This annotation ensures that the nested PaymentMethodDto is also validated.
     @NotNull(message = "Payment method is required")

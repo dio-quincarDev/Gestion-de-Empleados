@@ -30,9 +30,9 @@
        <!-- <th>Porcentaje de Asistencia</th>-->
     </tr>
     <tr th:each="attendance : ${attendanceReports}">
-        <td th:text="${#temporals.format(attendance.attendanceDate, 'dd-MM-yyyy')}"></td>
-        <td th:text="${#temporals.format(attendance.entryTime, 'HH:mm')}"></td>
-        <td th:text="${#temporals.format(attendance.exitTime, 'HH:mm')}"></td>
+        <td th:text="${#temporals.format(attendance.entryDateTime, 'dd-MM-yyyy')}"></td>
+        <td th:text="${#temporals.format(attendance.entryDateTime, 'HH:mm')}"></td>
+        <td th:text="${#temporals.format(attendance.exitDateTime, 'HH:mm')}"></td>
         <td th:text="${attendance.workedHours}"></td>
       <!-- <td th:text="${attendance.attendancePercentage + '%'}"></td>-->
     </tr>

@@ -1,0 +1,26 @@
+// Quasar SCSS (& Sass) Variables
+// --------------------------------------------------
+// To customize the look and feel of this app, you can override
+// the Sass/SCSS variables found in Quasar's source Sass/SCSS files.
+
+// Check documentation for full list of Quasar variables
+
+// Your own variables (that are declared here) and Quasar's own
+// ones will be available out of the box in your .vue/.scss/.sass files
+
+// It's highly recommended to change the default colors
+// to match your app's branding.
+// Tip: Use the "Theme Builder" on Quasar's documentation website.
+
+// Colores personalizados basados en la paleta de PresentationPage.vue
+$primary: #ff6b35;   // Naranja vibrante/rojo
+$secondary: #ff8e53;  // Naranja más claro
+$accent: #e05a2e;    // Acento, un tono más oscuro de primary
+
+$dark: #1a1a1a;      // Gris oscuro para elementos generales
+$dark-page: #000000; // Negro puro para fondos de página
+
+$positive: #21ba45;
+$negative: #c10015;
+$info: #31ccec;
+$warning: #f2c037;

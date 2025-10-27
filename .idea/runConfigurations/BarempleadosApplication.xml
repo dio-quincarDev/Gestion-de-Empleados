@@ -2,11 +2,11 @@
   <configuration default="false" name="BarempleadosApplication" type="Application" factoryName="Application" nameIsGenerated="true">
     <envs>
       <env name="DB_HOST" value="localhost" />
-      <env name="DB_PORT" value="3306" />
       <env name="DB_NAME" value="gestion" />
-      <env name="DB_USERNAME" value="root" />
       <env name="DB_PASSWORD" value="diogenes" />
-      <env name="JWT_SECRET" value=" eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaW9nZW5lcyIsInJvbGUiOiJiYWNrZW5kLWFyY2hpdGVjdCIsImV4cCI6MTY5NTAwMDAwMH0.abc123XYZ456def789" />
+      <env name="DB_PORT" value="3306" />
+      <env name="DB_USERNAME" value="root" />
+      <env name="JWT_SECRET" value=" eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaW9nZW5lcyIsInJvbGUiOiJiYWNrZW5kLWFyY2hpdGVjdCIsImV4cCI6MTY5NTAwMDAwMH0.abc123XYZ456def769" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.employed.bar.BarempleadosApplication" />
     <module name="bar" />

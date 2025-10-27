@@ -73,4 +73,9 @@ public class ConsumptionApplicationService implements ConsumptionUseCase {
     public void deleteConsumption(Long id) {
         consumptionRepositoryPort.deleteById(id);
     }
+
+    @Override
+    public List<ConsumptionClass> getAllConsumptions() {
+        return consumptionRepositoryPort.findAll();
+    }
 }

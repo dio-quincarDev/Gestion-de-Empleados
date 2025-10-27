@@ -1,5 +1,6 @@
 package com.employed.bar.controller.kpi;
 
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
 import com.employed.bar.domain.enums.PaymentMethodType;
@@ -130,10 +131,9 @@ public class KpiControllerTest {
     private AttendanceRecordEntity createAttendance(EmployeeEntity employee, LocalDateTime entry, LocalDateTime exit) {
         AttendanceRecordEntity attendance = new AttendanceRecordEntity();
         attendance.setEmployee(employee);
-        attendance.setDate(entry.toLocalDate());
-        attendance.setEntryTime(entry.toLocalTime());
-        attendance.setExitTime(exit.toLocalTime());
-        attendance.setStatus("COMPLETED"); // Default status
+        attendance.setEntryDateTime(entry);
+        attendance.setExitDateTime(exit);
+        attendance.setStatus(AttendanceStatus.PRESENT); // Default status
         return attendanceRepository.save(attendance);
     }
 

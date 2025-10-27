@@ -45,7 +45,7 @@ public class ConsumptionPersistenceAdapterPort implements ConsumptionRepositoryP
     @Override
     public List<ConsumptionClass> findByEmployeeAndDateTimeBetween(EmployeeClass employee, LocalDateTime startDate, LocalDateTime endDate, String description) {
         return springConsumptionJpaRepository.findByEmployeeAndDateTimeBetween(
-                employeeMapper.toEntity(employee), startDate, endDate, description)
+                employee.getId(), startDate, endDate, description)
                 .stream()
                 .map(consumptionMapper::toDomain)
                 .collect(Collectors.toList());

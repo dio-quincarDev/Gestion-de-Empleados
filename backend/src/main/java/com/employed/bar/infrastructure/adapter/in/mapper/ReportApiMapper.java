@@ -22,6 +22,9 @@ public interface ReportApiMapper {
 
     List<ConsumptionReportDto> toConsumptionDtoList(List<ConsumptionReportLine> consumptionReportLines);
 
+    @Mapping(target = "attendanceDate", expression = "java(attendanceReportLine.getEntryDateTime().toLocalDate())")
+    @Mapping(target = "entryTime", expression = "java(attendanceReportLine.getEntryDateTime().toLocalTime())")
+    @Mapping(target = "exitTime", expression = "java(attendanceReportLine.getExitDateTime().toLocalTime())")
     AttendanceReportDto toDto(AttendanceReportLine attendanceReportLine);
 
     ConsumptionReportDto toDto(ConsumptionReportLine consumptionReportLine);
