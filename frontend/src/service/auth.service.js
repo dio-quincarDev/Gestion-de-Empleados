@@ -12,13 +12,14 @@ export default {
       )
 
       // Guardar el token en localStorage
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token)
+      if (response.data.accessToken) {
+        // ← CAMBIAR: tu backend devuelve accessToken, no token
+        localStorage.setItem('authToken', response.data.accessToken)
       }
-      return response.data // Retornar datos procesados
+      return response.data
     } catch (error) {
       console.error('Error en el inicio de sesión:', error)
-      throw error // Lanzar error para manejo en el componente
+      throw error
     }
   },
 
@@ -46,21 +47,34 @@ export default {
     return localStorage.getItem('authToken')
   },
 
-  // Obtener roles del usuario desde el token JWT
+  // Obtener roles del usuario desde el token JWT - CORREGIDO
   getUserRoles() {
     const token = this.getToken()
     if (token) {
       try {
         const decodedToken = jwtDecode(token)
-        // Priorizar el campo 'role' singular si existe
-        if (decodedToken.role) {
-          return [decodedToken.role] // Devolver como array para consistencia
-        } else if (decodedToken.roles) {
-          return decodedToken.roles
-        } else if (decodedToken.authorities) {
-          // Si solo hay 'authorities', extraer y limpiar el prefijo 'ROLE_'
-          return decodedToken.authorities.map((auth) => auth.authority.replace('ROLE_', ''))
+        console.log('Token decodificado:', decodedToken) // ← DEBUG
+
+        // Tu backend ahora devuelve "roles" como array: ["ROLE_MANAGER"]
+        if (decodedToken.roles && Array.isArray(decodedToken.roles)) {
+          // Normalizar roles - quitar ROLE_ y convertir a mayúsculas
+          return decodedToken.roles.map((role) => {
+            if (typeof role === 'string') {
+              return role.replace('ROLE_', '').toUpperCase()
+            }
+            return role
+          })
         }
+
+        // Fallback para compatibilidad
+        if (decodedToken.role) {
+          const role =
+            typeof decodedToken.role === 'string'
+              ? decodedToken.role.replace('ROLE_', '').toUpperCase()
+              : decodedToken.role
+          return [role]
+        }
+
         return []
       } catch (error) {
         console.error('Error decodificando el token:', error)
@@ -70,32 +84,44 @@ export default {
     return []
   },
 
-  // Borrar token
-  clearToken() {
-    localStorage.removeItem('authToken')
-  },
-
-  // Obtener ID del usuario actual desde el token JWT
-  getCurrentUserId() {
+  // Obtener usuario actual desde el token
+  getCurrentUser() {
     const token = this.getToken()
     if (token) {
       try {
         const decodedToken = jwtDecode(token)
-        // Asumiendo que el ID del usuario está en un campo 'id' o 'sub' (subject)
-        // en el payload del token. Ajusta esto según la estructura de tu token.
-        return decodedToken.id || decodedToken.sub
+        const roles = this.getUserRoles() // Reutiliza el método existente
+
+        return {
+          email: decodedToken.sub,
+          roles: roles,
+          // Agrega más campos si tu token los incluye
+          firstname: decodedToken.firstname,
+          lastname: decodedToken.lastname,
+        }
       } catch (error) {
-        console.error('Error decodificando el token para obtener el ID:', error)
+        console.error('Error obteniendo usuario actual:', error)
         return null
       }
     }
     return null
   },
 
+  // Borrar token
+  clearToken() {
+    localStorage.removeItem('authToken')
+  },
+
+  // Obtener ID del usuario actual
+  getCurrentUserId() {
+    const user = this.getCurrentUser()
+    return user?.id || null
+  },
+
   // Cerrar sesión
   logout() {
     try {
-      this.clearToken() // Borrar token de sesión
+      this.clearToken()
       console.log('Sesión cerrada correctamente')
     } catch (error) {
       console.error('Error al cerrar sesión:', error)
@@ -106,7 +132,7 @@ export default {
   async registerManager(userData) {
     try {
       const response = await api.post(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.USERS_ROUTE}/register-manager`,
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.AUTH_ROUTE}/register-manager`, // ← CORREGIR RUTA
         userData,
       )
       return response.data

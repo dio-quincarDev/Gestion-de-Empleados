@@ -1,28 +1,42 @@
 import { defineStore } from 'pinia'
 import { api } from 'src/boot/axios'
+import AuthService from 'src/services/auth.service.js' // ← IMPORTAR EL SERVICIO
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: JSON.parse(localStorage.getItem('user')) || null,
+    user: null, // ← NO guardar en localStorage, calcular desde token
     token: localStorage.getItem('authToken') || null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
+    currentUser: (state) => {
+      if (state.token) {
+        return AuthService.getCurrentUser() // ← Usar el servicio
+      }
+      return null
+    },
+    userRoles: (state) => {
+      if (state.token) {
+        return AuthService.getUserRoles() // ← Usar el servicio corregido
+      }
+      return []
+    },
   },
   actions: {
     async login(credentials) {
       try {
         const response = await api.post('/v1/auth/login', credentials)
-        this.token = response.data.token
-        this.user = response.data.user // Asumiendo que el backend devuelve el objeto de usuario
+        this.token = response.data.accessToken // ← CAMBIAR: accessToken, no token
         localStorage.setItem('authToken', this.token)
-        localStorage.setItem('user', JSON.stringify(this.user))
+
+        // El usuario se calcula desde el token, no se guarda
+        this.user = AuthService.getCurrentUser()
+
         return response.data
       } catch (error) {
         this.token = null
         this.user = null
         localStorage.removeItem('authToken')
-        localStorage.removeItem('user')
         throw error
       }
     },
@@ -30,19 +44,6 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.user = null
       localStorage.removeItem('authToken')
-      localStorage.removeItem('user')
     },
-    // Puedes añadir una acción para cargar el usuario desde el token si es necesario
-    // async fetchUserFromToken() {
-    //   if (this.token) {
-    //     try {
-    //       const response = await api.get('/v1/auth/me'); // Endpoint para obtener el usuario actual
-    //       this.user = response.data;
-    //     } catch (error) {
-    //       console.error('Error fetching user from token:', error);
-    //       this.logout(); // Si el token no es válido, cerrar sesión
-    //     }
-    //   }
-    // },
   },
 })

@@ -32,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
 	private final AuthenticationManager authenticationManager;
 	private final JwtService jwtService;
 
+
 	@Override
 	public TokenResponse login(LoginRequest loginRequest) {
 		log.info("Intentando login para Usuario: {}", loginRequest.getEmail());
@@ -51,9 +52,15 @@ public class AuthServiceImpl implements AuthService {
 		}
 
 		log.info("Login exitoso para usuario: {}", user.getEmail());
-		
-		
-		return jwtService.generateToken(user.getEmail(), user.getRole().name());
+
+        System.out.println("=== DEBUG AUTH ===");
+        System.out.println("Usuario: " + user.getEmail());
+        System.out.println("Rol en UserEntity: " + user.getRole());
+        System.out.println("Authorities: " + user.getAuthorities());
+        System.out.println("==================");
+
+        String roleWithPrefix = "ROLE_" + user.getRole().name();
+        return jwtService.generateToken(user.getEmail(), roleWithPrefix);
 	}
 
 	@Override

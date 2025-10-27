@@ -1,5 +1,6 @@
 package com.employed.bar.controller.security;
 
+import com.employed.bar.application.notification.NotificationApplicationService;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
@@ -11,14 +12,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,6 +47,14 @@ public class UserManagementControllerTest {
 
     @Autowired
     private JwtService jwtService;
+
+
+    @MockBean
+    private JavaMailSender javaMailSender;
+
+    @MockBean
+    private NotificationApplicationService notificationService;
+
 
     private String managerToken;
     private String adminToken;
@@ -79,7 +92,9 @@ public class UserManagementControllerTest {
     }
 
     private String generateToken(String email, String role) {
-        return jwtService.generateToken(email, role).getAccessToken();
+        // SOLUCIÓN: Generar token con el formato que espera el sistema real
+        String roleWithPrefix = "ROLE_" + role;
+        return jwtService.generateToken(email, roleWithPrefix).getAccessToken();
     }
 
     // --- POST /v1/users (createUser) Tests ---
@@ -217,12 +232,61 @@ public class UserManagementControllerTest {
     }
 
     @Test
-    void testDeleteUser_Success_AdminDeletesWaiter() throws Exception {
-        UserEntity userToDelete = createTestUser("admindeletes@example.com", "pass", EmployeeRole.WAITER);
+    void testCannotCreateSecondManager_WithErrorMessage() throws Exception {
+        CreateUserRequest secondManagerRequest = CreateUserRequest.builder()
+                .email("secondmanager@example.com")
+                .password("password123")
+                .firstname("Second")
+                .lastname("Manager")
+                .role(EmployeeRole.MANAGER)
+                .build();
 
-        mockMvc.perform(delete("/v1/users/{id}", userToDelete.getId())
+        mockMvc.perform(post("/v1/users")
+                        .header("Authorization", "Bearer " + managerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(secondManagerRequest)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Cannot create a user with the MANAGER role."));
+    }
+
+    @Test
+    void testDeleteUser_AdminCannotDeleteManager() throws Exception {
+        UserEntity managerToDelete = createTestUser("managerdelete@example.com", "pass", EmployeeRole.MANAGER);
+
+        mockMvc.perform(delete("/v1/users/{id}", managerToDelete.getId())
                         .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isForbidden()); // Espera 403
+
+        // Verificar que el manager NO fue eliminado
+        assertTrue(userEntityRepository.findById(managerToDelete.getId()).isPresent());
+    }
+
+    @Test
+    void testCannotPromoteToManagerWhenManagerExists() throws Exception {
+        // Given: Usuario existente a promover
+        UserEntity userToPromote = createTestUser("promote@example.com", "pass", EmployeeRole.WAITER);
+
+        // When & Then: Intentar promover a MANAGER debe fallar
+        mockMvc.perform(put("/v1/users/{id}/role", userToPromote.getId())
+                        .header("Authorization", "Bearer " + managerToken)
+                        .param("role", EmployeeRole.MANAGER.name()))
+                .andExpect(status().isConflict()); // O el status de IllegalStateException
+
+        // Verificar que el rol NO cambió
+        UserEntity unchangedUser = userEntityRepository.findById(userToPromote.getId()).orElseThrow();
+        assertEquals(EmployeeRole.WAITER, unchangedUser.getRole());
+    }
+
+    @Test
+    void testDeleteUser_AdminCannotDeleteAdmin() throws Exception {
+        UserEntity adminToDelete = createTestUser("admintodelete@example.com", "pass", EmployeeRole.ADMIN);
+
+        mockMvc.perform(delete("/v1/users/{id}", adminToDelete.getId())
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isForbidden());
+
+        // Verificar que el admin NO fue eliminado
+        assertTrue(userEntityRepository.findById(adminToDelete.getId()).isPresent());
     }
 
     @Test
@@ -289,17 +353,17 @@ public class UserManagementControllerTest {
     }
 
     @Test
-    void testUpdateUserRole_Success_AdminChangesWaiterRole() throws Exception {
-        UserEntity userToUpdate = createTestUser("adminupdate@example.com", "pass", EmployeeRole.WAITER);
+    void testUpdateUserRole_AdminCannotChangeToManager() throws Exception {
+        UserEntity userToUpdate = createTestUser("waiter3@example.com", "pass", EmployeeRole.WAITER);
 
         mockMvc.perform(put("/v1/users/{id}/role", userToUpdate.getId())
                         .header("Authorization", "Bearer " + adminToken)
-                        .param("role", EmployeeRole.CASHIER.name()))
-                .andExpect(status().isNoContent());
+                        .param("role", EmployeeRole.MANAGER.name()))
+                .andExpect(status().isForbidden()); // Espera 403
 
-        // Verify role change
-        userEntityRepository.findById(userToUpdate.getId())
-                .ifPresent(user -> assertEquals(EmployeeRole.CASHIER, user.getRole()));
+        // Verificar que el rol NO cambió
+        UserEntity unchangedUser = userEntityRepository.findById(userToUpdate.getId()).orElseThrow();
+        assertEquals(EmployeeRole.WAITER, unchangedUser.getRole());
     }
 
     @Test
