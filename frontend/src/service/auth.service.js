@@ -13,8 +13,12 @@ export default {
 
       // Guardar el token en localStorage
       if (response.data.accessToken) {
-        // ← CAMBIAR: tu backend devuelve accessToken, no token
-        localStorage.setItem('authToken', response.data.accessToken)
+        let tokenToStore = response.data.accessToken;
+        if (typeof tokenToStore === 'object' && tokenToStore !== null) {
+          // Assuming the actual token string is within a 'token' property of the object
+          tokenToStore = tokenToStore.token || tokenToStore.jwt || JSON.stringify(tokenToStore);
+        }
+        localStorage.setItem('authToken', tokenToStore);
       }
       return response.data
     } catch (error) {

@@ -99,6 +99,12 @@ const handleLogin = async () => {
   font-family: 'Josefin Sans', sans-serif;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;700&display=swap');
+
+.josefin-sans {
+  font-family: 'Josefin Sans', sans-serif;
+}
+
 .animated-gradient {
   background: linear-gradient(-45deg, #000000, #C04000, #FF8C00, #000000);
   background-size: 400% 400%;

@@ -1,5 +1,6 @@
 package com.employed.bar.controller.app;
 
+import com.employed.bar.application.notification.NotificationApplicationService;
 import com.employed.bar.domain.enums.BankAccount;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
@@ -20,7 +21,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -58,6 +61,12 @@ public class EmployeeControllerTest {
     @Autowired
     private JwtService jwtService;
 
+    @MockBean
+    private JavaMailSender javaMailSender;
+
+    @MockBean
+    private NotificationApplicationService notificationService;
+
     private String adminToken;
     private String managerToken;
     private String userToken;
@@ -71,9 +80,14 @@ public class EmployeeControllerTest {
         UserEntity managerUser = createTestUser("manager@test.com", "password", EmployeeRole.MANAGER);
         UserEntity regularUser = createTestUser("user@test.com", "password", EmployeeRole.WAITER);
 
-        adminToken = "Bearer " + jwtService.generateToken(adminUser.getEmail(), adminUser.getRole().name()).getAccessToken();
-        managerToken = "Bearer " + jwtService.generateToken(managerUser.getEmail(), managerUser.getRole().name()).getAccessToken();
-        userToken = "Bearer " + jwtService.generateToken(regularUser.getEmail(), regularUser.getRole().name()).getAccessToken();
+        adminToken = "Bearer " + jwtService.generateToken(adminUser.getEmail(), "ROLE_" + adminUser.getRole().name()).getAccessToken();
+        managerToken = "Bearer " + jwtService.generateToken(managerUser.getEmail(), "ROLE_" + managerUser.getRole().name()).getAccessToken();
+        userToken = "Bearer " + jwtService.generateToken(regularUser.getEmail(), "ROLE_" + regularUser.getRole().name()).getAccessToken();
+
+        System.out.println("=== TOKENS DEBUG ===");
+        System.out.println("Admin Token Role: ROLE_" + adminUser.getRole().name());
+        System.out.println("Manager Token Role: ROLE_" + managerUser.getRole().name());
+        System.out.println("User Token Role: ROLE_" + regularUser.getRole().name());
     }
 
     private UserEntity createTestUser(String email, String password, EmployeeRole role) {
@@ -120,6 +134,21 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    void whenCreateEmployee_asManager_shouldSucceed() throws Exception {
+        EmployeeDto employeeDto = new EmployeeDto(null, "Employee Created By Manager", new BigDecimal("12.50"),
+                EmployeeRole.WAITER, "manager.created@test.com", BigDecimal.ZERO, "+50761234567",
+                "ACTIVE", false, null, PaymentType.HOURLY, new CashPaymentMethodDto());
+
+        mockMvc.perform(post(BASE_URL)
+                        .header("Authorization", managerToken) // ← Usando managerToken
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(employeeDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name", is("Employee Created By Manager")))
+                .andExpect(jsonPath("$.email", is("manager.created@test.com")));
+    }
+
+    @Test
     void whenCreateEmployee_salaried_shouldSucceed() throws Exception {
         EmployeeDto employeeDto = new EmployeeDto(null, "Salaried Employee", BigDecimal.ZERO, EmployeeRole.MANAGER,
                 "salaried@test.com", new BigDecimal("3000.00"), "+50761234567",
@@ -132,6 +161,17 @@ public class EmployeeControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name", is("Salaried Employee")))
                 .andExpect(jsonPath("$.paymentType", is("SALARIED")));
+    }
+
+    @Test
+    void whenGetAllEmployees_asManager_shouldSucceed() throws Exception {
+        createTestEmployee("John Doe", "john@test.com", EmployeeRole.BARTENDER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
+        createTestEmployee("Jane Smith", "jane@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE, PaymentType.HOURLY);
+
+        mockMvc.perform(get(BASE_URL)
+                        .header("Authorization", managerToken)) // ← Usando managerToken
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 
     @Test
