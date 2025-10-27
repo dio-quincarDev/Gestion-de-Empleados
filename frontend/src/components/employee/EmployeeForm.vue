@@ -1,24 +1,27 @@
 <template>
-  <q-card class="employee-form-card" style="width: 700px; max-width: 80vw;">
-    <q-card-section>
-      <div class="text-h6">Nuevo Empleado</div>
+  <q-card class="employee-form-card animated fadeIn" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 700px; max-width: 80vw;'">
+    <q-card-section class="bg-dark-page text-white">
+      <div class="text-h6">{{ props.employee ? 'Editar Empleado' : 'Nuevo Empleado' }}</div>
     </q-card-section>
 
-    <q-separator />
+    <q-separator dark />
 
     <q-card-section class="q-gutter-md">
-      <q-input v-model="formData.name" label="Nombre Completo" dark outlined />
-      <q-input v-model="formData.email" label="Email" type="email" dark outlined />
-      <q-input v-model="formData.contactPhone" label="Teléfono de Contacto" dark outlined />
+      <q-input v-model="formData.name" label="Nombre Completo" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
+      <q-input v-model="formData.email" label="Email" type="email" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
+      <q-input v-model="formData.contactPhone" label="Teléfono de Contacto" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
 
-      <div class="row q-gutter-md">
+      <div class="row q-col-gutter-md">
         <q-select
           v-model="formData.role"
           :options="roleOptions"
           label="Rol"
           dark
           outlined
-          class="col"
+          color="primary"
+          label-color="grey-5"
+          input-class="text-white"
+          class="col-xs-12 col-sm-6"
         />
         <q-select
           v-model="formData.status"
@@ -26,7 +29,10 @@
           label="Estado"
           dark
           outlined
-          class="col"
+          color="primary"
+          label-color="grey-5"
+          input-class="text-white"
+          class="col-xs-12 col-sm-6"
         />
       </div>
 
@@ -36,6 +42,9 @@
         label="Tipo de Pago"
         dark
         outlined
+        color="primary"
+        label-color="grey-5"
+        input-class="text-white"
       />
 
       <q-input
@@ -45,6 +54,10 @@
         type="number"
         dark
         outlined
+        color="primary"
+        label-color="grey-5"
+        input-class="text-white"
+        class="animated fadeIn"
       />
       <q-input
         v-if="formData.paymentType === 'SALARIED'"
@@ -53,9 +66,13 @@
         type="number"
         dark
         outlined
+        color="primary"
+        label-color="grey-5"
+        input-class="text-white"
+        class="animated fadeIn"
       />
 
-      <q-toggle v-model="formData.paysOvertime" label="Paga Horas Extra" dark />
+      <q-toggle v-model="formData.paysOvertime" label="Paga Horas Extra" dark color="primary" class="animated fadeIn" />
 
       <q-select
         v-if="formData.paysOvertime"
@@ -64,39 +81,50 @@
         label="Tipo de Tarifa Extra"
         dark
         outlined
+        color="primary"
+        label-color="grey-5"
+        input-class="text-white"
+        class="animated fadeIn"
       />
 
-      <q-card flat bordered dark class="q-pa-md">
-        <div class="text-subtitle1 q-mb-sm">Método de Pago</div>
+      <q-card flat bordered dark class="q-pa-md glass-card animated fadeIn">
+        <div class="text-subtitle1 q-mb-sm text-primary">Método de Pago</div>
         <q-select
           v-model="formData.paymentMethod.type"
           :options="paymentMethodTypeOptions"
           label="Método"
           dark
           outlined
+          color="primary"
+          label-color="grey-5"
+          input-class="text-white"
         />
-        <div v-if="formData.paymentMethod.type === 'ACH'" class="q-mt-md q-gutter-md">
-          <q-input v-model="formData.paymentMethod.bankName" label="Nombre del Banco" dark outlined />
-          <q-input v-model="formData.paymentMethod.accountNumber" label="Número de Cuenta" dark outlined />
+        <div v-if="formData.paymentMethod.type === 'ACH'" class="q-mt-md q-col-gutter-md row">
+          <q-input v-model="formData.paymentMethod.bankName" label="Nombre del Banco" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="col-xs-12 col-sm-6" />
+          <q-input v-model="formData.paymentMethod.accountNumber" label="Número de Cuenta" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="col-xs-12 col-sm-6" />
           <q-select
             v-model="formData.paymentMethod.bankAccountType"
             :options="bankAccountTypeOptions"
             label="Tipo de Cuenta"
             dark
             outlined
+            color="primary"
+            label-color="grey-5"
+            input-class="text-white"
+            class="col-xs-12"
           />
         </div>
-        <div v-if="formData.paymentMethod.type === 'YAPPY'" class="q-mt-md">
-          <q-input v-model="formData.paymentMethod.phoneNumber" label="Número de Yappy" dark outlined />
+        <div v-if="formData.paymentMethod.type === 'YAPPY'" class="q-mt-md animated fadeIn">
+          <q-input v-model="formData.paymentMethod.phoneNumber" label="Número de Yappy" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
         </div>
       </q-card>
 
     </q-card-section>
 
-    <q-separator />
+    <q-separator dark />
 
-    <q-card-actions align="right">
-      <q-btn flat label="Cancelar" color="white" @click="onCancel" />
+    <q-card-actions align="right" class="bg-dark-page">
+      <q-btn flat label="Cancelar" color="grey-5" @click="onCancel" />
       <q-btn flat label="Guardar" color="primary" @click="onSave" />
     </q-card-actions>
   </q-card>
@@ -104,6 +132,7 @@
 
 <script setup>
 import { ref, watch } from 'vue';
+import { useQuasar } from 'quasar'; // Importar useQuasar
 
 defineOptions({ name: 'EmployeeForm' });
 
@@ -115,6 +144,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['save', 'cancel']);
+const $q = useQuasar(); // Inyectar useQuasar
 
 const initialFormData = () => ({
   name: '',
@@ -164,6 +194,38 @@ const onCancel = () => {
 
 <style lang="scss" scoped>
 .employee-form-card {
-  background-color: #1e1e1e;
+  background: rgba(26, 26, 26, 0.8); // Fondo semitransparente oscuro
+  backdrop-filter: blur(10px); // Efecto glassmorphism
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  color: white; // Asegurar que el texto dentro de la tarjeta sea blanco
+
+  .q-card-section {
+    color: white;
+  }
+
+  .q-field__label {
+    color: $grey-5; // Color de las etiquetas de los inputs
+  }
+
+  .q-field__control {
+    color: white; // Color del texto de los inputs
+  }
+
+  .q-toggle__label {
+    color: white;
+  }
+}
+
+.glass-card {
+  background: rgba(26, 26, 26, 0.6); // Fondo semitransparente oscuro para tarjetas internas
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.animated.fadeIn {
+  animation-duration: 0.5s;
 }
 </style>

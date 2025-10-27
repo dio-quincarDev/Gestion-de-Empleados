@@ -1,8 +1,8 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-md animated fadeIn">
     <div class="row justify-between items-center q-mb-md">
-      <div class="text-h4 text-white josefin-sans">Gestión de Empleados</div>
-      <q-btn color="primary" label="Crear Empleado" @click="openCreateForm" />
+      <div class="text-h4 text-white page-title">Gestión de Empleados</div>
+      <q-btn color="primary" label="Crear Empleado" @click="openCreateForm" class="q-mt-sm-md" />
     </div>
 
     <employee-table
@@ -11,7 +11,7 @@
       @delete="handleDelete"
     />
 
-    <q-dialog v-model="showFormDialog">
+    <q-dialog v-model="showFormDialog" transition-show="scale" transition-hide="scale">
       <employee-form
         :employee="editingEmployee"
         @save="handleSaveEmployee"
@@ -103,36 +103,17 @@ function handleDelete(employee) {
 </script>
 
 <style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;700&display=swap');
-
-.josefin-sans {
-  font-family: 'Josefin Sans', sans-serif;
+.page-title {
+  font-weight: 700;
+  @media (max-width: $breakpoint-xs-max) {
+    font-size: 1.8rem; // Ajustar tamaño en móviles
+  }
 }
-</style>
 
-
-<style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;700&display=swap');
-
-.josefin-sans {
-  font-family: 'Josefin Sans', sans-serif;
-}
-</style>
-
-
-<style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;700&display=swap');
-
-.josefin-sans {
-  font-family: 'Josefin Sans', sans-serif;
-}
-</style>
-
-
-<style lang="scss" scoped>
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;700&display=swap');
-
-.josefin-sans {
-  font-family: 'Josefin Sans', sans-serif;
+.q-btn {
+  // Asegurar que el botón se adapte bien en móviles
+  @media (max-width: $breakpoint-xs-max) {
+    width: 100%;
+  }
 }
 </style>

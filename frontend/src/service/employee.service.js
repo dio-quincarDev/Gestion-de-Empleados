@@ -4,7 +4,7 @@ export default {
   async createEmployee(employeeData) {
     try {
       const response = await api.post(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEES_ROUTE}`,
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}`,
         employeeData,
       )
       return response.data
@@ -17,7 +17,7 @@ export default {
   async getById(id) {
     try {
       const response = await api.get(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEES_ROUTE}/${id}`,
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}/${id}`,
       )
       return response.data
     } catch (error) {
@@ -28,7 +28,7 @@ export default {
 
   async getEmployees() {
     try {
-      const response = await api.get(`${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEES_ROUTE}`)
+      const response = await api.get(`${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}`)
       return response.data
     } catch (error) {
       console.error('Error al obtener los empleados:', error)
@@ -40,7 +40,7 @@ export default {
   async updateEmployee(id, employeeData) {
     try {
       const response = await api.put(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEES_ROUTE}/${id}`,
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}/${id}`,
         employeeData,
       )
       return response.data
@@ -54,7 +54,7 @@ export default {
   async deleteEmployee(id) {
     try {
       const response = await api.delete(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEES_ROUTE}/${id}`,
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}/${id}`,
       )
       return response.data
     } catch (error) {

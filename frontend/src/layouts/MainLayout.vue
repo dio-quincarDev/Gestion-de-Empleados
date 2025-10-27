@@ -1,25 +1,34 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+    <q-header elevated class="bg-dark-page text-white">
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title> 1800 Gestión </q-toolbar-title>
+        <q-toolbar-title class="app-title"> 1800 Gestión </q-toolbar-title>
 
         <q-btn flat dense round icon="logout" aria-label="Logout" @click="handleLogout" />
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-dark text-white">
       <q-list>
-        <q-item-label header> Menú Principal </q-item-label>
+        <q-item-label header class="text-primary"> Menú Principal </q-item-label>
 
         <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
       </q-list>
     </q-drawer>
 
-    <q-page-container>
-      <router-view />
+    <q-page-container class="main-page-container">
+      <router-view v-slot="{ Component }">
+        <transition
+          appear
+          enter-active-class="animated fadeIn"
+          leave-active-class="animated fadeOut"
+          mode="out-in"
+        >
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </q-page-container>
   </q-layout>
 </template>
@@ -82,3 +91,31 @@ function handleLogout() {
   router.push('/auth/login')
 }
 </script>
+
+<style lang="scss" scoped>
+.q-header {
+  background-color: $dark-page; // Usar el color oscuro de la paleta
+}
+
+.q-drawer {
+  background-color: $dark; // Usar el color oscuro para el drawer
+  .q-item-label.header {
+    font-weight: bold;
+    color: $primary; // Usar el color primario para el encabezado del menú
+  }
+}
+
+.main-page-container {
+  background: linear-gradient(to bottom right, $dark-page 0%, $dark 100%); // Degradado sutil para el fondo
+}
+
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  @media (max-width: $breakpoint-xs-max) {
+    font-size: 1.2rem; // Reducir tamaño en móviles
+  }
+}
+
+/* Animaciones de Quasar ya están disponibles globalmente */
+</style>

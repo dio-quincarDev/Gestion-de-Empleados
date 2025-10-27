@@ -12,12 +12,13 @@
 // to match your app's branding.
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
-$primary: #1976d2;
-$secondary: #26a69a;
-$accent: #9c27b0;
+// Colores personalizados basados en la paleta de PresentationPage.vue
+$primary: #ff6b35;   // Naranja vibrante/rojo
+$secondary: #ff8e53;  // Naranja más claro
+$accent: #e05a2e;    // Acento, un tono más oscuro de primary
 
-$dark: #1d1d1d;
-$dark-page: #121212;
+$dark: #1a1a1a;      // Gris oscuro para elementos generales
+$dark-page: #000000; // Negro puro para fondos de página
 
 $positive: #21ba45;
 $negative: #c10015;
