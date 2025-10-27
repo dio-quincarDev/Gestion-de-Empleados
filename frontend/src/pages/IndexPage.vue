@@ -8,8 +8,7 @@
         <q-card class="glass-card metric-card animated fadeInUp">
           <q-card-section class="text-center">
             <q-icon name="people" size="lg" color="primary" />
-            <div class="text-h6 text-white">Empleados Activos</div>
-            <div class="text-h5 text-primary">--</div>
+            <div class="text-h5 text-primary">{{ loadingEmployees ? '...' : activeEmployeesCount }}</div>
           </q-card-section>
         </q-card>
 
@@ -42,8 +41,28 @@
 </template>
 
 <script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useEmployeeStore } from 'src/stores/employee-module';
+
 defineOptions({
   name: 'IndexPage'
+});
+
+const employeeStore = useEmployeeStore();
+const activeEmployeesCount = ref('--');
+const loadingEmployees = ref(true);
+
+onMounted(async () => {
+  try {
+    await employeeStore.fetchEmployees();
+    const activeEmployees = employeeStore.getAllEmployees.filter(emp => emp.status === 'ACTIVE'); // Asumiendo un campo 'status'
+    activeEmployeesCount.value = activeEmployees.length;
+  } catch (error) {
+    console.error('Error fetching active employees:', error);
+    activeEmployeesCount.value = 'Error';
+  } finally {
+    loadingEmployees.value = false;
+  }
 });
 </script>
 

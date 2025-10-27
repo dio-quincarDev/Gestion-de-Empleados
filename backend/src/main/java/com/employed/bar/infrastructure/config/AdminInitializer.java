@@ -17,7 +17,7 @@ public class AdminInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Verificar si ya existe un MANAGER
-        if (userEntityRepository.findByRole(EmployeeRole.MANAGER).isEmpty()) {
+       /* if (userEntityRepository.findByRole(EmployeeRole.MANAGER).isEmpty()) {
             UserEntity managerUser = UserEntity.builder()
                     .email("manager@system.com")
                     .password(passwordEncoder.encode("manager123"))
@@ -27,7 +27,7 @@ public class AdminInitializer implements CommandLineRunner {
                     .build();
             userEntityRepository.save(managerUser);
             System.out.println("✅ MANAGER user created: manager@system.com");
-        }
+        }*/
 
         // Opcional: Crear ADMIN inicial si no existe
         if (userEntityRepository.findByRole(EmployeeRole.ADMIN).isEmpty()) {

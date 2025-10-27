@@ -22,6 +22,7 @@ public class UsersDetailsServiceImpl implements UserDetailsService {
 		return userEntityRepository.findByEmail(username)
 				.orElseThrow(()-> new UsernameNotFoundException("User with email " + username + " not found"));
 	}
-	
+
+
 
 }

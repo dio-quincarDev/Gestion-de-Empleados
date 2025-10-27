@@ -5,6 +5,7 @@ const API_CONSTANTS = {
   // URL base del backend
   V1_ROUTE: '/v1',
   AUTH_ROUTE: '/auth',
+  LOGIN_ROUTE: '/login',
   USERS_ROUTE: '/users',
   EMPLOYEE_ROUTE: '/employees',
   CONSUMPTION_ROUTE: '/consumptions',
@@ -17,6 +18,7 @@ const API_CONSTANTS = {
 let routerInstance
 
 const api = axios.create({
+  baseURL: 'http://localhost:8080',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
