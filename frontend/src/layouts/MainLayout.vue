@@ -46,38 +46,38 @@ const linksList = [
     title: 'Dashboard',
     caption: 'Vista principal',
     icon: 'dashboard',
-    link: '/main'
+    link: '/main',
   },
   {
     title: 'Empleados',
     caption: 'Gestión de personal',
     icon: 'people',
-    link: '/main/employees'
+    link: '/main/employees',
   },
   {
     title: 'Consumos',
     caption: 'Control de consumos internos',
     icon: 'local_bar',
-    link: '/main/consumptions'
+    link: '/main/consumptions',
   },
   {
     title: 'Asistencia',
     caption: 'Registro de asistencia',
     icon: 'how_to_reg',
-    link: '/main/attendance'
+    link: '/main/attendance',
   },
   {
     title: 'Horarios',
     caption: 'Planificación de turnos',
     icon: 'schedule',
-    link: '/main/schedules'
+    link: '/main/schedules',
   },
   {
     title: 'Reportes',
     caption: 'Generación de informes',
     icon: 'description',
-    link: '/main/reports'
-  }
+    link: '/main/reports',
+  },
 ]
 
 const leftDrawerOpen = ref(false)
@@ -94,28 +94,26 @@ function handleLogout() {
 
 <style lang="scss" scoped>
 .q-header {
-  background-color: $dark-page; // Usar el color oscuro de la paleta
+  background-color: $dark-page;
 }
 
 .q-drawer {
-  background-color: $dark; // Usar el color oscuro para el drawer
+  background-color: $dark;
   .q-item-label.header {
     font-weight: bold;
-    color: $primary; // Usar el color primario para el encabezado del menú
+    color: $primary;
   }
 }
 
 .main-page-container {
-  background: linear-gradient(to bottom right, $dark-page 0%, $dark 100%); // Degradado sutil para el fondo
+  background: linear-gradient(to bottom right, $dark-page 0%, $dark 100%);
 }
 
 .app-title {
   font-size: 1.5rem;
   font-weight: 600;
   @media (max-width: $breakpoint-xs-max) {
-    font-size: 1.2rem; // Reducir tamaño en móviles
+    font-size: 1.2rem;
   }
 }
-
-/* Animaciones de Quasar ya están disponibles globalmente */
 </style>

@@ -1,79 +1,100 @@
 <template>
-  <q-page class="q-pa-md animated fadeIn">
-    <div class="row justify-between items-center q-mb-md">
-      <div class="text-h4 text-white page-title">Gestión de Empleados</div>
-      <q-btn color="primary" label="Crear Empleado" @click="openCreateForm" class="q-mt-sm-md" />
-    </div>
+  <q-page class="q-pa-md">
+    <!-- Contenido real -->
+    <div class="animated fadeIn">
+      <div class="row justify-between items-center q-mb-md">
+        <div class="text-h4 text-white page-title">Gestión de Empleados</div>
+        <q-btn color="primary" label="Crear Empleado" @click="openCreateForm" class="q-mt-sm-md" />
+      </div>
 
-    <employee-table
-      :employees="employees"
-      @edit="handleEdit"
-      @delete="handleDelete"
-    />
-
-    <q-dialog v-model="showFormDialog" transition-show="scale" transition-hide="scale">
-      <employee-form
-        :employee="editingEmployee"
-        @save="handleSaveEmployee"
-        @cancel="cancelForm"
+      <employee-table
+        :employees="employees"
+        :loading="loading"
+        v-model:pagination="pagination"
+        @request="onRequest"
+        @edit="handleEdit"
+        @delete="handleDelete"
       />
-    </q-dialog>
+
+      <q-dialog v-model="showFormDialog" transition-show="scale" transition-hide="scale">
+        <employee-form
+          :employee="editingEmployee"
+          @save="handleSaveEmployee"
+          @cancel="cancelForm"
+        />
+      </q-dialog>
+    </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useEmployeeStore } from 'src/stores/employee-module';
-import EmployeeTable from 'src/components/employee/EmployeeTable.vue';
-import EmployeeForm from 'src/components/employee/EmployeeForm.vue';
-import { useQuasar } from 'quasar';
+import { onMounted, computed } from 'vue'
+import { useEmployeeStore } from 'src/stores/employee-module'
+import EmployeeTable from 'src/components/employee/EmployeeTable.vue'
+import EmployeeForm from 'src/components/employee/EmployeeForm.vue'
+import { useQuasar } from 'quasar'
+import { ref } from 'vue'
 
 defineOptions({
-  name: 'EmployeesPage'
-});
+  name: 'EmployeesPage',
+})
 
-const $q = useQuasar();
-const employeeStore = useEmployeeStore();
+const $q = useQuasar()
+const employeeStore = useEmployeeStore()
 
-const employees = computed(() => employeeStore.getAllEmployees);
+const employees = computed(() => employeeStore.employees)
+const loading = computed(() => employeeStore.loading)
+const pagination = computed({
+  get: () => employeeStore.pagination,
+  set: (val) => {
+    employeeStore.pagination = val
+  },
+})
+
+const showFormDialog = ref(false)
+const editingEmployee = ref(null)
+
+async function onRequest(props) {
+  console.time('fetchEmployees')
+  const { page, rowsPerPage, sortBy, descending } = props.pagination
+  await employeeStore.fetchEmployees({ page, rowsPerPage, sortBy, descending })
+  console.timeEnd('fetchEmployees')
+}
 
 onMounted(() => {
-  employeeStore.fetchEmployees();
-});
-
-const showFormDialog = ref(false);
-const editingEmployee = ref(null);
+  onRequest({ pagination: pagination.value })
+})
 
 function openCreateForm() {
-  editingEmployee.value = null;
-  showFormDialog.value = true;
+  editingEmployee.value = null
+  showFormDialog.value = true
 }
 
 function handleEdit(employee) {
-  editingEmployee.value = { ...employee }; // Copia para evitar mutación directa
-  showFormDialog.value = true;
+  editingEmployee.value = { ...employee }
+  showFormDialog.value = true
 }
 
 function cancelForm() {
-  showFormDialog.value = false;
-  editingEmployee.value = null;
+  showFormDialog.value = false
+  editingEmployee.value = null
 }
 
 async function handleSaveEmployee(employeeData) {
   try {
-    let message = '';
+    let message = ''
     if (editingEmployee.value && editingEmployee.value.id) {
-      await employeeStore.updateEmployee({ ...employeeData, id: editingEmployee.value.id });
-      message = 'Empleado actualizado con éxito.';
+      await employeeStore.updateEmployee({ ...employeeData, id: editingEmployee.value.id })
+      message = 'Empleado actualizado con éxito.'
     } else {
-      await employeeStore.createEmployee(employeeData);
-      message = 'Empleado creado con éxito.';
+      await employeeStore.createEmployee(employeeData)
+      message = 'Empleado creado con éxito.'
     }
-    cancelForm();
-    $q.notify({ type: 'positive', message });
+    cancelForm()
+    $q.notify({ type: 'positive', message })
   } catch (error) {
-    console.error('Error saving employee:', error);
-    $q.notify({ type: 'negative', message: 'Error al guardar el empleado.' });
+    console.error('Error saving employee:', error)
+    $q.notify({ type: 'negative', message: 'Error al guardar el empleado.' })
   }
 }
 
@@ -86,19 +107,19 @@ function handleDelete(employee) {
     dark: true,
   }).onOk(async () => {
     try {
-      await employeeStore.deleteEmployee(employee.id);
+      await employeeStore.deleteEmployee(employee.id)
       $q.notify({
         type: 'positive',
-        message: 'Empleado eliminado con éxito.'
-      });
+        message: 'Empleado eliminado con éxito.',
+      })
     } catch (error) {
-      console.error('Error deleting employee:', error);
+      console.error('Error deleting employee:', error)
       $q.notify({
         type: 'negative',
-        message: 'Error al eliminar el empleado.'
-      });
+        message: 'Error al eliminar el empleado.',
+      })
     }
-  });
+  })
 }
 </script>
 
@@ -106,14 +127,19 @@ function handleDelete(employee) {
 .page-title {
   font-weight: 700;
   @media (max-width: $breakpoint-xs-max) {
-    font-size: 1.8rem; // Ajustar tamaño en móviles
+    font-size: 1.8rem;
   }
 }
 
 .q-btn {
-  // Asegurar que el botón se adapte bien en móviles
   @media (max-width: $breakpoint-xs-max) {
     width: 100%;
+  }
+}
+
+.skeleton-container {
+  .q-skeleton {
+    border-radius: 8px;
   }
 }
 </style>

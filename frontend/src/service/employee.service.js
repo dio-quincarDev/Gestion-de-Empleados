@@ -26,9 +26,12 @@ export default {
     }
   },
 
-  async getEmployees() {
+  async getEmployees(params) {
     try {
-      const response = await api.get(`${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}`)
+      const response = await api.get(
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}`,
+        { params },
+      )
       return response.data
     } catch (error) {
       console.error('Error al obtener los empleados:', error)
