@@ -1,14 +1,16 @@
 <template>
   <q-page class="flex column flex-center q-pa-md animated-gradient">
     <div class="dashboard-container">
-      <div class="text-h4 text-white q-mb-lg text-center">Bienvenido a la gestión de 1800</div>
+      <div class="text-h4 text-white q-mb-lg text-center">Colaboradores 1800</div>
 
       <!-- Sección de Métricas Clave -->
       <div class="q-gutter-md q-mb-xl metrics-grid">
         <q-card class="glass-card metric-card animated fadeInUp">
           <q-card-section class="text-center">
             <q-icon name="people" size="lg" color="primary" />
-            <div class="text-h5 text-primary">{{ loadingEmployees ? '...' : activeEmployeesCount }}</div>
+            <div class="text-h5 text-primary">
+              {{ loadingEmployees ? '...' : activeEmployeesCount }}
+            </div>
           </q-card-section>
         </q-card>
 
@@ -31,39 +33,63 @@
 
       <!-- Sección de Acciones Rápidas -->
       <div class="q-gutter-md actions-grid">
-        <q-btn class="gradient-button full-width animated fadeInUp delay-3" label="Registrar Asistencia" icon="how_to_reg" size="lg" to="/main/attendance" />
-        <q-btn class="gradient-button full-width animated fadeInUp delay-4" label="Añadir Consumo" icon="add_shopping_cart" size="lg" to="/main/consumptions" />
-        <q-btn class="gradient-button full-width animated fadeInUp delay-5" label="Ver Empleados" icon="group" size="lg" to="/main/employees" />
-        <q-btn class="gradient-button full-width animated fadeInUp delay-6" label="Planificar Horarios" icon="calendar_today" size="lg" to="/main/schedules" />
+        <q-btn
+          class="gradient-button full-width animated fadeInUp delay-3"
+          label="Registrar Asistencia"
+          icon="how_to_reg"
+          size="lg"
+          to="/main/attendance"
+        />
+        <q-btn
+          class="gradient-button full-width animated fadeInUp delay-4"
+          label="Añadir Consumo"
+          icon="add_shopping_cart"
+          size="lg"
+          to="/main/consumptions"
+        />
+        <q-btn
+          class="gradient-button full-width animated fadeInUp delay-5"
+          label="Ver Empleados"
+          icon="group"
+          size="lg"
+          to="/main/employees"
+        />
+        <q-btn
+          class="gradient-button full-width animated fadeInUp delay-6"
+          label="Planificar Horarios"
+          icon="calendar_today"
+          size="lg"
+          to="/main/schedules"
+        />
       </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useEmployeeStore } from 'src/stores/employee-module';
+import { ref, onMounted } from 'vue'
 
 defineOptions({
-  name: 'IndexPage'
-});
+  name: 'IndexPage',
+})
 
-const employeeStore = useEmployeeStore();
-const activeEmployeesCount = ref('--');
-const loadingEmployees = ref(true);
+const activeEmployeesCount = ref('12') // Número temporal
+const loadingEmployees = ref(false)
 
 onMounted(async () => {
-  try {
-    await employeeStore.fetchEmployees();
-    const activeEmployees = employeeStore.getAllEmployees.filter(emp => emp.status === 'ACTIVE'); // Asumiendo un campo 'status'
-    activeEmployeesCount.value = activeEmployees.length;
-  } catch (error) {
-    console.error('Error fetching active employees:', error);
-    activeEmployeesCount.value = 'Error';
-  } finally {
-    loadingEmployees.value = false;
-  }
-});
+  //try {
+  //await employeeStore.fetchEmployees()
+  //const activeEmployees = employeeStore.getAllEmployees.filter((emp) => emp.status === 'ACTIVE') // Asumiendo un campo 'status'
+  //activeEmployeesCount.value = activeEmployees.length
+  //} catch (error) {
+  //console.error('Error fetching active employees:', error)
+  //activeEmployeesCount.value = 'Error'
+  //} finally {
+  //loadingEmployees.value = false
+  //}
+  loadingEmployees.value = false
+  activeEmployeesCount.value = '12'
+})
 </script>
 
 <style lang="scss" scoped>
@@ -103,7 +129,9 @@ onMounted(async () => {
   border-radius: 15px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 15px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 
   &:hover {
     transform: translateY(-5px);

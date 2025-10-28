@@ -19,20 +19,28 @@ const routes = [
     meta: { requiresAuth: true }, // <-- AÑADIDO PARA PROTEGER LA RUTA
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: 'employees', component: () => import('pages/main/EmployeesPage.vue'), meta: { roles: ['MANAGER', 'ADMIN'] } },
+      {
+        path: 'employees',
+        component: () => import(/* webpackPrefetch: true */ 'pages/main/EmployeesPage.vue'),
+        meta: { roles: ['MANAGER', 'ADMIN'] },
+      },
       { path: 'consumptions', component: () => import('pages/main/ConsumptionsPage.vue') },
       { path: 'attendance', component: () => import('pages/main/AttendancePage.vue') },
       { path: 'schedules', component: () => import('pages/main/SchedulesPage.vue') },
       { path: 'reports', component: () => import('pages/main/ReportsPage.vue') },
-      { path: 'employee/:id', name: 'employee-detail', component: () => import('pages/main/EmployeeDetailPage.vue'), props: true, meta: { roles: ['MANAGER', 'ADMIN'] } } // <-- RUTA AÑADIDA,
+      {
+        path: 'employee/:id',
+        name: 'employee-detail',
+        component: () => import('pages/main/EmployeeDetailPage.vue'),
+        props: true,
+        meta: { roles: ['MANAGER', 'ADMIN'] },
+      }, // <-- RUTA AÑADIDA,
     ],
   },
 
-
-
   {
     path: '/forbidden',
-    component: () => import('pages/ForbiddenPage.vue')
+    component: () => import('pages/ForbiddenPage.vue'),
   },
 
   // Always leave this as last one,

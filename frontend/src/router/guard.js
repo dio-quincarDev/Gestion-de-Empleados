@@ -21,8 +21,6 @@ export function authGuard(to, from, next) {
   // Regla 3: Verificación de roles - CORREGIDO
   if (to.meta.roles && isAuthenticated) {
     const userRoles = AuthService.getUserRoles()
-    console.log('Roles requeridos:', to.meta.roles, 'Roles usuario:', userRoles) // Debug
-
     const hasRequiredRole = to.meta.roles.some(
       (requiredRole) => userRoles.includes(requiredRole.toUpperCase()), // ← Normalizar a mayúsculas
     )

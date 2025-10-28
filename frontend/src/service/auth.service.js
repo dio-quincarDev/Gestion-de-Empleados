@@ -11,14 +11,9 @@ export default {
         credentials,
       )
 
-      // Guardar el token en localStorage
+      // ✅ CORREGIDO: Guardar como string simple
       if (response.data.accessToken) {
-        let tokenToStore = response.data.accessToken;
-        if (typeof tokenToStore === 'object' && tokenToStore !== null) {
-          // Assuming the actual token string is within a 'token' property of the object
-          tokenToStore = tokenToStore.token || tokenToStore.jwt || JSON.stringify(tokenToStore);
-        }
-        localStorage.setItem('authToken', tokenToStore);
+        localStorage.setItem('authToken', response.data.accessToken)
       }
       return response.data
     } catch (error) {
@@ -46,20 +41,19 @@ export default {
     return !!localStorage.getItem('authToken')
   },
 
-  // Obtener token
+  // Obtener token - ✅ CORREGIDO: Leer directamente como string
   getToken() {
     return localStorage.getItem('authToken')
   },
 
-  // Obtener roles del usuario desde el token JWT - CORREGIDO
+  // Obtener roles del usuario desde el token JWT
   getUserRoles() {
     const token = this.getToken()
     if (token) {
       try {
         const decodedToken = jwtDecode(token)
-        console.log('Token decodificado:', decodedToken) // ← DEBUG
 
-        // Tu backend ahora devuelve "roles" como array: ["ROLE_MANAGER"]
+        // Tu backend devuelve "roles" como array: ["ROLE_MANAGER"]
         if (decodedToken.roles && Array.isArray(decodedToken.roles)) {
           // Normalizar roles - quitar ROLE_ y convertir a mayúsculas
           return decodedToken.roles.map((role) => {
@@ -94,12 +88,11 @@ export default {
     if (token) {
       try {
         const decodedToken = jwtDecode(token)
-        const roles = this.getUserRoles() // Reutiliza el método existente
+        const roles = this.getUserRoles()
 
         return {
           email: decodedToken.sub,
           roles: roles,
-          // Agrega más campos si tu token los incluye
           firstname: decodedToken.firstname,
           lastname: decodedToken.lastname,
         }
@@ -136,7 +129,7 @@ export default {
   async registerManager(userData) {
     try {
       const response = await api.post(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.AUTH_ROUTE}/register-manager`, // ← CORREGIR RUTA
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.AUTH_ROUTE}/register-manager`,
         userData,
       )
       return response.data
