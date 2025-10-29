@@ -30,21 +30,20 @@ public class UserManagementController {
     private final UserManagementService userManagementService;
 
     @PostMapping
-    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<UserEntity> createUser(@Valid @RequestBody CreateUserRequest request) {
         UserEntity createdUser = userManagementService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userManagementService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/role")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
     public ResponseEntity<Void> updateUserRole(@PathVariable UUID id, @RequestParam EmployeeRole role) {
         userManagementService.updateUserRole(id, role);
         return ResponseEntity.noContent().build();

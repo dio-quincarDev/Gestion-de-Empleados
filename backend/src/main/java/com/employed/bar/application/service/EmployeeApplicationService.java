@@ -9,10 +9,11 @@ import com.employed.bar.domain.port.in.app.AttendanceUseCase;
 import com.employed.bar.domain.port.in.app.EmployeeUseCase;
 import com.employed.bar.domain.port.in.payment.PaymentCalculationUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
 public class EmployeeApplicationService implements EmployeeUseCase {
@@ -41,13 +42,13 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    public List<EmployeeClass> getEmployees() {
-        return employeeRepositoryPort.findAll();
+    public Page<EmployeeClass> getEmployees(Pageable pageable) {
+        return employeeRepositoryPort.findAll(pageable);
     }
 
     @Override
-    public List<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status) {
-        return employeeRepositoryPort.searchEmployees(name, role, status);
+    public Page<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status, Pageable pageable) {
+        return employeeRepositoryPort.searchEmployees(name, role, status, pageable);
     }
 
     @Override

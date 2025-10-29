@@ -6,6 +6,7 @@ import com.employed.bar.domain.model.payment.OvertimeSuggestion;
 import com.employed.bar.domain.port.in.payment.OvertimeSuggestionUseCase;
 import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -28,7 +29,7 @@ public class OvertimeSuggestionApplicationService implements OvertimeSuggestionU
 
     @Override
     public List<OvertimeSuggestion> generateSuggestions() {
-        List<EmployeeClass> employees = employeeRepositoryPort.findAll();
+        List<EmployeeClass> employees = employeeRepositoryPort.findAll(Pageable.unpaged()).getContent();
         if (employees == null) {
             return new ArrayList<>();
         }

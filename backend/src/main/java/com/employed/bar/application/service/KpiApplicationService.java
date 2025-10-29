@@ -11,6 +11,7 @@ import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,7 +28,9 @@ public class KpiApplicationService implements KpiServicePort {
     private final AttendanceRepositoryPort attendanceRepository;
     private final ConsumptionRepositoryPort consumptionRepositoryPort;
 
-    public KpiApplicationService(EmployeeRepositoryPort employeeRepository, AttendanceRepositoryPort attendanceRepository, ConsumptionRepositoryPort consumptionRepositoryPort) {
+    public KpiApplicationService(EmployeeRepositoryPort employeeRepository,
+                                 AttendanceRepositoryPort attendanceRepository,
+                                 ConsumptionRepositoryPort consumptionRepositoryPort) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepository = attendanceRepository;
         this.consumptionRepositoryPort = consumptionRepositoryPort;
@@ -39,7 +42,7 @@ public class KpiApplicationService implements KpiServicePort {
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Start date and end date must not be null");
         }
-        List<EmployeeClass> allEmployees = employeeRepository.findAll();
+        List<EmployeeClass> allEmployees = employeeRepository.findAll(Pageable.unpaged()).getContent();
 
         long totalActiveEmployees = allEmployees.stream()
                 .filter(e -> EmployeeStatus.ACTIVE.equals(e.getStatus()))

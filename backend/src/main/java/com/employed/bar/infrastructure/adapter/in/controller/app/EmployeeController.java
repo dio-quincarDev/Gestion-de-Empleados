@@ -10,20 +10,18 @@ import com.employed.bar.infrastructure.dto.domain.EmployeeDto;
 import com.employed.bar.infrastructure.dto.request.UpdateHourlyRateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * REST controller for managing employee information.
@@ -95,22 +93,20 @@ public class EmployeeController {
     }
 
     @Operation(
-            summary = "Listar todos los empleados",
-            description = "Obtiene una lista completa de todos los empleados registrados",
+            summary = "Listar todos los empleados de forma paginada",
+            description = "Obtiene una lista paginada de todos los empleados registrados. Permite ordenar por campos como 'name', 'email', etc.",
             operationId = "getAllEmployees"
     )
     @ApiResponse(
             responseCode = "200",
-            description = "Lista de empleados obtenida exitosamente",
-            content = @Content(array = @ArraySchema(schema = @Schema(implementation = EmployeeDto.class)))
+            description = "Lista paginada de empleados obtenida exitosamente",
+            content = @Content(schema = @Schema(implementation = Page.class))
     )
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
-        List<EmployeeDto> employees = employeeUseCase.getEmployees().stream()
-                .map(employeeApiMapper::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(employees);
+    public ResponseEntity<Page<EmployeeDto>> getAllEmployees(@Parameter(hidden = true) Pageable pageable) {
+        Page<EmployeeClass> employeePage = employeeUseCase.getEmployees(pageable);
+        return ResponseEntity.ok(employeePage.map(employeeApiMapper::toDto));
     }
 
     @Operation(
@@ -181,20 +177,19 @@ public class EmployeeController {
     }
 
     @Operation(
-            summary = "Buscar empleados",
-            description = "Busca empleados por diferentes criterios (estado, nombre o rol)",
+            summary = "Buscar empleados de forma paginada",
+            description = "Busca empleados por diferentes criterios (estado, nombre o rol) y devuelve una lista paginada.",
             operationId = "searchEmployees"
     )
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<List<EmployeeDto>> searchEmployees(
+    public ResponseEntity<Page<EmployeeDto>> searchEmployees(
             @Parameter(description = "Estado del empleado (ej. 'ACTIVE', 'INACTIVE')") @RequestParam(required = false) EmployeeStatus status,
             @Parameter(description = "Nombre completo o parcial del empleado") @RequestParam(required = false) String name,
-            @Parameter(description = "Rol del empleado") @RequestParam(required = false) EmployeeRole role) {
+            @Parameter(description = "Rol del empleado") @RequestParam(required = false) EmployeeRole role,
+            @Parameter(hidden = true) Pageable pageable) {
 
-        List<EmployeeDto> employees = employeeUseCase.searchEmployees(name, role, status).stream()
-                .map(employeeApiMapper::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(employees);
+        Page<EmployeeClass> employeePage = employeeUseCase.searchEmployees(name, role, status, pageable);
+        return ResponseEntity.ok(employeePage.map(employeeApiMapper::toDto));
     }
 }

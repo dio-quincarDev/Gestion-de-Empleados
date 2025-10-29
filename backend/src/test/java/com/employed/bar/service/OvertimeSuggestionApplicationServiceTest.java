@@ -15,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +27,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,7 +57,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(9, 0)));
         record.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(18, 0))); // 9 hours
 
-        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.singletonList(employee)));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
 
         // When
@@ -84,7 +87,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 21), LocalTime.of(9, 0)));
         record.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 21), LocalTime.of(17, 0))); // 8 hours
 
-        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.singletonList(employee)));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
 
         // When
@@ -104,7 +107,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         employee.setPaysOvertime(true);
         employee.setPaymentMethod(paymentMethod);
 
-        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.singletonList(employee)));
 
         // When
         List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
@@ -123,7 +126,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         employee.setPaysOvertime(false);
         employee.setPaymentMethod(paymentMethod);
 
-        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.singletonList(employee)));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.emptyList());
 
         // When
@@ -166,7 +169,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         noOvertimeRecord.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 23), LocalTime.of(9, 0)));
         noOvertimeRecord.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 23), LocalTime.of(17, 0))); // 8 hours
 
-        when(employeeRepositoryPort.findAll()).thenReturn(List.of(employeeWithOvertime, employeePaysOvertime, employeeNoOvertime));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(employeeWithOvertime, employeePaysOvertime, employeeNoOvertime)));
         when(attendanceRepositoryPort.findByEmployee(employeeWithOvertime)).thenReturn(Collections.singletonList(overtimeRecord));
         when(attendanceRepositoryPort.findByEmployee(employeeNoOvertime)).thenReturn(Collections.singletonList(noOvertimeRecord));
 
@@ -182,7 +185,7 @@ public class OvertimeSuggestionApplicationServiceTest {
 
     @Test
     void testGenerateSuggestions_NullEmployeeRepositoryFindAll() {
-        when(employeeRepositoryPort.findAll()).thenReturn(null);
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(null);
 
         List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
 
@@ -197,7 +200,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         employee.setPaysOvertime(false);
         employee.setPaymentMethod(paymentMethod);
 
-        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.singletonList(employee)));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(null);
 
         List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
@@ -218,7 +221,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         record.setEntryDateTime(null); // Null date, so entryDateTime is null
         record.setExitDateTime(null); // Null date, so exitDateTime is null
 
-        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.singletonList(employee)));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
 
         List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
@@ -240,7 +243,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(9, 0)));
         record.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(17, 0))); // 8 hours
 
-        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.singletonList(employee)));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
 
         List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
@@ -262,7 +265,7 @@ public class OvertimeSuggestionApplicationServiceTest {
         record.setEntryDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(9, 0)));
         record.setExitDateTime(LocalDateTime.of(LocalDate.of(2024, 5, 20), LocalTime.of(16, 0))); // 7 hours
 
-        when(employeeRepositoryPort.findAll()).thenReturn(Collections.singletonList(employee));
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.singletonList(employee)));
         when(attendanceRepositoryPort.findByEmployee(employee)).thenReturn(Collections.singletonList(record));
 
         List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();

@@ -1,87 +1,135 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title>Manager Weekly Report</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 150px;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333333;
+        }
+        .period {
+            font-size: 16px;
+            color: #666666;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333333;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eeeeee;
+            padding-bottom: 5px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
         th, td {
             border: 1px solid #dddddd;
+            padding: 10px;
             text-align: left;
-            padding: 8px;
         }
         th {
             background-color: #f2f2f2;
+            font-weight: bold;
+            color: #333333;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999999;
         }
     </style>
 </head>
 <body>
-    <h2>Manager Weekly Report</h2>
-    <h3>Employee Summaries</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Employee Name</th>
-                <th>Total Hours Worked</th>
-                <th>Total Earnings</th>
-                <th>Total Consumptions</th>
-                <th>Net Pay</th>
-                <th>Payment Method</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="summary : ${employeeSummaries}">
-                <td th:text="${summary.employeeName}"></td>
-                <td th:text="${summary.totalHoursWorked}"></td>
-                <td th:text="${summary.totalEarnings}"></td>
-                <td th:text="${summary.totalConsumptions}"></td>
-                <td th:text="${summary.netPay}"></td>
-                <td>
-                    <div th:switch="${summary.paymentMethod.getType().name()}">
-                        <div th:case="'CASH'">
-                            Cash
-                        </div>
-                        <div th:case="'ACH'">
-                            ACH - <span th:text="${summary.paymentMethod.bankName}"></span> - <span th:text="${summary.paymentMethod.accountNumber}"></span>
-                        </div>
-                        <div th:case="'YAPPY'">
-                            Yappy - <span th:text="${summary.paymentMethod.phoneNumber}"></span>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="container">
+        <div class="header">
+            <img th:src="|cid:${logoCid}|" alt="Company Logo"/> <!-- Use cid: for embedded images -->
+            <div class="title">PLANILLA DE COLABORADORES</div>
+            <div class="period" th:text="${'PERIODO DEL ' + startDate + ' AL ' + endDate}"></div>
+        </div>
 
-    <h3>Totals</h3>
-    <table>
-        <tbody>
-            <tr>
-                <td>Total Regular Hours Worked</td>
-                <td th:text="${totals.totalRegularHoursWorked}"></td>
-            </tr>
-            <tr>
-                <td>Total Overtime Hours Worked</td>
-                <td th:text="${totals.totalOvertimeHoursWorked}"></td>
-            </tr>
-            <tr>
-                <td>Total Earnings</td>
-                <td th:text="${totals.totalEarnings}"></td>
-            </tr>
-            <tr>
-                <td>Total Consumptions</td>
-                <td th:text="${totals.totalConsumptions}"></td>
-            </tr>
-            <tr>
-                <td>Total Net Pay</td>
-                <td th:text="${totals.totalNetPay}"></td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="employee-summary">
+            <h2 class="section-title">Resumen de Empleados</h2>
+            <table>
+                <thead>
+                    <tr>
+                                            <th>Nombre</th>
+                                            <th>Total Horas</th>
+                                            <th>Ganancias</th>
+                                            <th>Consumos</th>
+                                            <th>Pago Neto</th>                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="employee : ${employeeSummaries}">
+                                            <td th:text="${employee.employeeName}"></td>
+                                            <td th:text="${employee.totalHoursWorked}"></td>
+                                            <td th:text="${employee.totalEarnings}"></td>
+                                            <td th:text="${employee.totalConsumptions}"></td>
+                                            <td th:text="${employee.netPay}"></td>                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals">
+            <h2 class="section-title">Totales</h2>
+            <table>
+                <tr>
+                    <th>Total Horas Regulares</th>
+                    <td th:text="${totals.totalRegularHoursWorked}"></td>
+                </tr>
+                <tr>
+                    <th>Total Horas Extras</th>
+                    <td th:text="${totals.totalOvertimeHoursWorked}"></td>
+                </tr>
+                <tr>
+                    <th>Total Ganancias</th>
+                    <td th:text="${totals.totalEarnings}"></td>
+                </tr>
+                <tr>
+                    <th>Total Consumos</th>
+                    <td th:text="${totals.totalConsumptions}"></td>
+                </tr>
+                <tr>
+                    <th>Total Neto a Pagar</th>
+                    <td th:text="${totals.totalNetPay}"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Este correo electrónico fue generado automáticamente.</p>
+        </div>
+    </div>
 </body>
 </html>

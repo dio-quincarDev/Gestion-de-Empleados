@@ -1,61 +1,121 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title>Reporte Semanal</title>
     <style>
-        table {
-            border-collapse: collapse;
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
             width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 150px;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333333;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333333;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eeeeee;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
         }
         th, td {
-            border: 1px solid black;
-            padding: 8px;
+            border: 1px solid #dddddd;
+            padding: 10px;
             text-align: left;
         }
         th {
             background-color: #f2f2f2;
+            font-weight: bold;
+            color: #333333;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999999;
         }
     </style>
 </head>
 <body>
-<h1>Reporte Semanal para <span th:text="${employeeName}"></span></h1>
+    <div class="container">
+        <div class="header">
+            <img th:src="|cid:${logoCid}|" alt="Company Logo"/> <!-- Use cid: for embedded images -->
+            <h1 class="title">Reporte Semanal para <span th:text="${employeeName}"></span></h1>
+        </div>
 
-<h2>Reporte de Asistencia</h2>
-<table>
-    <tr>
-        <th>Fecha</th>
-        <th>Hora de Entrada</th>
-        <th>Hora de Salida</th>
-        <th>Horas Trabajadas</th>
-       <!-- <th>Porcentaje de Asistencia</th>-->
-    </tr>
-    <tr th:each="attendance : ${attendanceReports}">
-        <td th:text="${#temporals.format(attendance.entryDateTime, 'dd-MM-yyyy')}"></td>
-        <td th:text="${#temporals.format(attendance.entryDateTime, 'HH:mm')}"></td>
-        <td th:text="${#temporals.format(attendance.exitDateTime, 'HH:mm')}"></td>
-        <td th:text="${attendance.workedHours}"></td>
-      <!-- <td th:text="${attendance.attendancePercentage + '%'}"></td>-->
-    </tr>
-</table>
-<!-- Total de Horas Trabajadas -->
-<h3 th:if="${totalAttendanceHours != null}">Total de Horas Trabajadas: <span th:text="${totalAttendanceHours}"></span> horas</h3>
+        <h2 class="section-title">Reporte de Asistencia</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora de Entrada</th>
+                    <th>Hora de Salida</th>
+                    <th>Horas Trabajadas</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="attendance : ${attendanceReports}">
+                    <td th:text="${#temporals.format(attendance.entryDateTime, 'dd-MM-yyyy')}"></td>
+                    <td th:text="${#temporals.format(attendance.entryDateTime, 'HH:mm')}"></td>
+                    <td th:text="${#temporals.format(attendance.exitDateTime, 'HH:mm')}"></td>
+                    <td th:text="${attendance.workedHours}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <h3 th:if="${totalAttendanceHours != null}">Total de Horas Trabajadas: <span th:text="${totalAttendanceHours}"></span> horas</h3>
 
-<h2>Reporte de Consumo Individual</h2>
-<table>
-    <tr>
-        <th>Fecha</th>
-        <th>Descripción</th>
-        <th>Monto</th>
-    </tr>
-    <tr th:each="consumptionClass : ${individualConsumptionReports}">
-        <td th:text="${#temporals.format(consumptionClass.consumptionDate, 'dd-MM-yyyy HH:mm')}"></td>
-        <td th:text="${consumptionClass.description}"></td>
-        <td th:text="${'$' + #numbers.formatDecimal(consumptionClass.amount, 1, 2)}"></td>
-    </tr>
-</table>
+        <h2 class="section-title">Reporte de Consumo Individual</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="consumptionClass : ${individualConsumptionReports}">
+                    <td th:text="${#temporals.format(consumptionClass.consumptionDate, 'dd-MM-yyyy HH:mm')}"></td>
+                    <td th:text="${consumptionClass.description}"></td>
+                    <td th:text="${'$' + #numbers.formatDecimal(consumptionClass.amount, 1, 2)}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <h3 th:if="${totalConsumptionAmount != null}">Consumo Total: <span th:text="${totalConsumptionAmount}"></span> $</h3>
 
-<!-- Consumo Total -->
-<h3 th:if="${totalConsumptionAmount != null}">Consumo Total: <span th:text="${totalConsumptionAmount}"></span> $</h3>
-
+        <div class="footer">
+            <p>Este correo electrónico fue generado automáticamente.</p>
+        </div>
+    </div>
 </body>
 </html>
