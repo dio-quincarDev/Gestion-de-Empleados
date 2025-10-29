@@ -6,68 +6,93 @@
     <title>Manager Weekly Report</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333333;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+            line-height: 1.6 !important;
+            color: #333333 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: #f8f8f8 !important;
         }
         .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100% !important;
+            max-width: 600px !important;
+            margin: 20px auto !important;
+            background-color: #ffffff !important;
+            padding: 30px !important;
+            border-radius: 10px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
         }
         .header {
-            text-align: center;
-            margin-bottom: 20px;
+            text-align: center !important;
+            margin-bottom: 25px !important;
+            padding-bottom: 15px !important;
+            border-bottom: 1px solid #eeeeee !important;
         }
         .header img {
-            max-width: 150px;
-            margin-bottom: 10px;
+            max-width: 160px !important;
+            height: auto !important;
+            margin-bottom: 15px !important;
         }
-        .title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333333;
+        h1.title, .title {
+            font-size: 26px !important;
+            font-weight: 700 !important;
+            color: #2c3e50 !important;
+            margin-top: 10px !important;
         }
         .period {
-            font-size: 16px;
-            color: #666666;
+            font-size: 16px !important;
+            color: #666666 !important;
+            margin-top: 5px !important;
         }
-        .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333333;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #eeeeee;
-            padding-bottom: 5px;
+        h2.section-title, .section-title {
+            font-size: 22px !important;
+            font-weight: 600 !important;
+            color: #34495e !important;
+            margin-top: 30px !important;
+            margin-bottom: 15px !important;
+            border-bottom: 2px solid #cccccc !important;
+            padding-bottom: 8px !important;
         }
         table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin-bottom: 25px !important;
+            border: 1px solid #dddddd !important;
         }
         th, td {
-            border: 1px solid #dddddd;
-            padding: 10px;
-            text-align: left;
+            border: 1px solid #e0e0e0 !important;
+            padding: 12px 15px !important;
+            text-align: left !important;
+            font-size: 14px !important;
         }
         th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            color: #333333;
+            background-color: #f0f0f0 !important;
+            font-weight: 700 !important;
+            color: #555555 !important;
+            text-transform: uppercase !important;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9 !important;
         }
         .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 12px;
-            color: #999999;
+            text-align: center !important;
+            margin-top: 40px !important;
+            font-size: 13px !important;
+            color: #888888 !important;
+            border-top: 1px solid #eeeeee !important;
+            padding-top: 20px !important;
+        }
+
+        /* Estilos específicos para texto de totales */
+        h2 {
+            font-size: 18px !important;
+            color: #2c3e50 !important;
+            margin-top: 15px !important;
+            margin-bottom: 10px !important;
+        }
+        h2 span {
+            font-weight: bold !important;
+            color: #2980b9 !important;
         }
     </style>
 </head>
@@ -86,7 +111,7 @@
                     <tr>
                                             <th>Nombre</th>
                                             <th>Total Horas</th>
-                                            <th>Ganancias</th>
+                                            <th>Sueldo</th>
                                             <th>Consumos</th>
                                             <th>Pago Neto</th>                    </tr>
                 </thead>
@@ -113,7 +138,7 @@
                     <td th:text="${totals.totalOvertimeHoursWorked}"></td>
                 </tr>
                 <tr>
-                    <th>Total Ganancias</th>
+                    <th>Obligación Salarial</th>
                     <td th:text="${totals.totalEarnings}"></td>
                 </tr>
                 <tr>
