@@ -16,8 +16,13 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.util.StreamUtils;
+
+// ... (rest of imports)
 
 @RequiredArgsConstructor
 @Component
@@ -25,6 +30,16 @@ public class EmailAdapter implements NotificationPort {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final ClassPathResource logoResource = new ClassPathResource("static/images/1800-logo.png");
+    private String readCssFileContent(String cssFileName) {
+        try {
+            ClassPathResource resource = new ClassPathResource("static/css/" + cssFileName);
+            return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            System.err.println("Error reading CSS file " + cssFileName + ": " + e.getMessage());
+            return ""; // Return empty string if CSS file cannot be read
+        }
+    }
 
     @Override
 
@@ -55,7 +70,9 @@ public class EmailAdapter implements NotificationPort {
         context.setVariable("individualConsumptionReports", report.getConsumptionLines());
         context.setVariable("totalAttendanceHours", report.getTotalAttendanceHours());
         context.setVariable("totalConsumptionAmount", report.getTotalConsumptionAmount());
-        context.setVariable("logoCid", "1800-logo.png"); // Add logo CID
+        context.setVariable("totalEarnings", report.getTotalEarnings());
+        context.setVariable("logoCid", "1800-logo.png");
+        context.setVariable("personalCss", readCssFileContent("personal.css")); // Add personal CSS content
 
         System.out.println("📋 [TEMPLATE] Datos para plantilla:");
         System.out.println("   - employeeName: " + employee.getName());
@@ -111,7 +128,15 @@ public class EmailAdapter implements NotificationPort {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("employeeSummaries", managerReport.getEmployeeSummaries());
         dataMap.put("totals", managerReport.getTotals());
-        dataMap.put("logoCid", "1800-logo.png"); // Add logo CID
+        dataMap.put("logoCid", "1800-logo.png");
+        dataMap.put("managerCss", readCssFileContent("manager.css")); // Add manager CSS content
+
+        // Calculate and add startDate and endDate dynamically
+        java.time.format.DateTimeFormatter DATE_FORMATTER = java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        String startDate = java.time.LocalDate.now().minusDays(7).format(DATE_FORMATTER);
+        String endDate = java.time.LocalDate.now().format(DATE_FORMATTER);
+        dataMap.put("startDate", startDate);
+        dataMap.put("endDate", endDate);
 
         // ✅ SOLUCIÓN: Pasar el Map al Context
         context.setVariables(dataMap);
@@ -141,8 +166,7 @@ public class EmailAdapter implements NotificationPort {
             helper.setText(body, true); // 'true' for HTML content
 
             // Add the inline image
-            ClassPathResource clr = new ClassPathResource("static/images/1800-logo.png");
-            helper.addInline("1800-logo.png", clr, "image/png"); // Content-ID matches the 'cid:' in HTML
+            helper.addInline("1800-logo.png", logoResource, "image/png"); // Content-ID matches the 'cid:' in HTML
 
             System.out.println("🔄 [SEND HTML] Ejecutando mailSender.send()...");
             mailSender.send(mimeMessage);

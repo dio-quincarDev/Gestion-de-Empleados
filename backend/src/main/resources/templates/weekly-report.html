@@ -5,64 +5,88 @@
     <title>Reporte Semanal</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             line-height: 1.6;
             color: #333333;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f8f8f8; /* Ligeramente más claro */
         }
         .container {
             width: 100%;
             max-width: 600px;
             margin: 20px auto;
             background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px; /* Más padding */
+            border-radius: 10px; /* Bordes más suaves */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra más pronunciada */
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px; /* Más espacio */
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eeeeee;
         }
         .header img {
-            max-width: 150px;
-            margin-bottom: 10px;
+            max-width: 160px; /* Logo un poco más grande */
+            height: auto;
+            margin-bottom: 15px;
         }
         .title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333333;
+            font-size: 26px; /* Título más grande */
+            font-weight: 700; /* Más negrita */
+            color: #2c3e50; /* Color más oscuro */
+            margin-top: 10px;
         }
         .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333333;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #eeeeee;
-            padding-bottom: 5px;
+            font-size: 22px; /* Título de sección más grande */
+            font-weight: 600;
+            color: #34495e; /* Color de sección */
+            margin-top: 30px; /* Más espacio arriba */
+            margin-bottom: 15px;
+            border-bottom: 2px solid #cccccc; /* Borde más visible */
+            padding-bottom: 8px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 25px; /* Más espacio */
+            border: 1px solid #dddddd; /* Borde de tabla */
         }
         th, td {
-            border: 1px solid #dddddd;
-            padding: 10px;
+            border: 1px solid #e0e0e0; /* Bordes de celda más suaves */
+            padding: 12px 15px; /* Más padding */
             text-align: left;
+            font-size: 14px;
         }
         th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            color: #333333;
+            background-color: #f0f0f0; /* Fondo de encabezado */
+            font-weight: 700;
+            color: #555555;
+            text-transform: uppercase; /* Mayúsculas */
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9; /* Rayas de cebra */
         }
         .footer {
             text-align: center;
-            margin-top: 30px;
-            font-size: 12px;
-            color: #999999;
+            margin-top: 40px; /* Más espacio */
+            font-size: 13px;
+            color: #888888;
+            border-top: 1px solid #eeeeee;
+            padding-top: 20px;
+        }
+
+        /* Estilos específicos para texto de totales */
+        h3 {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        h3 span {
+            font-weight: bold;
+            color: #2980b9; /* Color de énfasis */
         }
     </style>
 </head>
@@ -93,6 +117,8 @@
             </tbody>
         </table>
         <h3 th:if="${totalAttendanceHours != null}">Total de Horas Trabajadas: <span th:text="${totalAttendanceHours}"></span> horas</h3>
+
+        <h3 th:if="${totalEarnings != null}">Sueldo Total: <span th:text="${'$' + #numbers.formatDecimal(totalEarnings, 1, 2)}"></span></h3>
 
         <h2 class="section-title">Reporte de Consumo Individual</h2>
         <table>

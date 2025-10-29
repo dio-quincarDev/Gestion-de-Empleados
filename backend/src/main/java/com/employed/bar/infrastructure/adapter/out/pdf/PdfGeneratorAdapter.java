@@ -132,7 +132,7 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         addSummaryRow(summaryTable, "Horas Extras Trabajadas", totals.getTotalOvertimeHoursWorked() + " hrs");
         addSummaryRow(summaryTable, "Total Horas",
                 totals.getTotalRegularHoursWorked().add(totals.getTotalOvertimeHoursWorked()) + " hrs");
-        addSummaryRow(summaryTable, "Ingresos Totales", "$" + totals.getTotalEarnings());
+        addSummaryRow(summaryTable, "Obligación Salarial", "$" + totals.getTotalEarnings());
         addSummaryRow(summaryTable, "Consumos Totales", "$" + totals.getTotalConsumptions());
         addSummaryRow(summaryTable, "Pago Neto Total", "$" + totals.getTotalNetPay(), true);
 
@@ -171,7 +171,7 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         // Encabezados con estilo profesional
         addProfessionalHeader(table, "NOMBRE");
         addProfessionalHeader(table, "HORAS");
-        addProfessionalHeader(table, "INGRESOS");
+        addProfessionalHeader(table, "SUELDO");
         addProfessionalHeader(table, "CONSUMOS");
         addProfessionalHeader(table, "PAGO NETO");
         addProfessionalHeader(table, "MÉTODO DE PAGO");
