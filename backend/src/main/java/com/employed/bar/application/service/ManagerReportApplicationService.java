@@ -9,6 +9,7 @@ import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.NotificationPort;
 import com.employed.bar.domain.port.out.PdfGeneratorPort;
 import com.employed.bar.domain.service.ManagerReportCalculator;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,7 +39,7 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Start date and end date must not be null");
         }
-        List<EmployeeClass> allEmployees = employeeRepository.findAll();
+        List<EmployeeClass> allEmployees = employeeRepository.findAll(Pageable.unpaged()).getContent();
         List<Report> individualReports = allEmployees.stream()
                 .map(employee -> reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId()))
                 .collect(Collectors.toList());
@@ -56,7 +57,7 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
         if (startDate == null || endDate == null) {
             throw new IllegalArgumentException("Start date and end date must not be null");
         }
-        List<EmployeeClass> allEmployees = employeeRepository.findAll();
+        List<EmployeeClass> allEmployees = employeeRepository.findAll(Pageable.unpaged()).getContent();
         List<Report> individualReports = allEmployees.stream()
                 .map(employee -> reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId()))
                 .collect(Collectors.toList());

@@ -14,6 +14,7 @@ import com.employed.bar.domain.port.out.AttendanceRepositoryPort;
 import com.employed.bar.domain.port.out.ConsumptionRepositoryPort;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.service.ReportCalculator;
+import org.springframework.data.domain.Pageable;
 
 
 import java.math.BigDecimal;
@@ -121,7 +122,7 @@ public class ReportingApplicationService implements ReportingUseCase {
 
     @Override
     public void generateAndSendWeeklyReport(LocalDate startDate, LocalDate endDate) {
-        List<EmployeeClass> allEmployees = employeeRepository.findAll();
+        List<EmployeeClass> allEmployees = employeeRepository.findAll(Pageable.unpaged()).getContent();
         List<Report> reports = allEmployees.stream()
                 .map(employee -> generateCompleteReportForEmployee(startDate, endDate, employee))
                 .collect(Collectors.toList());

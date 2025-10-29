@@ -9,7 +9,6 @@ import com.employed.bar.domain.model.payment.AchPaymentMethod;
 import com.employed.bar.domain.model.report.HoursCalculation;
 import com.employed.bar.domain.model.report.Report;
 import com.employed.bar.domain.model.structure.EmployeeClass;
-import com.employed.bar.domain.port.in.service.ManagerReportServicePort;
 import com.employed.bar.domain.port.in.service.ReportingUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.NotificationPort;
@@ -22,6 +21,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -76,7 +77,7 @@ public class ManagerReportApplicationServiceTest {
         List<Report> individualReports = Collections.singletonList(individualReport);
         String managerEmail = "manager@example.com";
 
-        when(employeeRepository.findAll()).thenReturn(employees);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(employees));
         when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId())).thenReturn(individualReport);
         when(managerReportCalculator.calculate(employees, individualReports)).thenReturn(managerReport);
 
@@ -84,7 +85,7 @@ public class ManagerReportApplicationServiceTest {
         managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
 
         // Assert
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(reportingUseCase, times(1)).generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         verify(managerReportCalculator, times(1)).calculate(employees, individualReports);
         verify(notificationPort, times(1)).sendManagerReportByEmail(managerEmail, managerReport);
@@ -93,14 +94,14 @@ public class ManagerReportApplicationServiceTest {
     @Test
     void testGenerateAndSendManagerReport_NoEmployees() {
         // Arrange
-        when(employeeRepository.findAll()).thenReturn(Collections.emptyList());
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
         when(managerReportCalculator.calculate(any(), any())).thenReturn(managerReport);
 
         // Act
         managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
 
         // Assert
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verifyNoInteractions(reportingUseCase); // No reports should be generated
         verify(managerReportCalculator, times(1)).calculate(Collections.emptyList(), Collections.emptyList());
         verify(notificationPort, times(1)).sendManagerReportByEmail(anyString(), any(ManagerReport.class));
@@ -113,7 +114,7 @@ public class ManagerReportApplicationServiceTest {
         List<Report> individualReports = Collections.singletonList(individualReport);
         byte[] expectedPdf = {1, 2, 3, 4};
 
-        when(employeeRepository.findAll()).thenReturn(employees);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(employees));
         when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId())).thenReturn(individualReport);
         when(managerReportCalculator.calculate(employees, individualReports)).thenReturn(managerReport);
         when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(expectedPdf);
@@ -124,7 +125,7 @@ public class ManagerReportApplicationServiceTest {
         // Assert
         assertNotNull(actualPdf);
         assertArrayEquals(expectedPdf, actualPdf);
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(reportingUseCase, times(1)).generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         verify(managerReportCalculator, times(1)).calculate(employees, individualReports);
         verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport);
@@ -134,7 +135,7 @@ public class ManagerReportApplicationServiceTest {
     void testGenerateManagerReportPdf_NoEmployees() {
         // Arrange
         byte[] expectedPdf = {1, 2, 3, 4};
-        when(employeeRepository.findAll()).thenReturn(Collections.emptyList());
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
         when(managerReportCalculator.calculate(any(), any())).thenReturn(managerReport);
         when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(expectedPdf);
 
@@ -144,7 +145,7 @@ public class ManagerReportApplicationServiceTest {
         // Assert
         assertNotNull(actualPdf);
         assertArrayEquals(expectedPdf, actualPdf);
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verifyNoInteractions(reportingUseCase);
         verify(managerReportCalculator, times(1)).calculate(Collections.emptyList(), Collections.emptyList());
         verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport);
@@ -190,7 +191,7 @@ public class ManagerReportApplicationServiceTest {
         when(localIndividualReport.getTotalConsumptionAmount()).thenReturn(BigDecimal.valueOf(50));
 
         // Mock dependencies
-        when(employeeRepository.findAll()).thenReturn(List.of(employee));
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(employee)));
         when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId()))
                 .thenReturn(localIndividualReport);
 

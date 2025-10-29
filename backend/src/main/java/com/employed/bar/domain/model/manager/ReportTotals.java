@@ -10,6 +10,7 @@ public class ReportTotals {
     BigDecimal totalConsumptions;
     BigDecimal totalNetPay;
 
+
     public BigDecimal getTotalRegularHoursWorked() {
         return totalRegularHoursWorked;
     }

@@ -7,6 +7,7 @@ import com.employed.bar.domain.port.out.NotificationPort;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,6 +55,7 @@ public class EmailAdapter implements NotificationPort {
         context.setVariable("individualConsumptionReports", report.getConsumptionLines());
         context.setVariable("totalAttendanceHours", report.getTotalAttendanceHours());
         context.setVariable("totalConsumptionAmount", report.getTotalConsumptionAmount());
+        context.setVariable("logoCid", "1800-logo.png"); // Add logo CID
 
         System.out.println("📋 [TEMPLATE] Datos para plantilla:");
         System.out.println("   - employeeName: " + employee.getName());
@@ -108,6 +111,7 @@ public class EmailAdapter implements NotificationPort {
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("employeeSummaries", managerReport.getEmployeeSummaries());
         dataMap.put("totals", managerReport.getTotals());
+        dataMap.put("logoCid", "1800-logo.png"); // Add logo CID
 
         // ✅ SOLUCIÓN: Pasar el Map al Context
         context.setVariables(dataMap);
@@ -127,17 +131,18 @@ public class EmailAdapter implements NotificationPort {
         }
     }
 
-    private void sendHtmlEmail(String to, String subject, String body) {
+    private void sendHtmlEmail(String to, String subject, String body) throws MessagingException {
         System.out.println("📤 [SEND HTML] Enviando email a: " + to);
         MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // 'true' for multipart, 'UTF-8' for encoding
         try {
-            // SOLUCIÓN: NO usar MimeMessageHelper, configurar manualmente
-            mimeMessage.setRecipients(MimeMessage.RecipientType.TO, to);
-            mimeMessage.setSubject(subject);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(body, true); // 'true' for HTML content
 
-            // Configurar explícitamente como HTML
-            mimeMessage.setContent(body, "text/html; charset=utf-8");
-            mimeMessage.saveChanges(); // IMPORTANTE: guardar los cambios
+            // Add the inline image
+            ClassPathResource clr = new ClassPathResource("static/images/1800-logo.png");
+            helper.addInline("1800-logo.png", clr, "image/png"); // Content-ID matches the 'cid:' in HTML
 
             System.out.println("🔄 [SEND HTML] Ejecutando mailSender.send()...");
             mailSender.send(mimeMessage);

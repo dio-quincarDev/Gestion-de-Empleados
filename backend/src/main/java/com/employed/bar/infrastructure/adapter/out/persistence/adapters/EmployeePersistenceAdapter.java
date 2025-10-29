@@ -8,12 +8,12 @@ import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.EmployeeSpecification;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringEmployeeJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Component
 public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
@@ -46,10 +46,9 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     }
 
     @Override
-    public List<EmployeeClass> findAll() {
-        return springEmployeeJpaRepository.findAll().stream()
-                .map(employeeMapper::toDomain)
-                .collect(Collectors.toList());
+    public Page<EmployeeClass> findAll(Pageable pageable) {
+        return springEmployeeJpaRepository.findAll(pageable)
+                .map(employeeMapper::toDomain);
     }
 
     @Override
@@ -59,7 +58,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     }
 
     @Override
-    public List<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status) {
+    public Page<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status, Pageable pageable) {
         Specification<EmployeeEntity> spec = Specification.where(null);
         if (name != null) {
             spec = spec.and(EmployeeSpecification.nameContains(name));
@@ -70,8 +69,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
         if (status != null) {
             spec = spec.and(EmployeeSpecification.hasStatus(status));
         }
-        return springEmployeeJpaRepository.findAll(spec).stream()
-                .map(employeeMapper::toDomain)
-                .collect(Collectors.toList());
+        return springEmployeeJpaRepository.findAll(spec, pageable)
+                .map(employeeMapper::toDomain);
     }
 }

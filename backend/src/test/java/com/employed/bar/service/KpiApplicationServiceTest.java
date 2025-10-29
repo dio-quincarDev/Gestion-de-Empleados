@@ -15,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -74,7 +76,7 @@ public class KpiApplicationServiceTest {
         // Mock employees
         List<EmployeeClass> allEmployees = Arrays.asList(activeEmployee1, activeEmployee2, inactiveEmployee);
         assertEquals(EmployeeStatus.INACTIVE, inactiveEmployee.getStatus(), "Inactive employee status should be INACTIVE"); // DEBUG ASSERTION
-        when(employeeRepository.findAll()).thenReturn(allEmployees);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(allEmployees));
 
         // Execute the security method
         ManagerKpis result = kpiApplicationService.getManagerKpis(startDate, endDate);
@@ -85,12 +87,12 @@ public class KpiApplicationServiceTest {
         assertEquals(1, result.getTotalInactiveEmployees());
 
         // Verify interactions
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
     }
 
     @Test
     void testGetManagerKpis_NoEmployees() {
-        when(employeeRepository.findAll()).thenReturn(Collections.emptyList());
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
 
         ManagerKpis result = kpiApplicationService.getManagerKpis(startDate, endDate);
 
@@ -102,7 +104,7 @@ public class KpiApplicationServiceTest {
         assertTrue(result.getTopEmployeesByHoursWorked().isEmpty());
         assertTrue(result.getTopEmployeesByConsumptions().isEmpty());
 
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(attendanceRepository, never()).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, never()).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), any());
     }
@@ -110,7 +112,7 @@ public class KpiApplicationServiceTest {
     @Test
     void testGetManagerKpis_EmployeesWithNoRecords() {
         List<EmployeeClass> allEmployees = Arrays.asList(activeEmployee1, inactiveEmployee);
-        when(employeeRepository.findAll()).thenReturn(allEmployees);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(allEmployees));
 
         ManagerKpis result = kpiApplicationService.getManagerKpis(startDate, endDate);
 
@@ -118,13 +120,13 @@ public class KpiApplicationServiceTest {
         assertEquals(1, result.getTotalActiveEmployees());
         assertEquals(1, result.getTotalInactiveEmployees());
 
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
     }
 
     @Test
     void testGetManagerKpis_AttendanceWithNullTimes() {
         List<EmployeeClass> allEmployees = Collections.singletonList(activeEmployee1);
-        when(employeeRepository.findAll()).thenReturn(allEmployees);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(allEmployees));
 
         AttendanceRecordClass arNullEntry = new AttendanceRecordClass();
         arNullEntry.setEntryDateTime(null);
@@ -153,7 +155,7 @@ public class KpiApplicationServiceTest {
         assertTrue(result.getTopEmployeesByHoursWorked().isEmpty());
         assertTrue(result.getTopEmployeesByConsumptions().isEmpty());
 
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(attendanceRepository, times(1)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, times(1)).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), any());
     }
@@ -162,7 +164,7 @@ public class KpiApplicationServiceTest {
     void testGetManagerKpis_WithActiveAndInactiveEmployees_FullScenario() {
         // Mock empleados: 2 activos + 1 inactivo
         List<EmployeeClass> allEmployees = Arrays.asList(activeEmployee1, activeEmployee2, inactiveEmployee);
-        when(employeeRepository.findAll()).thenReturn(allEmployees);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(allEmployees));
 
         // 🔹 Asistencia activa
         // Employee 1 → 8 horas (9-17)
@@ -217,7 +219,7 @@ public class KpiApplicationServiceTest {
         assertEquals(BigDecimal.valueOf(10.00), result.getTopEmployeesByConsumptions().get(1).getTotalConsumptions());
 
         // ✅ Verificaciones de interacciones (solo activos)
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(attendanceRepository, times(2)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, times(2)).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(null));
     }
@@ -238,7 +240,7 @@ public class KpiApplicationServiceTest {
         List<EmployeeClass> allEmployees = Arrays.asList(
                 activeEmployee1, activeEmployee2, activeEmployee3, inactiveEmployee, inactiveEmployee2
         );
-        when(employeeRepository.findAll()).thenReturn(allEmployees);
+        when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(allEmployees));
 
         // 🔹 Asistencia variada (solo para activos)
         // Employee 1 → 8 horas (9-17) + 4 horas extra (18-22) en otro día
@@ -326,7 +328,7 @@ public class KpiApplicationServiceTest {
         assertEquals(BigDecimal.valueOf(5.00), result.getTopEmployeesByConsumptions().get(2).getTotalConsumptions());
 
         // ✅ Verificaciones de interacciones (solo para empleados activos)
-        verify(employeeRepository, times(1)).findAll();
+        verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(attendanceRepository, times(3)).findByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, times(3)).findByEmployeeAndDateTimeBetween(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(null));
     }
@@ -337,7 +339,7 @@ public class KpiApplicationServiceTest {
             kpiApplicationService.getManagerKpis(null, endDate);
         });
 
-        verify(employeeRepository, never()).findAll();
+        verify(employeeRepository, never()).findAll(any(Pageable.class));
         verify(attendanceRepository, never()).findByEmployeeAndDateRange(any(), any(), any());
         verify(consumptionRepositoryPort, never()).findByEmployeeAndDateTimeBetween(any(), any(), any(), any());
     }
@@ -348,7 +350,7 @@ public class KpiApplicationServiceTest {
             kpiApplicationService.getManagerKpis(startDate, null);
         });
 
-        verify(employeeRepository, never()).findAll();
+        verify(employeeRepository, never()).findAll(any(Pageable.class));
         verify(attendanceRepository, never()).findByEmployeeAndDateRange(any(), any(), any());
         verify(consumptionRepositoryPort, never()).findByEmployeeAndDateTimeBetween(any(), any(), any(), any());
     }
