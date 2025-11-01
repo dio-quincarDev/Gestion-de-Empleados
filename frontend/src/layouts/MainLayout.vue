@@ -3,9 +3,7 @@
     <q-header elevated class="bg-dark-page text-white">
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
-
         <q-toolbar-title class="app-title"> 1800 Gestión </q-toolbar-title>
-
         <q-btn flat dense round icon="logout" aria-label="Logout" @click="handleLogout" />
       </q-toolbar>
     </q-header>
@@ -13,22 +11,12 @@
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-dark text-white">
       <q-list>
         <q-item-label header class="text-primary"> Menú Principal </q-item-label>
-
         <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
       </q-list>
     </q-drawer>
 
     <q-page-container class="main-page-container">
-      <router-view v-slot="{ Component }">
-        <transition
-          appear
-          enter-active-class="animated fadeIn"
-          leave-active-class="animated fadeOut"
-          mode="out-in"
-        >
-          <component :is="Component" />
-        </transition>
-      </router-view>
+      <router-view />
     </q-page-container>
   </q-layout>
 </template>

@@ -1,5 +1,5 @@
 <template>
-  <q-card class="employee-form-card animated fadeIn" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 700px; max-width: 80vw;'">
+  <q-card class="employee-form-card" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 700px; max-width: 80vw;'">
     <q-card-section class="bg-dark-page text-white">
       <div class="text-h6">{{ props.employee ? 'Editar Empleado' : 'Nuevo Empleado' }}</div>
     </q-card-section>
@@ -50,14 +50,8 @@
       <q-input
         v-if="formData.paymentType === 'HOURLY'"
         v-model.number="formData.hourlyRate"
-        label="Tarifa por Hora"
-        type="number"
-        dark
-        outlined
-        color="primary"
-        label-color="grey-5"
         input-class="text-white"
-        class="animated fadeIn"
+        class=""
       />
       <q-input
         v-if="formData.paymentType === 'SALARIED'"
@@ -69,10 +63,10 @@
         color="primary"
         label-color="grey-5"
         input-class="text-white"
-        class="animated fadeIn"
+        class=""
       />
 
-      <q-toggle v-model="formData.paysOvertime" label="Paga Horas Extra" dark color="primary" class="animated fadeIn" />
+      <q-toggle v-model="formData.paysOvertime" label="Paga Horas Extra" dark color="primary" class="" />
 
       <q-select
         v-if="formData.paysOvertime"
@@ -84,10 +78,10 @@
         color="primary"
         label-color="grey-5"
         input-class="text-white"
-        class="animated fadeIn"
+        class=""
       />
 
-      <q-card flat bordered dark class="q-pa-md glass-card animated fadeIn">
+      <q-card flat bordered dark class="q-pa-md glass-card">
         <div class="text-subtitle1 q-mb-sm text-primary">Método de Pago</div>
         <q-select
           v-model="formData.paymentMethod.type"
@@ -114,7 +108,7 @@
             class="col-xs-12"
           />
         </div>
-        <div v-if="formData.paymentMethod.type === 'YAPPY'" class="q-mt-md animated fadeIn">
+        <div v-if="formData.paymentMethod.type === 'YAPPY'" class="q-mt-md">
           <q-input v-model="formData.paymentMethod.phoneNumber" label="Número de Yappy" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
         </div>
       </q-card>
@@ -124,8 +118,8 @@
     <q-separator dark />
 
     <q-card-actions align="right" class="bg-dark-page">
-      <q-btn flat label="Cancelar" color="grey-5" @click="onCancel" />
-      <q-btn flat label="Guardar" color="primary" @click="onSave" />
+      <q-btn unelevated label="Cancelar" color="grey-5" @click="onCancel" class="gradient-btn" />
+      <q-btn unelevated label="Guardar" color="primary" @click="onSave" class="gradient-btn" />
     </q-card-actions>
   </q-card>
 </template>
@@ -225,7 +219,15 @@ const onCancel = () => {
   border-radius: 10px;
 }
 
-.animated.fadeIn {
-  animation-duration: 0.5s;
+.gradient-btn {
+  background: linear-gradient(45deg, #FF6B6B, #FFD166); /* Example gradient */
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  }
 }
 </style>

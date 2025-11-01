@@ -1,29 +1,29 @@
 <template>
   <q-page class="q-pa-md">
-    <!-- Contenido real -->
-    <div class="animated fadeIn">
-      <div class="row justify-between items-center q-mb-md">
-        <div class="text-h4 text-white page-title">Gestión de Empleados</div>
-        <q-btn color="primary" label="Crear Empleado" @click="openCreateForm" class="q-mt-sm-md" />
-      </div>
-
-      <employee-table
-        :employees="employees"
-        :loading="loading"
-        v-model:pagination="pagination"
-        @request="onRequest"
-        @edit="handleEdit"
-        @delete="handleDelete"
+    <div class="row justify-between items-center q-mb-md">
+      <div class="text-h4 text-white page-title">Gestión de Empleados</div>
+      <q-btn
+        color="primary"
+        label="Crear Empleado"
+        @click="openCreateForm"
+        :loading="employeeStore.loading"
       />
-
-      <q-dialog v-model="showFormDialog" transition-show="scale" transition-hide="scale">
-        <employee-form
-          :employee="editingEmployee"
-          @save="handleSaveEmployee"
-          @cancel="cancelForm"
-        />
-      </q-dialog>
     </div>
+
+    <q-inner-loading :showing="employeeStore.loading">
+      <q-spinner-dots size="50px" color="primary" />
+    </q-inner-loading>
+
+    <employee-table
+      v-if="!employeeStore.loading"
+      :employees="employees"
+      @edit="handleEdit"
+      @delete="handleDelete"
+    />
+
+    <q-dialog v-model="showFormDialog" transition-show="scale" transition-hide="scale">
+      <employee-form :employee="editingEmployee" @save="handleSaveEmployee" @cancel="cancelForm" />
+    </q-dialog>
   </q-page>
 </template>
 
@@ -43,7 +43,6 @@ const $q = useQuasar()
 const employeeStore = useEmployeeStore()
 
 const employees = computed(() => employeeStore.employees)
-const loading = computed(() => employeeStore.loading)
 const pagination = computed({
   get: () => employeeStore.pagination,
   set: (val) => {

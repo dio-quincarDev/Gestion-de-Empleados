@@ -24,33 +24,30 @@ export const useEmployeeStore = defineStore('employee', {
   actions: {
     async fetchEmployees(pagination) {
       this.loading = true
-      console.time('API call')
-
       this.error = null
       const pag = pagination || this.pagination
-      console.timeEnd('API call')
+
+      console.time('Fetch Employees')
 
       try {
-        // Mapear paginación de q-table a parámetros de Spring API
         const params = {
-          page: pag.page > 0 ? pag.page - 1 : 0, // q-table es 1-based, Spring es 0-based
+          page: pag.page > 0 ? pag.page - 1 : 0,
           size: pag.rowsPerPage,
           sort: `${pag.sortBy},${pag.descending ? 'desc' : 'asc'}`,
         }
 
-        const response = await EmployeeService.getEmployees(params) // response es un objeto Page de Spring
+        const response = await EmployeeService.getEmployees(params)
 
-        // Actualizar store con la respuesta
         this.employees = response.content
-
-        // Actualizar estado de paginación desde el objeto Page de Spring
         this.pagination = {
           sortBy: pag.sortBy,
           descending: pag.descending,
-          page: response.number + 1, // Spring es 0-based, q-table es 1-based
+          page: response.number + 1,
           rowsPerPage: response.size,
           rowsNumber: response.totalElements,
         }
+
+        console.timeEnd('Fetch Employees')
       } catch (error) {
         this.error = error
       } finally {
