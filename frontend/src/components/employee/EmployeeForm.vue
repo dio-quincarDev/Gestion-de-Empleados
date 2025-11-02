@@ -1,144 +1,188 @@
 <template>
-  <q-card class="employee-form-card" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 700px; max-width: 80vw;'">
-    <q-card-section class="bg-dark-page text-white">
+  <q-card class="employee-form-card" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 800px; max-width: 90vw;'">
+    <q-card-section class="bg-dark text-white">
       <div class="text-h6">{{ props.employee ? 'Editar Empleado' : 'Nuevo Empleado' }}</div>
     </q-card-section>
 
     <q-separator dark />
 
-    <q-card-section class="q-gutter-md">
-      <q-input v-model="formData.name" label="Nombre Completo" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
-      <q-input v-model="formData.email" label="Email" type="email" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
-      <q-input v-model="formData.contactPhone" label="Teléfono de Contacto" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
-
-      <div class="row q-col-gutter-md">
-        <q-select
-          v-model="formData.role"
-          :options="roleOptions"
-          label="Rol"
-          dark
-          outlined
-          color="primary"
-          label-color="grey-5"
-          input-class="text-white"
-          class="col-xs-12 col-sm-6"
-        />
-        <q-select
-          v-model="formData.status"
-          :options="statusOptions"
-          label="Estado"
-          dark
-          outlined
-          color="primary"
-          label-color="grey-5"
-          input-class="text-white"
-          class="col-xs-12 col-sm-6"
-        />
-      </div>
-
-      <q-select
-        v-model="formData.paymentType"
-        :options="paymentTypeOptions"
-        label="Tipo de Pago"
-        dark
-        outlined
+    <q-card-section>
+      <q-stepper
+        v-model="step"
+        ref="stepper"
         color="primary"
-        label-color="grey-5"
-        input-class="text-white"
-      />
-
-      <q-input
-        v-if="formData.paymentType === 'HOURLY'"
-        v-model.number="formData.hourlyRate"
-        input-class="text-white"
-        class=""
-      />
-      <q-input
-        v-if="formData.paymentType === 'SALARIED'"
-        v-model.number="formData.salary"
-        label="Salario Mensual"
-        type="number"
+        animated
         dark
-        outlined
-        color="primary"
-        label-color="grey-5"
-        input-class="text-white"
-        class=""
-      />
+        class="bg-transparent"
+      >
+        <q-step
+          :name="1"
+          title="Información Personal"
+          icon="person"
+          :done="step > 1"
+        >
+          <q-input v-model="formData.name" label="Nombre Completo" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="q-mb-md" />
+          <q-input v-model="formData.email" label="Email" type="email" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="q-mb-md" />
+          <q-input v-model="formData.contactPhone" label="Teléfono de Contacto" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="q-mb-md" />
+          <div class="row q-col-gutter-md">
+            <q-select
+              v-model="formData.role"
+              :options="roleOptions"
+              label="Rol"
+              dark
+              outlined
+              color="primary"
+              label-color="grey-5"
+              input-class="text-white"
+              class="col-xs-12 col-sm-6"
+            />
+            <q-select
+              v-model="formData.status"
+              :options="statusOptions"
+              label="Estado"
+              dark
+              outlined
+              color="primary"
+              label-color="grey-5"
+              input-class="text-white"
+              class="col-xs-12 col-sm-6"
+            />
+          </div>
+        </q-step>
 
-      <q-toggle v-model="formData.paysOvertime" label="Paga Horas Extra" dark color="primary" class="" />
-
-      <q-select
-        v-if="formData.paysOvertime"
-        v-model="formData.overtimeRateType"
-        :options="overtimeRateTypeOptions"
-        label="Tipo de Tarifa Extra"
-        dark
-        outlined
-        color="primary"
-        label-color="grey-5"
-        input-class="text-white"
-        class=""
-      />
-
-      <q-card flat bordered dark class="q-pa-md glass-card">
-        <div class="text-subtitle1 q-mb-sm text-primary">Método de Pago</div>
-        <q-select
-          v-model="formData.paymentMethod.type"
-          :options="paymentMethodTypeOptions"
-          label="Método"
-          dark
-          outlined
-          color="primary"
-          label-color="grey-5"
-          input-class="text-white"
-        />
-        <div v-if="formData.paymentMethod.type === 'ACH'" class="q-mt-md q-col-gutter-md row">
-          <q-input v-model="formData.paymentMethod.bankName" label="Nombre del Banco" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="col-xs-12 col-sm-6" />
-          <q-input v-model="formData.paymentMethod.accountNumber" label="Número de Cuenta" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="col-xs-12 col-sm-6" />
+        <q-step
+          :name="2"
+          title="Información de Pago"
+          icon="payment"
+          :done="step > 2"
+        >
           <q-select
-            v-model="formData.paymentMethod.bankAccountType"
-            :options="bankAccountTypeOptions"
-            label="Tipo de Cuenta"
+            v-model="formData.paymentType"
+            :options="PAYMENT_TYPE_OPTIONS"
+            label="Tipo de Pago"
             dark
             outlined
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="col-xs-12"
+            class="q-mb-md"
           />
-        </div>
-        <div v-if="formData.paymentMethod.type === 'YAPPY'" class="q-mt-md">
-          <q-input v-model="formData.paymentMethod.phoneNumber" label="Número de Yappy" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
-        </div>
-      </q-card>
+          <q-input
+            v-if="formData.paymentType === 'HOURLY'"
+            v-model.number="formData.hourlyRate"
+            label="Tarifa por Hora"
+            type="number"
+            dark
+            outlined
+            color="primary"
+            label-color="grey-5"
+            input-class="text-white"
+            class="q-mb-md"
+          />
+          <q-input
+            v-if="formData.paymentType === 'SALARIED'"
+            v-model.number="formData.salary"
+            label="Salario Mensual"
+            type="number"
+            dark
+            outlined
+            color="primary"
+            label-color="grey-5"
+            input-class="text-white"
+            class="q-mb-md"
+          />
+          <q-toggle v-model="formData.paysOvertime" label="Paga Horas Extra" dark color="primary" class="q-mb-md" />
+          <q-select
+            v-if="formData.paysOvertime"
+            v-model="formData.overtimeRateType"
+            :options="OVERTIME_RATE_TYPE_OPTIONS"
+            label="Tipo de Tarifa Extra"
+            dark
+            outlined
+            color="primary"
+            label-color="grey-5"
+            input-class="text-white"
+          />
+        </q-step>
 
+        <q-step
+          :name="3"
+          title="Método de Pago"
+          icon="credit_card"
+        >
+          <q-select
+            v-model="formData.paymentMethod.type"
+            :options="PAYMENT_METHOD_TYPE_OPTIONS"
+            label="Método"
+            dark
+            outlined
+            color="primary" 
+            label-color="grey-5"
+            input-class="text-white"
+            class="q-mb-md"
+            @update:model-value="logPaymentMethod"
+          />
+          <div v-if="formData.paymentMethod.type === 'ACH'" class="row q-col-gutter-md">
+            <q-input v-model="formData.paymentMethod.bankName" label="Nombre del Banco" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="col-xs-12 col-sm-6" />
+            <q-input v-model="formData.paymentMethod.accountNumber" label="Número de Cuenta" dark outlined color="primary" label-color="grey-5" input-class="text-white" class="col-xs-12 col-sm-6" />
+            <q-select
+              v-model="formData.paymentMethod.bankAccountType"
+              :options="BANK_ACCOUNT_TYPE_OPTIONS"
+              label="Tipo de Cuenta"
+              dark
+              outlined
+              color="primary"
+              label-color="grey-5"
+              input-class="text-white"
+              class="col-xs-12 q-mt-md"
+            />
+          </div>
+          <div v-if="formData.paymentMethod.type === 'YAPPY'" class="q-mt-md">
+            <q-input v-model="formData.paymentMethod.phoneNumber" label="Número de Yappy" dark outlined color="primary" label-color="grey-5" input-class="text-white" />
+          </div>
+        </q-step>
+
+        <template v-slot:navigation>
+          <q-stepper-navigation class="row justify-end q-pt-md">
+            <q-btn v-if="step > 1" flat color="primary" @click="$refs.stepper.previous()" label="Atrás" class="q-mr-sm" />
+            <q-btn unelevated rounded color="primary" @click="step === 3 ? onSave() : $refs.stepper.next()" :label="step === 3 ? 'Guardar' : 'Siguiente'" />
+          </q-stepper-navigation>
+        </template>
+      </q-stepper>
     </q-card-section>
 
     <q-separator dark />
 
-    <q-card-actions align="right" class="bg-dark-page">
-      <q-btn unelevated label="Cancelar" color="grey-5" @click="onCancel" class="gradient-btn" />
-      <q-btn unelevated label="Guardar" color="primary" @click="onSave" class="gradient-btn" />
+    <q-card-actions align="right" class="bg-dark">
+      <q-btn flat rounded label="Cancelar" color="grey-5" @click="onCancel" />
     </q-card-actions>
   </q-card>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { useQuasar } from 'quasar'; // Importar useQuasar
+import { ref, watch, computed } from 'vue'
+import { useQuasar } from 'quasar'
+import { ROLES } from 'src/constants/roles'
+import authService from 'src/service/auth.service'
+import {
+  PAYMENT_TYPE_OPTIONS,
+  PAYMENT_METHOD_TYPE_OPTIONS,
+  BANK_ACCOUNT_TYPE_OPTIONS,
+  OVERTIME_RATE_TYPE_OPTIONS,
+} from 'src/constants/payment'
 
-defineOptions({ name: 'EmployeeForm' });
+defineOptions({ name: 'EmployeeForm' })
 
 const props = defineProps({
   employee: {
     type: Object,
-    default: null
-  }
-});
+    default: null,
+  },
+})
 
-const emit = defineEmits(['save', 'cancel']);
-const $q = useQuasar(); // Inyectar useQuasar
+const emit = defineEmits(['save', 'cancel'])
+const $q = useQuasar()
+const step = ref(1)
 
 const initialFormData = () => ({
   name: '',
@@ -156,78 +200,60 @@ const initialFormData = () => ({
     bankName: '',
     accountNumber: '',
     bankAccountType: 'SAVINGS',
-    phoneNumber: ''
+    phoneNumber: '',
+  },
+})
+
+const formData = ref(initialFormData())
+
+watch(
+  () => props.employee,
+  (newVal) => {
+    if (newVal) {
+      formData.value = JSON.parse(JSON.stringify(newVal)) // Deep copy
+    } else {
+      formData.value = initialFormData()
+    }
+  },
+  { immediate: true },
+)
+
+const currentUser = authService.getCurrentUser()
+
+const roleOptions = computed(() => {
+  if (!props.employee || !currentUser) return ROLES
+
+  const isEditingSelf = props.employee.id === currentUser.id
+  const userIsAdmin = currentUser.roles.includes('ADMIN')
+
+  if (isEditingSelf && userIsAdmin) {
+    return ROLES.filter((role) => role.value !== 'MANAGER')
   }
-});
 
-const formData = ref(initialFormData());
+  return ROLES
+})
 
-watch(() => props.employee, (newVal) => {
-  if (newVal) {
-    formData.value = JSON.parse(JSON.stringify(newVal)); // Deep copy
-  } else {
-    formData.value = initialFormData();
-  }
-}, { immediate: true });
-
-const roleOptions = ['SECURITY', 'WAITER', 'CASHIER', 'BARTENDER', 'CHEF', 'CHEF_ASSISTANT', 'STOCKER', 'MAINTENANCE', 'ADMIN', 'HOST', 'DJ'];
-const statusOptions = ['ACTIVE', 'INACTIVE'];
-const paymentTypeOptions = ['HOURLY', 'SALARIED'];
-const overtimeRateTypeOptions = ['FIFTY_PERCENT', 'ONE_HUNDRED_PERCENT', 'FIXED'];
-const paymentMethodTypeOptions = ['ACH', 'YAPPY', 'CASH'];
-const bankAccountTypeOptions = ['CHECKING', 'SAVINGS'];
+const statusOptions = ['ACTIVE', 'INACTIVE']
 
 const onSave = () => {
-  emit('save', formData.value);
-};
+  emit('save', formData.value)
+}
 
 const onCancel = () => {
-  emit('cancel');
-};
+  emit('cancel')
+}
+
+const logPaymentMethod = (value) => {
+  console.log('Payment method type:', value)
+  console.log('Show ACH fields:', value === 'ACH')
+  console.log('Show Yappy fields:', value === 'YAPPY')
+}
 </script>
 
 <style lang="scss" scoped>
 .employee-form-card {
-  background: rgba(26, 26, 26, 0.8); // Fondo semitransparente oscuro
-  backdrop-filter: blur(10px); // Efecto glassmorphism
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: $dark;
   border-radius: 15px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-  color: white; // Asegurar que el texto dentro de la tarjeta sea blanco
-
-  .q-card-section {
-    color: white;
-  }
-
-  .q-field__label {
-    color: $grey-5; // Color de las etiquetas de los inputs
-  }
-
-  .q-field__control {
-    color: white; // Color del texto de los inputs
-  }
-
-  .q-toggle__label {
-    color: white;
-  }
-}
-
-.glass-card {
-  background: rgba(26, 26, 26, 0.6); // Fondo semitransparente oscuro para tarjetas internas
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-}
-
-.gradient-btn {
-  background: linear-gradient(45deg, #FF6B6B, #FFD166); /* Example gradient */
-  color: white;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-  }
 }
 </style>
+

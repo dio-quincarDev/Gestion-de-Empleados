@@ -3,6 +3,8 @@
     <div class="row justify-between items-center q-mb-md">
       <div class="text-h4 text-white page-title">Gestión de Empleados</div>
       <q-btn
+        unelevated
+        rounded
         color="primary"
         label="Crear Empleado"
         @click="openCreateForm"
