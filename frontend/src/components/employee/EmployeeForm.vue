@@ -152,6 +152,8 @@
             v-model="formData.paymentMethod.type"
             :options="PAYMENT_METHOD_TYPE_OPTIONS"
             label="Método *"
+            emit-value
+            map-options
             dark
             outlined
             color="primary"
@@ -159,11 +161,9 @@
             input-class="text-white"
             class="q-mb-md"
             @update:model-value="onPaymentMethodChange"
-            :rules="[(val) => !!val || 'Seleccione un método de pago']"
           />
-
           <!-- ACH Transfer -->
-          <div v-if="formData.paymentMethod.type === 'ACH'" class="row q-col-gutter-md">
+          <div v-show="formData.paymentMethod.type === 'ACH'" class="row q-col-gutter-md">
             <q-input
               v-model="formData.paymentMethod.bankName"
               label="Nombre del Banco *"
@@ -205,7 +205,7 @@
           </div>
 
           <!-- Yappy -->
-          <div v-if="formData.paymentMethod.type === 'YAPPY'">
+          <div v-show="formData.paymentMethod.type === 'YAPPY'">
             <q-input
               v-model="formData.paymentMethod.phoneNumber"
               label="Número de Yappy *"
@@ -224,7 +224,7 @@
 
           <!-- CASH - Mensaje informativo -->
           <div
-            v-if="formData.paymentMethod.type === 'CASH'"
+            v-show="formData.paymentMethod.type === 'CASH'"
             class="text-caption text-grey-5 q-mt-md"
           >
             El pago se realizará en efectivo directamente al empleado.
@@ -296,13 +296,13 @@ const initialFormData = () => ({
   hourlyRate: 0,
   salary: 0,
   paysOvertime: false,
-  overtimeRateType: null,
+  overtimeRateType: '',
   paymentMethod: {
     type: 'CASH',
-    bankName: null,
-    accountNumber: null,
-    bankAccountType: null,
-    phoneNumber: null,
+    bankName: '',
+    accountNumber: '',
+    bankAccountType: '',
+    phoneNumber: '',
   },
 })
 
@@ -375,26 +375,9 @@ const onOvertimeChange = (value) => {
     formData.value.overtimeRateType = 'FIFTY_PERCENT'
   }
 }
-
 const onPaymentMethodChange = (value) => {
-  // Mantener los valores existentes, solo cambiar el tipo
+  // Solo cambiar el tipo - nada más
   formData.value.paymentMethod.type = value
-
-  // Solo resetear campos que no correspondan al nuevo tipo
-  if (value !== 'ACH') {
-    formData.value.paymentMethod.bankName = null
-    formData.value.paymentMethod.accountNumber = null
-    formData.value.paymentMethod.bankAccountType = null
-  }
-
-  if (value !== 'YAPPY') {
-    formData.value.paymentMethod.phoneNumber = null
-  }
-
-  // Setear valor por defecto solo si es ACH y no tiene valor
-  if (value === 'ACH' && !formData.value.paymentMethod.bankAccountType) {
-    formData.value.paymentMethod.bankAccountType = 'SAVINGS'
-  }
 }
 
 const onSave = () => {
