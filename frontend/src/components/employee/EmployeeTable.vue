@@ -19,31 +19,32 @@
           <q-separator dark />
           <q-card-section class="flex justify-between items-center">
             <div>
-              <div class="text-caption text-grey-5">Rol: {{ props.row.role }}</div>
+              <div class="text-caption text-grey-5">Rol: {{ EmployeeRole[props.row.role] }}</div>
               <div class="text-caption text-grey-5">Teléfono: {{ props.row.contactPhone }}</div>
               <div class="text-caption text-grey-5">Estado: {{ props.row.status }}</div>
             </div>
             <div class="q-gutter-xs">
               <q-btn
+                unelevated
+                rounded
                 dense
-                round
-                flat
                 icon="visibility"
                 :to="`/main/employee/${props.row.id}`"
                 color="primary"
               ></q-btn>
               <q-btn
+                unelevated
+                rounded
                 dense
-                round
-                flat
                 icon="edit"
                 @click="onEdit(props.row)"
                 color="secondary"
               ></q-btn>
               <q-btn
+                v-if="canDelete(props.row)"
+                unelevated
+                rounded
                 dense
-                round
-                flat
                 icon="delete"
                 @click="onDelete(props.row)"
                 color="negative"
@@ -57,15 +58,23 @@
     <template v-slot:body-cell-actions="props">
       <q-td :props="props">
         <q-btn
+          unelevated
+          rounded
           dense
-          round
-          flat
           icon="visibility"
           :to="`/main/employee/${props.row.id}`"
           color="primary"
         ></q-btn>
-        <q-btn dense round flat icon="edit" @click="onEdit(props.row)" color="secondary"></q-btn>
-        <q-btn dense round flat icon="delete" @click="onDelete(props.row)" color="negative"></q-btn>
+        <q-btn unelevated rounded dense icon="edit" @click="onEdit(props.row)" color="secondary"></q-btn>
+        <q-btn
+          v-if="canDelete(props.row)"
+          unelevated
+          rounded
+          dense
+          icon="delete"
+          @click="onDelete(props.row)"
+          color="negative"
+        ></q-btn>
       </q-td>
     </template>
   </q-table>
@@ -74,6 +83,8 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue'
 import { useQuasar } from 'quasar'
+import authService from 'src/service/auth.service'
+import { EmployeeRole } from 'src/constants/roles'
 
 defineOptions({
   name: 'EmployeeTable',
@@ -98,12 +109,41 @@ const columns = [
     field: (row) => row.name,
     sortable: true,
   },
-  { name: 'role', label: 'Rol', align: 'left', field: 'role', sortable: true },
+  {
+    name: 'role',
+    label: 'Rol',
+    align: 'left',
+    field: 'role',
+    format: (val) => EmployeeRole[val],
+    sortable: true,
+  },
   { name: 'email', label: 'Email', align: 'left', field: 'email', sortable: true },
   { name: 'contactPhone', label: 'Teléfono', align: 'left', field: 'contactPhone' },
   { name: 'status', label: 'Estado', align: 'center', field: 'status', sortable: true },
   { name: 'actions', label: 'Acciones', align: 'center', field: 'id' },
 ]
+
+const currentUser = authService.getCurrentUser()
+
+const canDelete = (employee) => {
+  if (!currentUser) return false
+
+  const userRoles = currentUser.roles
+  const targetRole = employee.role
+
+  if (userRoles.includes('MANAGER')) {
+    return true
+  }
+
+  if (userRoles.includes('ADMIN')) {
+    if (targetRole === 'ADMIN' || targetRole === 'MANAGER') {
+      return false
+    }
+    return true
+  }
+
+  return false
+}
 
 const onEdit = (employee) => {
   emit('edit', employee)
