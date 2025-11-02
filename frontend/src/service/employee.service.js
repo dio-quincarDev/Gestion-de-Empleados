@@ -28,10 +28,9 @@ export default {
 
   async getEmployees(params) {
     try {
-      const response = await api.get(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}`,
-        { params },
-      )
+      const response = await api.get(`${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}`, {
+        params,
+      })
       return response.data
     } catch (error) {
       console.error('Error al obtener los empleados:', error)
@@ -51,6 +50,19 @@ export default {
       console.error('Error al actualizar el empleado:', error)
       throw error
     }
+  },
+
+  async searchEmployees(params) {
+    const queryParams = new URLSearchParams()
+
+    if (params.name) queryParams.append('name', params.name)
+    if (params.role) queryParams.append('role', params.role)
+    if (params.status) queryParams.append('status', params.status)
+    if (params.page !== undefined) queryParams.append('page', params.page)
+    if (params.size) queryParams.append('size', params.size)
+
+    const response = await api.get(`/v1/employees/search?${queryParams.toString()}`)
+    return response.data
   },
 
   // Eliminar un empleado
