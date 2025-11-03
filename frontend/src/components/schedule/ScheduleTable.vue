@@ -8,7 +8,6 @@
 
     <q-separator dark class="q-mt-md" />
 
-    <!-- Tabla -->
     <q-card-section class="q-pa-none">
       <q-table
         :rows="schedules"
@@ -20,27 +19,16 @@
         class="bg-dark text-white"
         :rows-per-page-options="[10, 20, 50]"
       >
-        <!-- Header Personalizado -->
-        <template v-slot:header="props">
-          <q-tr :props="props" class="bg-grey-9">
-            <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
-              {{ col.label }}
-            </q-th>
-            <q-th class="text-weight-bold">Acciones</q-th>
-          </q-tr>
-        </template>
-
-        <!-- Body Personalizado -->
         <template v-slot:body="props">
           <q-tr :props="props" class="cursor-pointer" @click="onRowClick(props.row)">
-            <!-- Empleado -->
-            <q-td>
-              <div class="text-weight-medium">{{ props.row.employee?.name }}</div>
-              <div class="text-caption text-grey-5">{{ props.row.employee?.role }}</div>
+            <q-td key="employee" :props="props">
+              <div class="text-weight-medium">{{ props.row.employee?.name || 'N/A' }}</div>
+              <div class="text-caption text-grey-5">
+                {{ getRoleLabel(props.row.employee?.role) }}
+              </div>
             </q-td>
 
-            <!-- Fecha y Hora -->
-            <q-td>
+            <q-td key="date" :props="props">
               <div>{{ formatTableDate(props.row.startTime) }}</div>
               <div class="text-caption text-grey-5">
                 {{ formatTableTime(props.row.startTime) }} -
@@ -48,31 +36,16 @@
               </div>
             </q-td>
 
-            <!-- Duración -->
-            <q-td>
+            <q-td key="duration" :props="props">
               {{ calculateDuration(props.row.startTime, props.row.endTime) }}
             </q-td>
 
-            <!-- Tipo -->
-            <q-td>
-              <q-badge :color="getTypeColor(props.row.scheduleType)" rounded>
-                {{ getTypeLabel(props.row.scheduleType) }}
-              </q-badge>
-            </q-td>
-
-            <!-- Estado -->
-            <q-td>
-              <q-badge :color="getStatusColor(props.row.status)" rounded>
-                {{ getStatusLabel(props.row.status) }}
-              </q-badge>
-            </q-td>
-
-            <!-- Acciones -->
-            <q-td auto-width>
+            <q-td key="actions" :props="props" auto-width>
               <div class="row no-wrap q-gutter-xs">
                 <q-btn
                   flat
                   round
+                  dense
                   icon="visibility"
                   color="info"
                   size="sm"
@@ -84,6 +57,7 @@
                 <q-btn
                   flat
                   round
+                  dense
                   icon="edit"
                   color="warning"
                   size="sm"
@@ -95,6 +69,7 @@
                 <q-btn
                   flat
                   round
+                  dense
                   icon="delete"
                   color="negative"
                   size="sm"
@@ -107,7 +82,6 @@
           </q-tr>
         </template>
 
-        <!-- Estado Vacío -->
         <template v-slot:no-data>
           <div class="full-width row flex-center text-grey q-pa-lg">
             <q-icon name="schedule" size="2em" class="q-mr-sm" />
@@ -120,23 +94,48 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { SCHEDULE_STATUS, SCHEDULE_TYPE } from 'src/constants/schedule.js'
-
 defineOptions({ name: 'ScheduleTable' })
 
-const { schedules } = defineProps({
+defineProps({
   schedules: {
     type: Array,
     required: true,
   },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['create', 'view', 'edit', 'delete'])
+const emit = defineEmits(['view', 'edit', 'delete'])
 
-const loading = ref(false)
-
-// Métodos
+const columns = [
+  {
+    name: 'employee',
+    label: 'Empleado',
+    align: 'left',
+    field: (row) => row.employee?.name || 'N/A',
+    sortable: true,
+  },
+  {
+    name: 'date',
+    label: 'Fecha y Hora',
+    align: 'left',
+    field: 'startTime',
+    sortable: true,
+  },
+  {
+    name: 'duration',
+    label: 'Duración',
+    align: 'center',
+    field: (row) => calculateDuration(row.startTime, row.endTime),
+  },
+  {
+    name: 'actions',
+    label: 'Acciones',
+    align: 'center',
+  },
+]
 
 const formatTableDate = (dateString) => {
   if (!dateString) return 'N/A'
@@ -174,43 +173,22 @@ const calculateDuration = (startTime, endTime) => {
   return `${hours}h ${minutes}m`
 }
 
-const getTypeLabel = (type) => {
-  const typeMap = {
-    [SCHEDULE_TYPE.REGULAR]: 'Regular',
-    [SCHEDULE_TYPE.OVERTIME]: 'Extra',
-    [SCHEDULE_TYPE.HOLIDAY]: 'Feriado',
+const getRoleLabel = (role) => {
+  const roleMap = {
+    SECURITY: 'Seguridad',
+    WAITER: 'Mesero',
+    CASHIER: 'Cajero',
+    BARTENDER: 'Bartender',
+    CHEF: 'Chef',
+    CHEF_ASSISTANT: 'Asistente de Chef',
+    STOCKER: 'Almacenista',
+    MAINTENANCE: 'Mantenimiento',
+    ADMIN: 'Administrador',
+    HOST: 'Host',
+    DJ: 'DJ',
   }
-  return typeMap[type] || type
+  return roleMap[role] || role
 }
-
-const getTypeColor = (type) => {
-  const colorMap = {
-    [SCHEDULE_TYPE.REGULAR]: 'primary',
-    [SCHEDULE_TYPE.OVERTIME]: 'orange',
-    [SCHEDULE_TYPE.HOLIDAY]: 'purple',
-  }
-  return colorMap[type] || 'grey'
-}
-
-const getStatusLabel = (status) => {
-  const statusMap = {
-    [SCHEDULE_STATUS.PENDING]: 'Pendiente',
-    [SCHEDULE_STATUS.CONFIRMED]: 'Confirmado',
-    [SCHEDULE_STATUS.CANCELLED]: 'Cancelado',
-  }
-  return statusMap[status] || status
-}
-
-const getStatusColor = (status) => {
-  const colorMap = {
-    [SCHEDULE_STATUS.PENDING]: 'warning',
-    [SCHEDULE_STATUS.CONFIRMED]: 'positive',
-    [SCHEDULE_STATUS.CANCELLED]: 'negative',
-  }
-  return colorMap[status] || 'grey'
-}
-
-// Event Handlers
 
 const onRowClick = (schedule) => {
   emit('view', schedule)
@@ -227,8 +205,6 @@ const onEditSchedule = (schedule) => {
 const onDeleteSchedule = (schedule) => {
   emit('delete', schedule.id)
 }
-
-// Event Handlers
 </script>
 
 <style lang="scss" scoped>
@@ -245,7 +221,11 @@ const onDeleteSchedule = (schedule) => {
   border-top: 1px solid $grey-8;
 }
 
-:deep(.q-table tbody tr:hover) {
-  background: $grey-9;
+:deep(.q-table tbody tr) {
+  cursor: pointer;
+
+  &:hover {
+    background: $grey-9;
+  }
 }
 </style>

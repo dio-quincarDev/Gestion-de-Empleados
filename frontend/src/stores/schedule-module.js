@@ -60,10 +60,15 @@ export const useScheduleStore = defineStore('schedule', {
         this.loading = false
       }
     },
-
     // Cargar schedules por empleado y enriquecerlos
-    async loadSchedulesByEmployee(employee) {
-      if (!employee || !employee.id) {
+    async loadSchedulesByEmployee(employeeIdOrObject) {
+      // Aceptar tanto ID como objeto
+      const employeeId =
+        typeof employeeIdOrObject === 'object' ? employeeIdOrObject?.id : employeeIdOrObject
+
+      const employeeObject = typeof employeeIdOrObject === 'object' ? employeeIdOrObject : null
+
+      if (!employeeId) {
         this.schedules = []
         return []
       }
@@ -71,12 +76,12 @@ export const useScheduleStore = defineStore('schedule', {
       this.loading = true
       this.error = null
       try {
-        const schedules = await scheduleService.getSchedulesByEmployee(employee.id)
+        const schedules = await scheduleService.getSchedulesByEmployee(employeeId)
 
-        // Enrich schedules with the provided employee object
+        // Enrich schedules con el objeto empleado si está disponible
         const enrichedSchedules = schedules.map((schedule) => ({
           ...schedule,
-          employee,
+          employee: employeeObject || schedule.employee,
         }))
 
         this.schedules = enrichedSchedules
@@ -118,8 +123,6 @@ export const useScheduleStore = defineStore('schedule', {
         this.loading = false
       }
     },
-
-
 
     // Limpiar estado
     clearCurrentSchedule() {
