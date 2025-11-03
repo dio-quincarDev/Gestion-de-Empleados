@@ -1,7 +1,7 @@
 <template>
   <q-card
     class="employee-form-card"
-    :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 800px; max-width: 90vw;'"
+    :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 600px; max-width: 90vw;'"
   >
     <q-card-section class="bg-dark text-white">
       <div class="text-h6">{{ props.employee ? 'Editar Empleado' : 'Nuevo Empleado' }}</div>
@@ -20,19 +20,14 @@
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-md"
+            class="q-mb-sm"
             :rules="[(val) => !!val || 'Campo requerido']"
           />
           <q-input
             v-model="formData.email"
             label="Email *"
-            type="email"
-            dark
-            outlined
-            color="primary"
-            label-color="grey-5"
             input-class="text-white"
-            class="q-mb-md"
+            class="q-mb-sm"
             :rules="[(val) => !!val || 'Campo requerido']"
           />
           <q-input
@@ -43,7 +38,7 @@
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-md"
+            class="q-mb-sm"
             :rules="[(val) => !!val || 'Campo requerido']"
           />
           <div class="row q-col-gutter-md">
@@ -85,7 +80,7 @@
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-md"
+            class="q-mb-sm"
           />
           <q-input
             v-model.number="formData.hourlyRate"
@@ -97,7 +92,7 @@
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-md"
+            class="q-mb-sm"
             min="0"
             step="0.01"
             prefix="$"
@@ -117,7 +112,7 @@
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-md"
+            class="q-mb-sm"
             min="0"
             step="0.01"
             prefix="$"
@@ -131,7 +126,7 @@
             label="Paga Horas Extra"
             dark
             color="primary"
-            class="q-mb-md"
+            class="q-mb-sm"
             @update:model-value="onOvertimeChange"
           />
           <q-select
@@ -159,7 +154,7 @@
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-md"
+            class="q-mb-sm"
             @update:model-value="onPaymentMethodChange"
           />
           <!-- ACH Transfer -->
@@ -199,7 +194,7 @@
               color="primary"
               label-color="grey-5"
               input-class="text-white"
-              class="col-xs-12 q-mt-md"
+              class="col-xs-12 q-mt-sm"
               :rules="[(val) => !!val || 'Seleccione tipo de cuenta']"
             />
           </div>
@@ -225,7 +220,7 @@
           <!-- CASH - Mensaje informativo -->
           <div
             v-show="formData.paymentMethod.type === 'CASH'"
-            class="text-caption text-grey-5 q-mt-md"
+            class="text-caption text-grey-5 q-mt-sm"
           >
             El pago se realizará en efectivo directamente al empleado.
           </div>
