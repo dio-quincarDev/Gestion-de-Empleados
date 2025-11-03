@@ -132,6 +132,7 @@ export const useEmployeeStore = defineStore('employee', {
         }
       } catch (error) {
         this.error = error
+        throw error // Re-throw the error for the component to handle
       } finally {
         this.loading = false
       }
