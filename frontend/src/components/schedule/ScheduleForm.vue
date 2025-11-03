@@ -1,7 +1,7 @@
 <template>
   <q-card
     class="schedule-form-card"
-    :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 700px; max-width: 90vw;'"
+    :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 600px; max-width: 90vw;'"
   >
     <q-card-section class="bg-dark text-white">
       <div class="text-h6">{{ props.schedule ? 'Editar Horario' : 'Nuevo Horario' }}</div>
@@ -10,7 +10,7 @@
     <q-separator dark />
 
     <q-card-section>
-      <q-form @submit="onSave" class="q-gutter-md">
+      <q-form @submit.prevent="onSave" class="q-gutter-md">
         <!-- Selección de Empleado -->
         <q-select
           v-model="formData.employeeId"
@@ -24,118 +24,48 @@
           label-color="grey-5"
           input-class="text-white"
           :rules="[(val) => !!val || 'Seleccione un empleado']"
-          :disable="!!props.employeeId && !props.schedule"
+          :disable="!!props.employeeId"
         />
 
         <div class="row q-col-gutter-md">
-          <!-- Fecha de Inicio -->
-          <div class="col-12 col-sm-6">
+          <!-- Fecha y Hora de Inicio -->
+          <div class="col-12">
             <q-input
-              v-model="formData.startDate"
-              label="Fecha Inicio *"
-              type="date"
+              v-model="formData.startDateTime"
+              label="Fecha y Hora de Inicio *"
+              type="datetime-local"
               dark
               outlined
               color="primary"
               label-color="grey-5"
               input-class="text-white"
-              :rules="[(val) => !!val || 'Fecha requerida']"
+              :rules="[(val) => !!val || 'Fecha y hora requeridas']"
             />
           </div>
 
-          <!-- Hora de Inicio -->
-          <div class="col-12 col-sm-6">
+          <!-- Fecha y Hora de Fin -->
+          <div class="col-12">
             <q-input
-              v-model="formData.startTime"
-              label="Hora Inicio *"
-              type="time"
+              v-model="formData.endDateTime"
+              label="Fecha y Hora de Fin *"
+              type="datetime-local"
               dark
               outlined
               color="primary"
               label-color="grey-5"
               input-class="text-white"
-              :rules="[(val) => !!val || 'Hora requerida']"
+              :rules="[(val) => !!val || 'Fecha y hora requeridas']"
             />
           </div>
         </div>
 
-        <div class="row q-col-gutter-md">
-          <!-- Fecha de Fin -->
-          <div class="col-12 col-sm-6">
-            <q-input
-              v-model="formData.endDate"
-              label="Fecha Fin *"
-              type="date"
-              dark
-              outlined
-              color="primary"
-              label-color="grey-5"
-              input-class="text-white"
-              :rules="[(val) => !!val || 'Fecha requerida']"
-            />
-          </div>
-
-          <!-- Hora de Fin -->
-          <div class="col-12 col-sm-6">
-            <q-input
-              v-model="formData.endTime"
-              label="Hora Fin *"
-              type="time"
-              dark
-              outlined
-              color="primary"
-              label-color="grey-5"
-              input-class="text-white"
-              :rules="[(val) => !!val || 'Hora requerida']"
-            />
-          </div>
+        <!-- Duración calculada -->
+        <div v-if="calculatedDuration" class="text-caption text-grey-5">
+          Duración: {{ calculatedDuration }}
         </div>
-
-        <!-- Tipo de Horario -->
-        <q-select
-          v-model="formData.scheduleType"
-          :options="SCHEDULE_TYPE_OPTIONS"
-          label="Tipo de Horario *"
-          emit-value
-          map-options
-          dark
-          outlined
-          color="primary"
-          label-color="grey-5"
-          input-class="text-white"
-          :rules="[(val) => !!val || 'Seleccione el tipo']"
-        />
-
-        <!-- Estado -->
-        <q-select
-          v-model="formData.status"
-          :options="SCHEDULE_STATUS_OPTIONS"
-          label="Estado *"
-          emit-value
-          map-options
-          dark
-          outlined
-          color="primary"
-          label-color="grey-5"
-          input-class="text-white"
-          :rules="[(val) => !!val || 'Seleccione el estado']"
-        />
-
-        <!-- Notas/Observaciones -->
-        <q-input
-          v-model="formData.notes"
-          label="Notas"
-          type="textarea"
-          dark
-          outlined
-          color="primary"
-          label-color="grey-5"
-          input-class="text-white"
-          rows="3"
-        />
 
         <!-- Validación de fechas -->
-        <div v-if="dateError" class="text-negative text-caption q-mt-sm">
+        <div v-if="dateError" class="text-negative text-caption">
           {{ dateError }}
         </div>
       </q-form>
@@ -145,7 +75,14 @@
 
     <q-card-actions align="right" class="bg-dark">
       <q-btn flat rounded label="Cancelar" color="grey-5" @click="onCancel" />
-      <q-btn unelevated rounded label="Guardar" color="primary" @click="onSave" />
+      <q-btn
+        unelevated
+        rounded
+        label="Guardar"
+        color="primary"
+        @click="onSave"
+        :disable="!!dateError"
+      />
     </q-card-actions>
   </q-card>
 </template>
@@ -154,7 +91,6 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useEmployeeStore } from 'src/stores/employee-module.js'
-import { SCHEDULE_STATUS, SCHEDULE_TYPE } from 'src/constants/schedule.js'
 
 defineOptions({ name: 'ScheduleForm' })
 
@@ -173,34 +109,14 @@ const emit = defineEmits(['save', 'cancel'])
 const $q = useQuasar()
 const employeeStore = useEmployeeStore()
 
-// Constantes para opciones
-const SCHEDULE_STATUS_OPTIONS = [
-  { label: 'Pendiente', value: SCHEDULE_STATUS.PENDING },
-  { label: 'Confirmado', value: SCHEDULE_STATUS.CONFIRMED },
-  { label: 'Cancelado', value: SCHEDULE_STATUS.CANCELLED },
-]
-
-const SCHEDULE_TYPE_OPTIONS = [
-  { label: 'Regular', value: SCHEDULE_TYPE.REGULAR },
-  { label: 'Horas Extra', value: SCHEDULE_TYPE.OVERTIME },
-  { label: 'Feriado', value: SCHEDULE_TYPE.HOLIDAY },
-]
-
-// Estado del formulario
 const formData = ref({
   employeeId: null,
-  startDate: '',
-  startTime: '09:00',
-  endDate: '',
-  endTime: '17:00',
-  scheduleType: SCHEDULE_TYPE.REGULAR,
-  status: SCHEDULE_STATUS.PENDING,
-  notes: '',
+  startDateTime: '',
+  endDateTime: '',
 })
 
 const dateError = ref('')
 
-// Computed properties
 const employeeOptions = computed(() => {
   return employeeStore.employees
     .filter((emp) => emp.status === 'ACTIVE')
@@ -210,7 +126,23 @@ const employeeOptions = computed(() => {
     }))
 })
 
-// Watchers
+const calculatedDuration = computed(() => {
+  if (!formData.value.startDateTime || !formData.value.endDateTime) return null
+
+  const start = new Date(formData.value.startDateTime)
+  const end = new Date(formData.value.endDateTime)
+  const durationMs = end - start
+
+  if (durationMs <= 0) return null
+
+  const hours = Math.floor(durationMs / (1000 * 60 * 60))
+  const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60))
+
+  if (hours === 0) return `${minutes}m`
+  if (minutes === 0) return `${hours}h`
+  return `${hours}h ${minutes}m`
+})
+
 watch(
   () => props.schedule,
   (newVal) => {
@@ -223,72 +155,48 @@ watch(
   { immediate: true },
 )
 
-// Watch para validación de fechas
-watch(
-  [
-    () => formData.value.startDate,
-    () => formData.value.startTime,
-    () => formData.value.endDate,
-    () => formData.value.endTime,
-  ],
-  () => {
-    validateDates()
-  },
-)
+watch([() => formData.value.startDateTime, () => formData.value.endDateTime], () => {
+  validateDates()
+})
 
-// Métodos
 const loadScheduleData = (schedule) => {
   if (!schedule) return
 
-  const startDateTime = new Date(schedule.startTime)
-  const endDateTime = new Date(schedule.endTime)
-
   formData.value = {
     employeeId: schedule.employee?.id || schedule.employeeId,
-    startDate: formatDateForInput(startDateTime),
-    startTime: formatTimeForInput(startDateTime),
-    endDate: formatDateForInput(endDateTime),
-    endTime: formatTimeForInput(endDateTime),
-    scheduleType: schedule.scheduleType || SCHEDULE_TYPE.REGULAR,
-    status: schedule.status || SCHEDULE_STATUS.PENDING,
-    notes: schedule.notes || '',
+    startDateTime: formatDateTimeForInput(schedule.startTime),
+    endDateTime: formatDateTimeForInput(schedule.endTime),
   }
 }
 
 const resetForm = () => {
-  const today = new Date()
+  const now = new Date()
+  const endTime = new Date(now.getTime() + 8 * 60 * 60 * 1000) // +8 horas
 
   formData.value = {
-    employeeId: props.employeeId, // Pre-seleccionar el empleado del padre
-    startDate: formatDateForInput(today),
-    startTime: '09:00',
-    endDate: formatDateForInput(today),
-    endTime: '17:00',
-    scheduleType: SCHEDULE_TYPE.REGULAR,
-    status: SCHEDULE_STATUS.PENDING,
-    notes: '',
+    employeeId: props.employeeId || null,
+    startDateTime: formatDateTimeForInput(now),
+    endDateTime: formatDateTimeForInput(endTime),
   }
   dateError.value = ''
 }
 
-const formatDateForInput = (date) => {
-  return date.toISOString().split('T')[0]
-}
-
-const formatTimeForInput = (date) => {
-  return date.toTimeString().slice(0, 5)
+const formatDateTimeForInput = (dateTime) => {
+  if (!dateTime) return ''
+  const date = new Date(dateTime)
+  return date.toISOString().slice(0, 16)
 }
 
 const validateDates = () => {
-  if (!formData.value.startDate || !formData.value.endDate) {
+  if (!formData.value.startDateTime || !formData.value.endDateTime) {
     dateError.value = ''
     return true
   }
 
-  const startDateTime = new Date(`${formData.value.startDate}T${formData.value.startTime}`)
-  const endDateTime = new Date(`${formData.value.endDate}T${formData.value.endTime}`)
+  const start = new Date(formData.value.startDateTime)
+  const end = new Date(formData.value.endDateTime)
 
-  if (endDateTime <= startDateTime) {
+  if (end <= start) {
     dateError.value = 'La fecha/hora de fin debe ser posterior a la de inicio'
     return false
   }
@@ -314,17 +222,12 @@ const onSave = () => {
     return
   }
 
-  // Construir objeto para enviar al backend
   const scheduleData = {
     employeeId: formData.value.employeeId,
-    startTime: `${formData.value.startDate}T${formData.value.startTime}:00`,
-    endTime: `${formData.value.endDate}T${formData.value.endTime}:00`,
-    scheduleType: formData.value.scheduleType,
-    status: formData.value.status,
-    notes: formData.value.notes,
+    startTime: new Date(formData.value.startDateTime).toISOString(),
+    endTime: new Date(formData.value.endDateTime).toISOString(),
   }
 
-  // Si estamos editando, agregar el ID
   if (props.schedule?.id) {
     scheduleData.id = props.schedule.id
   }
@@ -336,15 +239,14 @@ const onCancel = () => {
   emit('cancel')
 }
 
-// Cargar empleados al montar el componente
 onMounted(async () => {
   if (employeeStore.employees.length === 0) {
     try {
-      await employeeStore.searchEmployees({})
+      await employeeStore.searchEmployees({ status: 'ACTIVE' })
     } catch (error) {
       $q.notify({
         type: 'negative',
-        message: error.message || 'Error al cargar la lista de empleados para el formulario.',
+        message: error.message || 'Error al cargar empleados.',
         position: 'top',
       })
     }

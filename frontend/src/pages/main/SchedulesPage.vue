@@ -45,6 +45,20 @@
               </q-item-section>
             </q-item>
           </template>
+          <template v-slot:selected-item="scope">
+            <div class="row items-center">
+              <div class="text-weight-medium">{{ scope.opt.name }}</div>
+              <div class="text-caption text-grey-5 q-ml-sm">- {{ scope.opt.role }}</div>
+            </div>
+          </template>
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section>
+                <q-item-label>{{ scope.opt.name }}</q-item-label>
+                <q-item-label caption>{{ scope.opt.role }} - {{ scope.opt.email }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
         </q-select>
       </q-card-section>
     </q-card>
@@ -53,6 +67,7 @@
     <schedule-table
       v-if="selectedEmployee"
       :schedules="schedules"
+      :loading="loading"
       @view="showDetails"
       @edit="handleEdit"
       @delete="handleDelete"
@@ -65,7 +80,7 @@
     </div>
 
     <!-- Dialogo para Formulario de Crear/Editar -->
-    <q-dialog v-model="showFormDialog" transition-show="scale" transition-hide="scale">
+    <q-dialog v-model="showFormDialog">
       <schedule-form
         :schedule="editingSchedule"
         :employee-id="selectedEmployee?.id"
@@ -84,8 +99,6 @@
         @delete="handleDeleteFromDetails"
       />
     </q-dialog>
-
-    <q-inner-loading :showing="loading" label="Cargando..." />
   </q-page>
 </template>
 
@@ -106,65 +119,76 @@ const $q = useQuasar()
 const scheduleStore = useScheduleStore()
 const employeeStore = useEmployeeStore()
 
-// Local State
 const loading = ref(false)
-const selectedEmployee = ref(null) // Ahora es el objeto completo
+const selectedEmployee = ref(null)
 const employeeOptions = ref([])
 const showFormDialog = ref(false)
 const showDetailsDialog = ref(false)
 const editingSchedule = ref(null)
 const selectedSchedule = ref(null)
 
-// Computed Properties
+let debounceTimer = null
+
 const schedules = computed(() => scheduleStore.schedules)
 
-// Methods
 const filterEmployeeFn = async (val, update) => {
-  if (!val) {
+  if (debounceTimer) clearTimeout(debounceTimer)
+
+  if (!val || val.length < 2) {
     update(() => {
       employeeOptions.value = []
     })
     return
   }
 
-  try {
-    await employeeStore.searchEmployees({ name: val, size: 15 })
-    update(() => {
-      // Guardar los objetos completos para el selector
-      employeeOptions.value = employeeStore.employees
-    })
-  } catch ({ message }) {
-    $q.notify({
-      type: 'negative',
-      message: message || 'Error al buscar empleados.',
-      position: 'top',
-    })
-    update(() => {
-      employeeOptions.value = []
-    })
-  }
+  debounceTimer = setTimeout(async () => {
+    try {
+      await employeeStore.searchEmployees({ name: val, status: 'ACTIVE', size: 15 })
+      update(() => {
+        employeeOptions.value = employeeStore.employees
+      })
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: error.message || 'Error al buscar empleados.',
+        position: 'top',
+      })
+      update(() => {
+        employeeOptions.value = []
+      })
+    }
+  }, 300)
 }
 
 const onEmployeeSelected = async (employee) => {
   if (employee && employee.id) {
     loading.value = true
     try {
-      await scheduleStore.loadSchedulesByEmployee(employee)
-    } catch ({ message }) {
+      await scheduleStore.loadSchedulesByEmployee(employee.id)
+    } catch (error) {
       $q.notify({
         type: 'negative',
-        message: message || 'Error al cargar los horarios del empleado.',
+        message: error.message || 'Error al cargar los horarios del empleado.',
         position: 'top',
       })
     } finally {
       loading.value = false
     }
   } else {
-    scheduleStore.schedules = [] // Limpiar la tabla si se deselecciona el empleado
+    scheduleStore.schedules = []
   }
 }
 
 const openCreateForm = () => {
+  if (!selectedEmployee.value) {
+    $q.notify({
+      type: 'warning',
+      message: 'Debe seleccionar un empleado primero.',
+      position: 'top',
+    })
+    return
+  }
+
   editingSchedule.value = null
   showFormDialog.value = true
 }
@@ -196,22 +220,25 @@ const handleDeleteFromDetails = (scheduleId) => {
 
 const handleSaveSchedule = async (scheduleData) => {
   const isUpdating = editingSchedule.value && editingSchedule.value.id
-  const action = isUpdating
-    ? () => scheduleStore.updateSchedule(editingSchedule.value.id, scheduleData)
-    : () => scheduleStore.createSchedule(scheduleData)
-  const successMessage = isUpdating ? 'Horario actualizado.' : 'Horario creado.'
 
   try {
-    await action()
-    cancelForm()
-    $q.notify({ type: 'positive', message: successMessage, position: 'top' })
-    if (selectedEmployee.value) {
-      await scheduleStore.loadSchedulesByEmployee(selectedEmployee.value)
+    if (isUpdating) {
+      await scheduleStore.loadSchedulesByEmployee(selectedEmployee.value.id)
+      $q.notify({ type: 'positive', message: 'Horario actualizado.', position: 'top' })
+    } else {
+      await scheduleStore.createSchedule(scheduleData)
+      $q.notify({ type: 'positive', message: 'Horario creado.', position: 'top' })
     }
-  } catch ({ message }) {
+
+    cancelForm()
+
+    if (selectedEmployee.value) {
+      await scheduleStore.loadSchedulesByEmployee(selectedEmployee.value.id)
+    }
+  } catch (error) {
     $q.notify({
       type: 'negative',
-      message: message || 'Error al guardar el horario.',
+      message: error.message || 'Error al guardar el horario.',
       position: 'top',
     })
   }
@@ -228,13 +255,14 @@ const handleDelete = (scheduleId) => {
     try {
       await scheduleStore.deleteSchedule(scheduleId)
       $q.notify({ type: 'positive', message: 'Horario eliminado.', position: 'top' })
+
       if (selectedEmployee.value) {
-        await scheduleStore.loadSchedulesByEmployee(selectedEmployee.value)
+        await scheduleStore.loadSchedulesByEmployee(selectedEmployee.value.id)
       }
-    } catch ({ message }) {
+    } catch (error) {
       $q.notify({
         type: 'negative',
-        message: message || 'Error al eliminar el horario.',
+        message: error.message || 'Error al eliminar el horario.',
         position: 'top',
       })
     }
