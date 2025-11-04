@@ -39,6 +39,7 @@ api.interceptors.request.use(
     if (token && isValidToken(token)) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    console.log('Axios Request Config:', config) // Log de depuración
     return config
   },
   (error) => Promise.reject(error),
@@ -52,8 +53,10 @@ api.interceptors.response.use(
       handleUnauthorized()
     } else if (error.response?.status === 403) {
       console.error('Acceso denegado: permisos insuficientes.')
+      console.error('Axios Response Error (403):', error.response) // Log de depuración para 403
     } else if (error.response) {
       console.error(`Error ${error.response.status}: ${error.response.statusText}`)
+      console.error('Axios Response Error:', error.response) // Log de depuración general
     } else {
       console.error('Error en la solicitud:', error.message)
     }

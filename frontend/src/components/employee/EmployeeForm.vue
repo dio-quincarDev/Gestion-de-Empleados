@@ -46,6 +46,8 @@
               v-model="formData.role"
               :options="roleOptions"
               label="Rol *"
+              emit-value
+              map-options
               dark
               outlined
               color="primary"
