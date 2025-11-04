@@ -10,11 +10,7 @@
     <q-separator dark />
 
     <q-card-section class="q-pa-lg">
-      <!-- Estado del Horario -->
-      <div class="row items-center q-mb-md">
-        <q-badge :color="statusColor" class="q-mr-sm" rounded />
-        <div class="text-subtitle1 text-weight-medium">{{ formattedStatus }}</div>
-      </div>
+
 
       <!-- Información Principal -->
       <div class="q-gutter-y-lg">
@@ -37,15 +33,7 @@
           </div>
         </div>
 
-        <!-- Tipo de Horario -->
-        <div class="row items-center">
-          <div class="col-4 text-grey-6">Tipo:</div>
-          <div class="col-8 text-white">
-            <q-badge :color="typeColor" rounded>
-              {{ formattedType }}
-            </q-badge>
-          </div>
-        </div>
+
 
         <!-- Información de Pago -->
         <div v-if="showPaymentInfo" class="row items-start">
@@ -58,15 +46,7 @@
           </div>
         </div>
 
-        <!-- Notas -->
-        <div v-if="schedule.notes" class="row items-start">
-          <div class="col-4 text-grey-6">Notas:</div>
-          <div class="col-8 text-white">
-            <div class="bg-grey-9 q-pa-sm rounded-borders">
-              {{ schedule.notes }}
-            </div>
-          </div>
-        </div>
+
 
         <!-- Información de Creación -->
         <q-separator dark class="q-my-md" />
@@ -118,7 +98,6 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import { SCHEDULE_STATUS, SCHEDULE_TYPE } from 'src/constants/schedule'
 
 defineOptions({ name: 'ScheduleDetails' })
 
@@ -135,41 +114,7 @@ const $q = useQuasar()
 const showDeleteDialog = ref(false)
 
 // Computed Properties
-const formattedStatus = computed(() => {
-  const statusMap = {
-    [SCHEDULE_STATUS.PENDING]: 'Pendiente',
-    [SCHEDULE_STATUS.CONFIRMED]: 'Confirmado',
-    [SCHEDULE_STATUS.CANCELLED]: 'Cancelado',
-  }
-  return statusMap[props.schedule.status] || props.schedule.status
-})
 
-const statusColor = computed(() => {
-  const colorMap = {
-    [SCHEDULE_STATUS.PENDING]: 'warning',
-    [SCHEDULE_STATUS.CONFIRMED]: 'positive',
-    [SCHEDULE_STATUS.CANCELLED]: 'negative',
-  }
-  return colorMap[props.schedule.status] || 'grey'
-})
-
-const formattedType = computed(() => {
-  const typeMap = {
-    [SCHEDULE_TYPE.REGULAR]: 'Regular',
-    [SCHEDULE_TYPE.OVERTIME]: 'Horas Extra',
-    [SCHEDULE_TYPE.HOLIDAY]: 'Feriado',
-  }
-  return typeMap[props.schedule.scheduleType] || props.schedule.scheduleType
-})
-
-const typeColor = computed(() => {
-  const colorMap = {
-    [SCHEDULE_TYPE.REGULAR]: 'primary',
-    [SCHEDULE_TYPE.OVERTIME]: 'orange',
-    [SCHEDULE_TYPE.HOLIDAY]: 'purple',
-  }
-  return colorMap[props.schedule.scheduleType] || 'grey'
-})
 
 const formattedDateRange = computed(() => {
   if (!props.schedule.startTime || !props.schedule.endTime) return 'N/A'

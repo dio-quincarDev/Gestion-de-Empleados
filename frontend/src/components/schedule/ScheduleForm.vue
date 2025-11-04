@@ -143,6 +143,34 @@ const calculatedDuration = computed(() => {
   return `${hours}h ${minutes}m`
 })
 
+const formatDateTimeForInput = (dateTime) => {
+  if (!dateTime) return ''
+  const date = new Date(dateTime)
+  return date.toISOString().slice(0, 16)
+}
+
+const resetForm = () => {
+  const now = new Date()
+  const endTime = new Date(now.getTime() + 8 * 60 * 60 * 1000) // +8 horas
+
+  formData.value = {
+    employeeId: props.employeeId || null,
+    startDateTime: formatDateTimeForInput(now),
+    endDateTime: formatDateTimeForInput(endTime),
+  }
+  dateError.value = ''
+}
+
+const loadScheduleData = (schedule) => {
+  if (!schedule) return
+
+  formData.value = {
+    employeeId: schedule.employee?.id || schedule.employeeId,
+    startDateTime: formatDateTimeForInput(schedule.startTime),
+    endDateTime: formatDateTimeForInput(schedule.endTime),
+  }
+}
+
 watch(
   () => props.schedule,
   (newVal) => {
@@ -158,34 +186,6 @@ watch(
 watch([() => formData.value.startDateTime, () => formData.value.endDateTime], () => {
   validateDates()
 })
-
-const loadScheduleData = (schedule) => {
-  if (!schedule) return
-
-  formData.value = {
-    employeeId: schedule.employee?.id || schedule.employeeId,
-    startDateTime: formatDateTimeForInput(schedule.startTime),
-    endDateTime: formatDateTimeForInput(schedule.endTime),
-  }
-}
-
-const resetForm = () => {
-  const now = new Date()
-  const endTime = new Date(now.getTime() + 8 * 60 * 60 * 1000) // +8 horas
-
-  formData.value = {
-    employeeId: props.employeeId || null,
-    startDateTime: formatDateTimeForInput(now),
-    endDateTime: formatDateTimeForInput(endTime),
-  }
-  dateError.value = ''
-}
-
-const formatDateTimeForInput = (dateTime) => {
-  if (!dateTime) return ''
-  const date = new Date(dateTime)
-  return date.toISOString().slice(0, 16)
-}
 
 const validateDates = () => {
   if (!formData.value.startDateTime || !formData.value.endDateTime) {

@@ -30,7 +30,6 @@
           fill-input
           @update:model-value="onEmployeeSelected"
           clearable
-          option-value="id"
           option-label="name"
         >
           <template v-slot:prepend>
@@ -82,6 +81,7 @@
     <!-- Dialogo para Formulario de Crear/Editar -->
     <q-dialog v-model="showFormDialog">
       <schedule-form
+        v-if="showFormDialog"
         :schedule="editingSchedule"
         :employee-id="selectedEmployee?.id"
         @save="handleSaveSchedule"
@@ -164,7 +164,7 @@ const onEmployeeSelected = async (employee) => {
   if (employee && employee.id) {
     loading.value = true
     try {
-      await scheduleStore.loadSchedulesByEmployee(employee.id)
+      await scheduleStore.loadSchedulesByEmployee(employee) // Pasar el objeto completo del empleado
     } catch (error) {
       $q.notify({
         type: 'negative',
@@ -223,7 +223,7 @@ const handleSaveSchedule = async (scheduleData) => {
 
   try {
     if (isUpdating) {
-      await scheduleStore.loadSchedulesByEmployee(selectedEmployee.value.id)
+      await scheduleStore.updateSchedule(editingSchedule.value.id, scheduleData)
       $q.notify({ type: 'positive', message: 'Horario actualizado.', position: 'top' })
     } else {
       await scheduleStore.createSchedule(scheduleData)
