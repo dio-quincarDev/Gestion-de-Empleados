@@ -31,8 +31,8 @@
           <!-- Fecha y Hora de Inicio -->
           <div class="col-12">
             <q-input
-              v-model="formData.startDateTime"
-              label="Fecha y Hora de Inicio *"
+              v-model="formData.entryDateTime"
+              label="Fecha y Hora de Entrada *"
               type="datetime-local"
               dark
               outlined
@@ -46,8 +46,8 @@
           <!-- Fecha y Hora de Fin -->
           <div class="col-12">
             <q-input
-              v-model="formData.endDateTime"
-              label="Fecha y Hora de Fin *"
+              v-model="formData.exitDateTime"
+              label="Fecha y Hora de Salida *"
               type="datetime-local"
               dark
               outlined
@@ -111,8 +111,8 @@ const employeeStore = useEmployeeStore()
 
 const formData = ref({
   employeeId: null,
-  startDateTime: '',
-  endDateTime: '',
+  entryDateTime: '',
+  exitDateTime: '',
 })
 
 const dateError = ref('')
@@ -127,10 +127,10 @@ const employeeOptions = computed(() => {
 })
 
 const calculatedDuration = computed(() => {
-  if (!formData.value.startDateTime || !formData.value.endDateTime) return null
+  if (!formData.value.entryDateTime || !formData.value.exitDateTime) return null
 
-  const start = new Date(formData.value.startDateTime)
-  const end = new Date(formData.value.endDateTime)
+  const start = new Date(formData.value.entryDateTime)
+  const end = new Date(formData.value.exitDateTime)
   const durationMs = end - start
 
   if (durationMs <= 0) return null
@@ -146,6 +146,7 @@ const calculatedDuration = computed(() => {
 const formatDateTimeForInput = (dateTime) => {
   if (!dateTime) return ''
   const date = new Date(dateTime)
+  // Formato YYYY-MM-DDTHH:mm para input type=datetime-local
   return date.toISOString().slice(0, 16)
 }
 
@@ -155,8 +156,8 @@ const resetForm = () => {
 
   formData.value = {
     employeeId: props.employeeId || null,
-    startDateTime: formatDateTimeForInput(now),
-    endDateTime: formatDateTimeForInput(endTime),
+    entryDateTime: formatDateTimeForInput(now),
+    exitDateTime: formatDateTimeForInput(endTime),
   }
   dateError.value = ''
 }
@@ -166,8 +167,8 @@ const loadScheduleData = (schedule) => {
 
   formData.value = {
     employeeId: schedule.employee?.id || schedule.employeeId,
-    startDateTime: formatDateTimeForInput(schedule.startTime),
-    endDateTime: formatDateTimeForInput(schedule.endTime),
+    entryDateTime: formatDateTimeForInput(schedule.entryDateTime || schedule.startTime),
+    exitDateTime: formatDateTimeForInput(schedule.exitDateTime || schedule.endTime),
   }
 }
 
@@ -183,18 +184,18 @@ watch(
   { immediate: true },
 )
 
-watch([() => formData.value.startDateTime, () => formData.value.endDateTime], () => {
+watch([() => formData.value.entryDateTime, () => formData.value.exitDateTime], () => {
   validateDates()
 })
 
 const validateDates = () => {
-  if (!formData.value.startDateTime || !formData.value.endDateTime) {
+  if (!formData.value.entryDateTime || !formData.value.exitDateTime) {
     dateError.value = ''
     return true
   }
 
-  const start = new Date(formData.value.startDateTime)
-  const end = new Date(formData.value.endDateTime)
+  const start = new Date(formData.value.entryDateTime)
+  const end = new Date(formData.value.exitDateTime)
 
   if (end <= start) {
     dateError.value = 'La fecha/hora de fin debe ser posterior a la de inicio'
@@ -224,8 +225,8 @@ const onSave = () => {
 
   const scheduleData = {
     employeeId: formData.value.employeeId,
-    startTime: new Date(formData.value.startDateTime).toISOString(),
-    endTime: new Date(formData.value.endDateTime).toISOString(),
+    entryDateTime: new Date(formData.value.entryDateTime).toISOString().slice(0, 19),
+    exitDateTime: new Date(formData.value.exitDateTime).toISOString().slice(0, 19),
   }
 
   if (props.schedule?.id) {
