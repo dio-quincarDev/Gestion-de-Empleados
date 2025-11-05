@@ -233,7 +233,7 @@ const handleSaveSchedule = async (scheduleData) => {
     cancelForm()
 
     if (selectedEmployee.value) {
-      await scheduleStore.loadSchedulesByEmployee(selectedEmployee.value.id)
+      await scheduleStore.loadSchedulesByEmployee(selectedEmployee.value)
     }
   } catch (error) {
     $q.notify({

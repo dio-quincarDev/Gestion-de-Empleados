@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import EmployeeService from 'src/service/employee.service.js'
+import { employeeService } from 'src/service/employee.service.js'
 
 export const useEmployeeStore = defineStore('employee', {
   state: () => ({
@@ -36,7 +36,7 @@ export const useEmployeeStore = defineStore('employee', {
           sort: `${pag.sortBy},${pag.descending ? 'desc' : 'asc'}`,
         }
 
-        const response = await EmployeeService.getEmployees(params)
+        const response = await employeeService.getEmployees(params)
 
         this.employees = response.content
         this.pagination = {
@@ -60,7 +60,7 @@ export const useEmployeeStore = defineStore('employee', {
       this.error = null
       this.selectedEmployee = null
       try {
-        this.selectedEmployee = await EmployeeService.getById(id)
+        this.selectedEmployee = await employeeService.getById(id)
       } catch (error) {
         this.error = error
       } finally {
@@ -72,7 +72,7 @@ export const useEmployeeStore = defineStore('employee', {
       this.loading = true
       this.error = null
       try {
-        await EmployeeService.createEmployee(employeeData)
+        await employeeService.createEmployee(employeeData)
         await this.fetchEmployees(this.pagination)
       } catch (error) {
         this.error = error
@@ -86,7 +86,7 @@ export const useEmployeeStore = defineStore('employee', {
       this.loading = true
       this.error = null
       try {
-        await EmployeeService.updateEmployee(employeeData.id, employeeData)
+        await employeeService.updateEmployee(employeeData.id, employeeData)
         await this.fetchEmployees(this.pagination)
       } catch (error) {
         this.error = error
@@ -100,7 +100,7 @@ export const useEmployeeStore = defineStore('employee', {
       this.loading = true
       this.error = null
       try {
-        await EmployeeService.deleteEmployee(employeeId)
+        await employeeService.deleteEmployee(employeeId)
         await this.fetchEmployees(this.pagination)
       } catch (error) {
         this.error = error
@@ -123,7 +123,7 @@ export const useEmployeeStore = defineStore('employee', {
           ...(filters.status && { status: filters.status }),
         }
 
-        const response = await EmployeeService.searchEmployees(params)
+        const response = await employeeService.searchEmployees(params)
         this.employees = response.content
         this.pagination = {
           page: response.number + 1,
