@@ -1,3 +1,4 @@
+<!-- AttendanceForm.vue -->
 <template>
   <q-card class="bg-dark text-white q-pa-md" style="max-width: 500px; width: 90vw">
     <q-card-section>
@@ -6,53 +7,42 @@
 
     <q-card-section>
       <q-form @submit.prevent="onSubmit" class="q-gutter-md">
+
+        <!-- Empleado ya seleccionado (readonly) -->
         <q-input
-          filled
-          v-model="searchQuery"
-          label="Buscar empleado"
-          debounce="500"
-          :loading="searchLoading"
-          @update:model-value="onSearch"
-          color="primary"
+          outlined
+          :model-value="employeeName"
+          label="Empleado"
+          readonly
           dark
+          input-class="text-white"
+          label-color="grey-5"
         >
-          <template #append>
-            <q-icon name="search" />
+          <template #prepend>
+            <q-icon name="person" />
           </template>
         </q-input>
 
-        <q-select
-          filled
-          v-model="selectedEmployee"
-          :options="employeeOptions"
-          label="Seleccionar empleado"
-          option-label="name"
-          option-value="id"
-          color="primary"
-          dark
-          use-input
-          input-debounce="0"
-          behavior="menu"
-        />
-
         <q-input
-          filled
+          outlined
           v-model="entryDateTime"
           type="datetime-local"
           label="Hora de entrada"
-          color="primary"
           dark
           required
+          input-class="text-white"
+          label-color="grey-5"
         />
 
         <q-input
-          filled
+          outlined
           v-model="exitDateTime"
           type="datetime-local"
           label="Hora de salida"
-          color="primary"
           dark
           required
+          input-class="text-white"
+          label-color="grey-5"
         />
 
         <div class="row justify-end q-gutter-sm q-mt-md">
@@ -63,7 +53,6 @@
             label="Registrar"
             type="submit"
             :loading="loading"
-            :disable="!selectedEmployee"
           />
         </div>
       </q-form>
@@ -74,58 +63,35 @@
 <script setup>
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { employeeService } from 'src/service/employee.service.js'
 
-defineOptions({ name: 'AttendanceForm' })
+const props = defineProps({
+  employeeId: { type: Number, required: true },
+  employeeName: { type: String, required: true }
+})
 
 const emit = defineEmits(['save', 'cancel'])
 const $q = useQuasar()
 
-const searchQuery = ref('')
-const employeeOptions = ref([])
-const selectedEmployee = ref(null)
 const entryDateTime = ref('')
 const exitDateTime = ref('')
 const loading = ref(false)
-const searchLoading = ref(false)
 
-const onSearch = async (query) => {
-  if (!query) {
-    employeeOptions.value = []
+const onSubmit = () => {
+  if (!entryDateTime.value || !exitDateTime.value) {
+    $q.notify({ type: 'negative', message: 'Complete entrada y salida' })
     return
   }
 
-  searchLoading.value = true
-  try {
-    const response = await employeeService.searchEmployees({ name: query, size: 5 })
-    employeeOptions.value = response.content || response
-  } catch (error) {
-    console.error('Error al buscar empleados:', error)
-    $q.notify({ type: 'negative', message: 'Error al buscar empleados' })
-  } finally {
-    searchLoading.value = false
-  }
-}
-
-const onSubmit = () => {
-  if (!selectedEmployee.value) return
-
   const payload = {
-    employeeId: selectedEmployee.value,
-    entryDateTime: entryDateTime.value,
-    exitDateTime: exitDateTime.value,
+    employeeId: props.employeeId,
+    entryDateTime: entryDateTime.value + ':00', // Asegurar formato ISO
+    exitDateTime: exitDateTime.value + ':00'
   }
 
+  loading.value = true
   emit('save', payload)
+  loading.value = false
 }
 
-const onCancel = () => {
-  emit('cancel')
-}
+const onCancel = () => emit('cancel')
 </script>
-
-<style scoped>
-.q-card {
-  border-radius: 15px;
-}
-</style>
