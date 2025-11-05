@@ -1,47 +1,59 @@
-// src/services/attendance.service.js
-import api, { API_CONSTANTS } from 'src/boot/axios'
+// src/services/attendance-service.js
+import { api, API_CONSTANTS } from 'src/boot/axios'
 
 export const attendanceService = {
-  // Registrar asistencia
-  recordAttendance: async (attendanceData) => {
-    const response = await api.post(
-      `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.ATTENDANCE_ROUTE}/`,
-      attendanceData,
-    )
-    return response.data
-  },
-
-  // Obtener lista de asistencias por empleado y rango de fechas
-  getAttendanceList: async (employeeId, startDate, endDate) => {
-    const params = {
-      employeeId,
-      startDate,
-      endDate,
+  // Listar asistencias por empleado y rango de fechas
+  getAttendanceList: async (params) => {
+    try {
+      const response = await api.get(`${API_CONSTANTS.V1_ROUTE}/attendances/list`, { params })
+      return response.data
+    } catch (error) {
+      console.error('Error al obtener la lista de asistencias:', error)
+      throw error
     }
-    const response = await api.get(
-      `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.ATTENDANCE_ROUTE}/list`,
-      { params },
-    )
-    return response.data
   },
 
-  // Calcular porcentaje de asistencia
-  calculateAttendancePercentage: async (employeeId, year, month, day) => {
-    const params = {
-      employeeId,
-      year,
-      month,
-      day,
+  // Obtener porcentaje de asistencia
+  getAttendancePercentage: async (params) => {
+    try {
+      const response = await api.get(`${API_CONSTANTS.V1_ROUTE}/attendances/percentage`, { params })
+      return response.data
+    } catch (error) {
+      console.error('Error al obtener el porcentaje de asistencia:', error)
+      throw error
     }
-    const response = await api.get(
-      `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.ATTENDANCE_ROUTE}/percentage`,
-      { params },
-    )
-    return response.data
   },
 
-  // Obtener asistencias de un empleado para una fecha específica
-  getEmployeeAttendances: async (employeeId, date) => {
-    return await attendanceService.getAttendanceList(employeeId, date, date)
+  // Crear nueva asistencia
+  createAttendance: async (attendanceData) => {
+    try {
+      const response = await api.post(`${API_CONSTANTS.V1_ROUTE}/attendances/`, attendanceData)
+      return response.data
+    } catch (error) {
+      console.error('Error al registrar la asistencia:', error)
+      throw error
+    }
+  },
+
+  // Actualizar asistencia existente
+  updateAttendance: async (id, attendanceData) => {
+    try {
+      const response = await api.put(`${API_CONSTANTS.V1_ROUTE}/attendances/${id}`, attendanceData)
+      return response.data
+    } catch (error) {
+      console.error('Error al actualizar la asistencia:', error)
+      throw error
+    }
+  },
+
+  // Eliminar asistencia
+  deleteAttendance: async (id) => {
+    try {
+      const response = await api.delete(`${API_CONSTANTS.V1_ROUTE}/attendances/${id}`)
+      return response.data
+    } catch (error) {
+      console.error('Error al eliminar la asistencia:', error)
+      throw error
+    }
   },
 }

@@ -1,7 +1,8 @@
 import { api, API_CONSTANTS } from 'src/boot/axios'
-export default {
+
+export const employeeService = {
   // Obtener todos los empleados
-  async createEmployee(employeeData) {
+  createEmployee: async (employeeData) => {
     try {
       const response = await api.post(
         `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}`,
@@ -14,7 +15,7 @@ export default {
     }
   },
 
-  async getById(id) {
+  getById: async (id) => {
     try {
       const response = await api.get(
         `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}/${id}`,
@@ -26,7 +27,7 @@ export default {
     }
   },
 
-  async getEmployees(params) {
+  getEmployees: async (params) => {
     try {
       const response = await api.get(`${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}`, {
         params,
@@ -39,7 +40,7 @@ export default {
   },
 
   // Actualizar un empleado
-  async updateEmployee(id, employeeData) {
+  updateEmployee: async (id, employeeData) => {
     try {
       const response = await api.put(
         `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}/${id}`,
@@ -52,7 +53,7 @@ export default {
     }
   },
 
-  async searchEmployees(params) {
+  searchEmployees: async (params) => {
     const queryParams = new URLSearchParams()
 
     if (params.name) queryParams.append('name', params.name)
@@ -66,7 +67,7 @@ export default {
   },
 
   // Eliminar un empleado
-  async deleteEmployee(id) {
+  deleteEmployee: async (id) => {
     try {
       const response = await api.delete(
         `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.EMPLOYEE_ROUTE}/${id}`,
