@@ -2,8 +2,7 @@
   <q-page class="q-pa-md">
     <div class="row q-mb-md">
       <q-select
-        v-if="employeeOptions.length > 0"
-        filled
+        outlined
         v-model="selectedEmployee"
         use-input
         hide-selected
@@ -15,6 +14,8 @@
         option-value="value"
         @filter="filterEmployees"
         style="width: 400px"
+        input-class="text-white"
+        label-color="grey-5"
       >
         <template v-slot:no-option>
           <q-item>
@@ -22,8 +23,6 @@
           </q-item>
         </template>
       </q-select>
-
-      <q-spinner v-else color="primary" size="2em" class="q-my-md" />
     </div>
 
     <!-- Mensaje cuando no hay empleado seleccionado -->
@@ -48,8 +47,8 @@
     <!-- Vista de Crear/Editar Asistencia -->
     <div v-else-if="currentView === 'form'" class="row justify-center">
       <attendance-form
-        :attendance="selectedAttendance"
-        :employee-id="selectedEmployee"
+        :employee-id="selectedEmployee.value.value"
+        :employee-name="selectedEmployee.value.label"
         @save="handleSaveAttendance"
         @cancel="showListView"
       />
@@ -120,6 +119,7 @@ const showDetails = (attendance) => {
 
 // Búsqueda de empleados
 const filterEmployees = async (val, update, abort) => {
+  globalLoading.value = true // Start loading
   try {
     if (val.length < 2) {
       update(() => {
@@ -134,14 +134,17 @@ const filterEmployees = async (val, update, abort) => {
     update(() => {
       // Las opciones se actualizan automáticamente por el computed
     })
-  } catch {
+  } catch (error) { // Catch error to stop loading
+    $q.notify({ type: 'negative', message: error.message || 'Error al buscar empleados' })
     abort()
+  } finally {
+    globalLoading.value = false // Stop loading
   }
 }
 
 // Cargar asistencias cuando se selecciona un empleado
-watch(selectedEmployee, async (newEmployee) => {
-  if (newEmployee && newEmployee.value) {
+watch(selectedEmployee, async (newEmp) => {
+  if (newEmp?.value) {
     globalLoading.value = true
     try {
       const endDate = new Date().toISOString().split('T')[0]
@@ -149,7 +152,11 @@ watch(selectedEmployee, async (newEmployee) => {
       startDate.setDate(startDate.getDate() - 30)
       const startDateStr = startDate.toISOString().split('T')[0]
 
-      await attendanceStore.loadAttendanceList(newEmployee.value, startDateStr, endDate)
+      await attendanceStore.loadAttendanceList({
+        employeeId: newEmp.value.value,
+        startDate: startDateStr,
+        endDate,
+      })
     } catch (error) {
       $q.notify({
         type: 'negative',
@@ -161,7 +168,6 @@ watch(selectedEmployee, async (newEmployee) => {
       globalLoading.value = false
     }
   } else {
-    // Limpiar asistencias si no hay empleado seleccionado
     attendanceStore.attendances = []
   }
 })
@@ -170,40 +176,35 @@ watch(selectedEmployee, async (newEmployee) => {
 const handleSaveAttendance = async (attendanceData) => {
   globalLoading.value = true
   try {
-    // Asegurar que el employeeId sea el seleccionado
-    const dataToSave = {
-      ...attendanceData,
+    const payload = {
       employeeId: selectedEmployee.value.value,
+      entryDateTime: attendanceData.entryDateTime,
+      exitDateTime: attendanceData.exitDateTime,
     }
 
     if (attendanceData.id) {
-      // Actualizar asistencia existente
-      await attendanceStore.updateAttendance(attendanceData.id, dataToSave)
-      $q.notify({
-        type: 'positive',
-        message: 'Asistencia actualizada correctamente',
-        position: 'top',
-        timeout: 3000,
-      })
+      await attendanceStore.updateAttendance(attendanceData.id, payload)
     } else {
-      // Crear nueva asistencia
-      await attendanceStore.recordAttendance(dataToSave)
-      $q.notify({
-        type: 'positive',
-        message: 'Asistencia registrada correctamente',
-        position: 'top',
-        timeout: 3000,
-      })
+      await attendanceStore.createAttendance(payload)
     }
 
-    showListView()
-  } catch (error) {
     $q.notify({
-      type: 'negative',
-      message: error.message || 'Error al guardar la asistencia',
-      position: 'top',
-      timeout: 5000,
+      type: 'positive',
+      message: attendanceData.id ? 'Actualizada' : 'Registrada correctamente',
     })
+
+    showListView()
+    // Recargar lista
+    const endDate = new Date().toISOString().split('T')[0]
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - 30)
+    await attendanceStore.loadAttendanceList({
+      employeeId: selectedEmployee.value.value,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate,
+    })
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error.message || 'Error al guardar' })
   } finally {
     globalLoading.value = false
   }
@@ -236,36 +237,8 @@ const handleDelete = async (attendanceId) => {
   }
 }
 
-// Lifecycle
-const initializePage = async () => {
-  globalLoading.value = true
-  try {
-    // Intentamos cargar empleados activos (usa searchEmployees)
-    if (employeeStore.employees.length === 0) {
-      await employeeStore.searchEmployees({ status: 'ACTIVE', size: 50 })
-      // Asegurarse de que employeeStore.employees sea siempre un array
-      employeeStore.employees = Array.isArray(employeeStore.employees)
-        ? employeeStore.employees
-        : []
-      console.log('✅ employeeStore.employees ahora tiene:', employeeStore.employees)
-    } else {
-      console.log('ℹ️ employeeStore.employees ya tenía datos:', employeeStore.employees)
-    }
-  } catch (error) {
-    console.error('Error al cargar los empleados:', error)
-    $q.notify({
-      type: 'negative',
-      message: error.message || 'Error al cargar los empleados',
-      position: 'top',
-      timeout: 5000,
-    })
-  } finally {
-    globalLoading.value = false
-  }
-}
-
 onMounted(() => {
-  initializePage()
+  // Vacío: estrategia de búsqueda dinámica
 })
 
 watch(

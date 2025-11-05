@@ -110,32 +110,9 @@ export const useEmployeeStore = defineStore('employee', {
       }
     },
 
-    async searchEmployees(filters) {
-      this.loading = true
-      this.error = null
-
-      try {
-        const params = {
-          page: filters.page || 0,
-          size: filters.size || 20,
-          ...(filters.name && { name: filters.name }),
-          ...(filters.role && { role: filters.role }),
-          ...(filters.status && { status: filters.status }),
-        }
-
-        const response = await employeeService.searchEmployees(params)
-        this.employees = response.content
-        this.pagination = {
-          page: response.number + 1,
-          rowsPerPage: response.size,
-          rowsNumber: response.totalElements,
-        }
-      } catch (error) {
-        this.error = error
-        throw error // Re-throw the error for the component to handle
-      } finally {
-        this.loading = false
-      }
-    },
+    async searchEmployees(params) {
+      const response = await employeeService.searchEmployees(params)
+      this.employees = response.content || response || []
+    }
   },
 })

@@ -301,7 +301,11 @@ const loadAttendances = async () => {
     startDate.setDate(startDate.getDate() - 30)
     const startDateStr = startDate.toISOString().split('T')[0]
 
-    await attendanceStore.loadAttendanceList(props.employee.id, startDateStr, endDate)
+    await attendanceStore.loadAttendanceList({
+      employeeId: props.employee.value,
+      startDate: startDateStr,
+      endDate
+    })
   } catch (error) {
     $q.notify({
       type: 'negative',

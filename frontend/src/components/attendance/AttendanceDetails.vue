@@ -178,7 +178,7 @@ const showDeleteDialog = ref(false)
 
 // Computed Properties
 const employee = computed(() => {
-  return employeeStore.employees.find((emp) => emp.id === props.attendance.employeeId)
+  return employeeStore.employees.find(e => e.id === props.attendance.employeeId) || {}
 })
 
 const employeeInitial = computed(() => {
@@ -405,15 +405,7 @@ const confirmDelete = () => {
 }
 
 // Lifecycle
-onMounted(async () => {
-  if (employeeStore.employees.length === 0) {
-    await employeeStore.searchEmployees({
-      status: 'ACTIVE',
-      page: 0,
-      size: 50,
-    })
-  }
-})
+
 </script>
 
 <style lang="scss" scoped>
