@@ -11,7 +11,6 @@
         label="Buscar Empleado"
         :options="employeeOptions"
         option-label="label"
-        option-value="value"
         @filter="filterEmployees"
         style="width: 400px"
         input-class="text-white"
@@ -77,6 +76,7 @@ import { useEmployeeStore } from 'src/stores/employee-module'
 import AttendanceTable from 'src/components/attendance/AttendanceTable.vue'
 import AttendanceForm from 'src/components/attendance/AttendanceForm.vue'
 import AttendanceDetails from 'src/components/attendance/AttendanceDetails.vue'
+import { EmployeeRole } from 'src/constants/roles'
 
 const $q = useQuasar()
 const attendanceStore = useAttendanceStore()
@@ -91,7 +91,7 @@ const selectedEmployee = ref(null)
 // Computed
 const employeeOptions = computed(() => {
   return employeeStore.employees.map((emp) => ({
-    label: `${emp.name} - ${emp.role}`,
+    label: `${emp.name} - ${EmployeeRole[emp.role] || emp.role}`,
     value: emp.id,
   }))
 })
@@ -144,7 +144,7 @@ const filterEmployees = async (val, update, abort) => {
 
 // Cargar asistencias cuando se selecciona un empleado
 watch(selectedEmployee, async (newEmp) => {
-  if (newEmp?.value) {
+  if (newEmp) { // Check if an employee object is selected
     globalLoading.value = true
     try {
       const endDate = new Date().toISOString().split('T')[0]
@@ -153,7 +153,7 @@ watch(selectedEmployee, async (newEmp) => {
       const startDateStr = startDate.toISOString().split('T')[0]
 
       await attendanceStore.loadAttendanceList({
-        employeeId: newEmp.value.value,
+        employeeId: newEmp.value, // The value from the option is the ID
         startDate: startDateStr,
         endDate,
       })

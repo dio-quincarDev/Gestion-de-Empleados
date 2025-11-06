@@ -1,7 +1,6 @@
 // src/stores/attendance-module.js
 import { defineStore } from 'pinia'
 import { attendanceService } from 'src/service/attendance.service'
-import { employeeService } from 'src/service/employee.service'
 
 export const useAttendanceStore = defineStore('attendance', {
   state: () => ({

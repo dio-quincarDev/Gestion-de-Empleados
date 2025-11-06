@@ -16,50 +16,46 @@
 
     <!-- Filtros -->
     <q-card-section class="q-pb-none">
-      <div class="row q-col-gutter-md">
-        <!-- Filtro por Estado -->
-        <div class="col-12 col-sm-6">
-          <q-select
-            v-model="filters.status"
-            :options="statusOptions"
-            label="Estado"
-            clearable
-            emit-value
-            map-options
-            dark
-            outlined
-            color="primary"
-            label-color="grey-5"
-            input-class="text-white"
-          />
-        </div>
-
-        <!-- Filtro por Fecha -->
-        <div class="col-12 col-sm-6">
+      <div class="row q-col-gutter-md items-center">
+        <!-- Filtro por Rango de Fechas -->
+        <div class="col-12 col-md-5">
           <q-input
-            v-model="filters.date"
-            label="Fecha"
+            v-model="filters.startDate"
+            label="Desde"
             type="date"
-            clearable
             dark
             outlined
+            dense
             color="primary"
             label-color="grey-5"
             input-class="text-white"
           />
         </div>
-      </div>
+        <div class="col-12 col-md-5">
+          <q-input
+            v-model="filters.endDate"
+            label="Hasta"
+            type="date"
+            dark
+            outlined
+            dense
+            color="primary"
+            label-color="grey-5"
+            input-class="text-white"
+          />
+        </div>
 
-      <!-- Botones de Filtro -->
-      <div class="row justify-end q-mt-md">
-        <q-btn flat label="Limpiar" color="grey-5" @click="clearFilters" class="q-mr-sm" />
-        <q-btn
-          unelevated
-          label="Buscar"
-          color="primary"
-          @click="onSearch"
-          :loading="attendanceStore.loading"
-        />
+        <!-- Botones de Filtro -->
+        <div class="col-12 col-md-2 row justify-end">
+            <q-btn flat label="Limpiar" color="grey-5" @click="clearFilters" class="q-mr-sm" />
+            <q-btn
+              unelevated
+              label="Buscar"
+              color="primary"
+              @click="onSearch"
+              :loading="attendanceStore.loading"
+            />
+        </div>
       </div>
     </q-card-section>
 
@@ -68,7 +64,7 @@
     <!-- Tabla -->
     <q-card-section class="q-pa-none">
       <q-table
-        :rows="filteredAttendances"
+        :rows="attendanceStore.attendances"
         :columns="columns"
         :loading="attendanceStore.loading"
         :pagination="pagination"
@@ -77,7 +73,6 @@
         dark
         class="bg-dark text-white"
         :rows-per-page-options="[10, 20, 50]"
-        @request="onTableRequest"
       >
         <!-- Header Personalizado -->
         <template v-slot:header="props">
@@ -85,36 +80,20 @@
             <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
               {{ col.label }}
             </q-th>
-            <q-th class="text-weight-bold">Acciones</q-th>
+            <q-th class="text-weight-bold text-right">Acciones</q-th>
           </q-tr>
         </template>
 
         <!-- Body Personalizado -->
         <template v-slot:body="props">
           <q-tr :props="props" class="cursor-pointer" @click="onRowClick(props.row)">
-            <!-- Fecha -->
-            <q-td>
-              <div>{{ formatTableDate(props.row.entryDateTime) }}</div>
-              <div class="text-caption text-grey-5">
-                {{ formatDayOfWeek(props.row.entryDateTime) }}
-              </div>
+            <q-td key="entry" :props="props">
+              {{ formatDateTime(props.row.entryDateTime) }}
             </q-td>
-
-            <!-- Horario -->
-            <q-td>
-              <div class="text-weight-medium">{{ formatTableTime(props.row.entryDateTime) }}</div>
-              <div class="text-caption text-grey-5">
-                a {{ formatTableTime(props.row.exitDateTime) }}
-              </div>
+            <q-td key="exit" :props="props">
+              {{ formatDateTime(props.row.exitDateTime) }}
             </q-td>
-
-            <!-- Duración -->
-            <q-td>
-              <div>{{ calculateDuration(props.row.entryDateTime, props.row.exitDateTime) }}</div>
-            </q-td>
-
-            <!-- Estado -->
-            <q-td>
+            <q-td key="status" :props="props">
               <q-badge :color="getStatusColor(props.row.status)" rounded>
                 {{ getStatusLabel(props.row.status) }}
               </q-badge>
@@ -122,37 +101,14 @@
 
             <!-- Acciones -->
             <q-td auto-width>
-              <div class="row no-wrap q-gutter-xs">
-                <q-btn
-                  flat
-                  round
-                  icon="visibility"
-                  color="info"
-                  size="sm"
-                  @click.stop="onViewDetails(props.row)"
-                >
+              <div class="row no-wrap q-gutter-xs justify-end">
+                <q-btn flat round icon="visibility" color="info" size="sm" @click.stop="onViewDetails(props.row)">
                   <q-tooltip>Ver Detalles</q-tooltip>
                 </q-btn>
-
-                <q-btn
-                  flat
-                  round
-                  icon="edit"
-                  color="warning"
-                  size="sm"
-                  @click.stop="onEditAttendance(props.row)"
-                >
+                <q-btn flat round icon="edit" color="warning" size="sm" @click.stop="onEditAttendance(props.row)">
                   <q-tooltip>Editar</q-tooltip>
                 </q-btn>
-
-                <q-btn
-                  flat
-                  round
-                  icon="delete"
-                  color="negative"
-                  size="sm"
-                  @click.stop="onDeleteAttendance(props.row)"
-                >
+                <q-btn flat round icon="delete" color="negative" size="sm" @click.stop="onDeleteAttendance(props.row)">
                   <q-tooltip>Eliminar</q-tooltip>
                 </q-btn>
               </div>
@@ -165,7 +121,7 @@
           <div class="full-width row flex-center text-grey q-pa-lg">
             <q-icon name="schedule" size="2em" class="q-mr-sm" />
             <span>{{
-              attendanceStore.loading ? 'Cargando...' : 'No hay registros de asistencia'
+              attendanceStore.loading ? 'Cargando...' : 'No hay registros para el rango seleccionado'
             }}</span>
           </div>
         </template>
@@ -198,10 +154,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useAttendanceStore } from 'src/stores/attendance-module.js'
-import { ATTENDANCE_STATUS, ATTENDANCE_STATUS_OPTIONS } from 'src/constants/attendance.js'
+import { ATTENDANCE_STATUS } from 'src/constants/attendance.js'
 
 defineOptions({ name: 'AttendanceTable' })
 
@@ -217,94 +173,64 @@ const $q = useQuasar()
 
 const attendanceStore = useAttendanceStore()
 
-// Estado
+// Inicializar fechas para el rango por defecto
+const today = new Date()
+const thirtyDaysAgo = new Date()
+thirtyDaysAgo.setDate(today.getDate() - 30)
+
+// Estado de los filtros
 const filters = ref({
-  status: null,
-  date: '',
+  startDate: thirtyDaysAgo.toISOString().split('T')[0],
+  endDate: today.toISOString().split('T')[0],
 })
 
 const showDeleteDialog = ref(false)
 const selectedAttendance = ref(null)
 
-// Paginación
+// Paginación (se mantiene por si se implementa paginación de backend en el futuro)
 const pagination = ref({
   page: 1,
   rowsPerPage: 10,
-  rowsNumber: 0,
+  rowsNumber: computed(() => attendanceStore.attendances.length),
 })
 
-// Columnas de la tabla
+// Columnas de la tabla simplificadas
 const columns = [
   {
-    name: 'date',
-    label: 'Fecha',
-    field: (row) => row.entryDateTime,
+    name: 'entry',
+    label: 'Entrada',
+    field: 'entryDateTime',
     align: 'left',
     sortable: true,
   },
   {
-    name: 'schedule',
-    label: 'Horario',
-    field: (row) => row.entryDateTime,
-    align: 'center',
-    sortable: false,
-  },
-  {
-    name: 'duration',
-    label: 'Duración',
-    field: (row) => row.duration,
-    align: 'center',
-    sortable: false,
+    name: 'exit',
+    label: 'Salida',
+    field: 'exitDateTime',
+    align: 'left',
+    sortable: true,
   },
   {
     name: 'status',
     label: 'Estado',
-    field: (row) => row.status,
+    field: 'status',
     align: 'center',
     sortable: true,
   },
 ]
 
-// Computed
-const filteredAttendances = computed(() => {
-  let filtered = attendanceStore.attendances
-
-  // Filtrar por estado
-  if (filters.value.status) {
-    filtered = filtered.filter((att) => att.status === filters.value.status)
-  }
-
-  // Filtrar por fecha
-  if (filters.value.date) {
-    filtered = filtered.filter((att) => {
-      const attDate = new Date(att.entryDateTime).toISOString().split('T')[0]
-      return attDate === filters.value.date
-    })
-  }
-
-  // Ordenar por fecha más reciente primero
-  return filtered.sort((a, b) => new Date(b.entryDateTime) - new Date(a.entryDateTime))
-})
-
-// Watch para actualizar la paginación
-watch(filteredAttendances, (newValue) => {
-  pagination.value.rowsNumber = newValue.length
-})
-
-const statusOptions = computed(() => ATTENDANCE_STATUS_OPTIONS)
-
 // Métodos
-const loadAttendances = async () => {
-  try {
-    const endDate = new Date().toISOString().split('T')[0]
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - 30)
-    const startDateStr = startDate.toISOString().split('T')[0]
+const onSearch = async () => {
+  if (!props.employee?.value) {
+    $q.notify({ type: 'warning', message: 'Por favor, seleccione un empleado.' })
+    return
+  }
 
+  try {
     await attendanceStore.loadAttendanceList({
       employeeId: props.employee.value,
-      startDate: startDateStr,
-      endDate
+      startDate: filters.value.startDate,
+      endDate: filters.value.endDate,
     })
   } catch (error) {
     $q.notify({
@@ -314,69 +240,24 @@ const loadAttendances = async () => {
   }
 }
 
-const onTableRequest = async (props) => {
-  const { page, rowsPerPage } = props.pagination
-
-  pagination.value.page = page
-  pagination.value.rowsPerPage = rowsPerPage
-
-  // En una implementación real con backend paginado, aquí harías la llamada API
-  // Por ahora usamos filtrado local
-  props.pagination.rowsNumber = pagination.value.rowsNumber
-}
-
-const onSearch = () => {
-  pagination.value.page = 1
-  // The filtering is done in the computed property
-}
-
 const clearFilters = () => {
   filters.value = {
-    status: null,
-    date: '',
+    startDate: thirtyDaysAgo.toISOString().split('T')[0],
+    endDate: today.toISOString().split('T')[0],
   }
   onSearch()
 }
 
-const formatTableDate = (dateString) => {
+const formatDateTime = (dateString) => {
   if (!dateString) return 'N/A'
   const date = new Date(dateString)
-  return date.toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
+  return date.toLocaleString('es-ES', {
     year: 'numeric',
-  })
-}
-
-const formatDayOfWeek = (dateString) => {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('es-ES', { weekday: 'long' })
-}
-
-const formatTableTime = (dateString) => {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return date.toLocaleTimeString('es-ES', {
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   })
-}
-
-const calculateDuration = (startTime, endTime) => {
-  if (!startTime || !endTime) return 'N/A'
-
-  const start = new Date(startTime)
-  const end = new Date(endTime)
-  const durationMs = end - start
-
-  const hours = Math.floor(durationMs / (1000 * 60 * 60))
-  const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60))
-
-  if (hours === 0) return `${minutes}m`
-  if (minutes === 0) return `${hours}h`
-
-  return `${hours}h ${minutes}m`
 }
 
 const getStatusLabel = (status) => {
@@ -431,7 +312,7 @@ const confirmDelete = async () => {
       message: 'Registro de asistencia eliminado correctamente',
     })
     emit('delete', selectedAttendance.value.id)
-    await loadAttendances()
+    await onSearch() // Recargar la lista con los filtros actuales
   } catch (error) {
     $q.notify({
       type: 'negative',
@@ -442,6 +323,12 @@ const confirmDelete = async () => {
     selectedAttendance.value = null
   }
 }
+
+// Cargar datos iniciales al montar el componente
+onMounted(() => {
+  onSearch()
+})
+
 </script>
 
 <style lang="scss" scoped>
