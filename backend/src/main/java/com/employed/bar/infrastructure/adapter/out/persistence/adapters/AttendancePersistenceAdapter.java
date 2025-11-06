@@ -55,4 +55,15 @@ public class AttendancePersistenceAdapter implements AttendanceRepositoryPort {
         return springAttendanceJpaRepository.findTopByEmployeeOrderByEntryDateTimeDesc(employeeMapper.toEntity(employee))
                 .map(attendanceMapper::toDomain);
     }
+
+    @Override
+    public Optional<AttendanceRecordClass> findById(Long attendanceId) {
+        return springAttendanceJpaRepository.findById(attendanceId)
+                .map(attendanceMapper::toDomain);
+    }
+
+    @Override
+    public void deleteById(Long attendanceId) {
+        springAttendanceJpaRepository.deleteById(attendanceId);
+    }
 }

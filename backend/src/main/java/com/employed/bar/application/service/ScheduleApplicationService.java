@@ -42,7 +42,7 @@ public class ScheduleApplicationService implements ScheduleUseCase {
         List<ScheduleClass> existingSchedules = scheduleRepositoryPort.findByEmployee(employee);
         for (ScheduleClass existingSchedule : existingSchedules) {
             if (schedule.getStartTime().isBefore(existingSchedule.getEndTime()) &&
-                schedule.getEndTime().isAfter(existingSchedule.getStartTime())) {
+                    schedule.getEndTime().isAfter(existingSchedule.getStartTime())) {
                 throw new InvalidScheduleException("Schedule overlaps with an existing schedule for this employee.");
             }
         }
@@ -77,6 +77,18 @@ public class ScheduleApplicationService implements ScheduleUseCase {
 
         if (updatedSchedule.getStartTime().isAfter(updatedSchedule.getEndTime())) {
             throw new InvalidScheduleException("Start time cannot be after end time.");
+        }
+
+        // Check for overlapping schedules, excluding the schedule being updated
+        EmployeeClass ownerEmployee = existingSchedule.getEmployee(); // Get the employee from the existing schedule
+        List<ScheduleClass> existingSchedules = scheduleRepositoryPort.findByEmployee(ownerEmployee);
+        for (ScheduleClass otherSchedule : existingSchedules) {
+            if (!otherSchedule.getId().equals(id)) { // Exclude the schedule being updated
+                if (updatedSchedule.getStartTime().isBefore(otherSchedule.getEndTime()) &&
+                        updatedSchedule.getEndTime().isAfter(otherSchedule.getStartTime())) {
+                    throw new InvalidScheduleException("Updated schedule overlaps with an existing schedule for this employee.");
+                }
+            }
         }
 
         existingSchedule.setStartTime(updatedSchedule.getStartTime());

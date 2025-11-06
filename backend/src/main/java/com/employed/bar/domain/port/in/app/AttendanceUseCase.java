@@ -14,4 +14,6 @@ public interface AttendanceUseCase {
     double calculateAttendancePercentage(Long employeeId, int year, int month, int day);
 
     List<AttendanceRecordClass> getAttendanceListByEmployeeAndDateRange(Long employeeId, LocalDate startDate, LocalDate endDate);
+    AttendanceRecordClass updateAttendance(AttendanceRecordClass attendanceRecord);
+    void deleteById (Long attendanceId);
 }

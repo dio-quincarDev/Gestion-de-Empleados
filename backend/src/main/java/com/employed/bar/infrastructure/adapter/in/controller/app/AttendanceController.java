@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -65,6 +66,7 @@ public class AttendanceController {
             )
     })
     @PostMapping("/")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<?> registerAttendance(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos de asistencia a registrar",
@@ -99,6 +101,7 @@ public class AttendanceController {
             )
     })
     @GetMapping("/percentage")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Double> calculateAttendancePercentage(
             @Parameter(
                     description = "ID del empleado",
@@ -155,6 +158,7 @@ public class AttendanceController {
             )
     })
     @GetMapping("/list")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AttendanceRecordClass>> getAttendanceListByEmployeeAndDateRange(
             @Parameter(
                     description = "ID del empleado",
@@ -180,5 +184,62 @@ public class AttendanceController {
         List<AttendanceRecordClass> attendanceRecordClasses = attendanceApplicationService
                 .getAttendanceListByEmployeeAndDateRange(employeeId, startDate, endDate);
         return ResponseEntity.ok(attendanceRecordClasses);
+    }
+
+    @Operation(
+            summary = "Actualizar registro de asistencia",
+            description = "Endpoint para modificar un registro de asistencia existente",
+            operationId = "updateAttendance"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Registro de asistencia actualizado correctamente",
+                    content = @Content(schema = @Schema(implementation = AttendanceDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Datos de entrada inválidos",
+                    content = @Content(schema = @Schema(example = "{\"message\": \"Invalid attendance data\"}"))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Registro de asistencia no encontrado",
+                    content = @Content(schema = @Schema(example = "{\"message\": \"Attendance record not found\"}"))
+            )
+    })
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<AttendanceDto> updateAttendance(
+            @Parameter(description = "ID del registro de asistencia", required = true) @PathVariable Long id,
+            @RequestBody @Valid AttendanceDto attendanceDto) {
+        AttendanceRecordClass attendanceRecord = attendanceApiMapper.toDomain(attendanceDto);
+        attendanceRecord.setId(id);
+        AttendanceRecordClass updatedRecord = attendanceApplicationService.updateAttendance(attendanceRecord);
+        return ResponseEntity.ok(attendanceApiMapper.toDto(updatedRecord));
+    }
+
+    @Operation(
+            summary = "Eliminar registro de asistencia",
+            description = "Endpoint para eliminar un registro de asistencia por su ID",
+            operationId = "deleteAttendance"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Registro de asistencia eliminado correctamente"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Registro de asistencia no encontrado",
+                    content = @Content(schema = @Schema(example = "{\"message\": \"Attendance record not found\"}"))
+            )
+    })
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteAttendance(
+            @Parameter(description = "ID del registro de asistencia a eliminar", required = true) @PathVariable Long id) {
+        attendanceApplicationService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
