@@ -33,7 +33,7 @@ public class AttendanceRecordEntity {
     private LocalDateTime exitDateTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status" , nullable = false)
     private AttendanceStatus status;
 
 

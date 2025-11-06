@@ -50,6 +50,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(AttendanceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAttendanceNotFoundException(AttendanceNotFoundException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("ATTENDANCE_NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(InvalidAttendanceDataException.class)
     public ResponseEntity<ErrorResponse> handleInvalidAttendanceDataException(InvalidAttendanceDataException ex) {
         ErrorResponse errorResponse = new ErrorResponse("INVALID_ATTENDANCE_DATA", ex.getMessage());

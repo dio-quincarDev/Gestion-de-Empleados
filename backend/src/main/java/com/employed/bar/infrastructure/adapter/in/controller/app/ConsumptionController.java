@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -65,6 +66,7 @@ public class ConsumptionController {
             )
     })
     @PostMapping("/")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ConsumptionClass> createConsumption(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos del consumo a registrar",
@@ -90,6 +92,7 @@ public class ConsumptionController {
             )
     })
     @GetMapping("/")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<ConsumptionDto>> getAllConsumptions() {
         List<ConsumptionClass> consumptions = consumptionApplicationService.getAllConsumptions();
         return ResponseEntity.ok(consumptionApiMapper.toDtoList(consumptions));
@@ -113,6 +116,7 @@ public class ConsumptionController {
             )
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ConsumptionDto> getConsumptionById(
             @Parameter(description = "ID del consumo", required = true, example = "1")
             @PathVariable Long id) {
@@ -146,6 +150,7 @@ public class ConsumptionController {
             )
     })
     @GetMapping("/total")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<BigDecimal> getTotalConsumptionByEmployee(
             @Parameter(description = "ID del empleado", required = true, example = "1")
             @RequestParam Long employeeId,
@@ -178,6 +183,7 @@ public class ConsumptionController {
             )
     })
     @GetMapping("/total/all")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<BigDecimal> getTotalConsumptionForAllEmployees(
             @Parameter(description = "Fecha de inicio (YYYY-MM-DD)", required = true, example = "2023-01-01")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

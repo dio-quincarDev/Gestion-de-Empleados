@@ -1,6 +1,7 @@
 package com.employed.bar.application.service;
 
 import com.employed.bar.domain.enums.AttendanceStatus;
+import com.employed.bar.domain.exceptions.AttendanceNotFoundException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
@@ -14,7 +15,9 @@ import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AttendanceApplicationService implements AttendanceUseCase {
@@ -49,24 +52,43 @@ public class AttendanceApplicationService implements AttendanceUseCase {
 
         attendanceRecord.setEmployee(employee);
 
-        // Updated logic to calculate and set status
+        // Robust logic to find the correct schedule, especially for overnight shifts.
         if (attendanceRecord.getEntryDateTime() != null) {
+            System.out.println("DEBUG: Entering status calculation logic.");
             LocalDate attendanceDate = attendanceRecord.getEntryDateTime().toLocalDate();
-            LocalDateTime startOfDay = attendanceDate.atStartOfDay();
-            LocalDateTime endOfDay = attendanceDate.atTime(LocalTime.MAX);
+            // We define a 48-hour search window to catch schedules that cross midnight.
+            LocalDateTime searchStart = attendanceDate.atStartOfDay();
+            LocalDateTime searchEnd = attendanceDate.plusDays(1).atTime(LocalTime.MAX);
 
-            List<ScheduleClass> schedules = scheduleRepositoryPort.findByEmployeeAndDate(employee, startOfDay, endOfDay);
+            List<ScheduleClass> potentialSchedules = scheduleRepositoryPort.findByEmployeeAndDate(employee, searchStart, searchEnd);
+            System.out.println("DEBUG: Found " + potentialSchedules.size() + " potential schedules in 48h window.");
 
-            if (!schedules.isEmpty()) {
-                ScheduleClass schedule = schedules.get(0); // Assume the first schedule is the relevant one for the day
+            // Find the most likely schedule: the one that started most recently before the employee clocked in.
+            Optional<ScheduleClass> relevantScheduleOpt = potentialSchedules.stream()
+                    .filter(s -> !s.getStartTime().isAfter(attendanceRecord.getEntryDateTime()))
+                    .max(Comparator.comparing(ScheduleClass::getStartTime));
+
+            if (relevantScheduleOpt.isPresent()) {
+                ScheduleClass schedule = relevantScheduleOpt.get();
+                System.out.println("DEBUG: Relevant schedule found. Start time: " + schedule.getStartTime());
+                // Check for lateness against the found schedule's start time.
                 if (attendanceRecord.getEntryDateTime().isAfter(schedule.getStartTime())) {
                     attendanceRecord.setStatus(AttendanceStatus.LATE);
+                    System.out.println("DEBUG: Status set to LATE.");
                 } else {
                     attendanceRecord.setStatus(AttendanceStatus.PRESENT);
+                    System.out.println("DEBUG: Status set to PRESENT.");
                 }
+            } else {
+                System.out.println("DEBUG: No relevant schedule found. Defaulting status.");
+                // If no schedule started before the entry time (e.g., employee came in super early
+                // or on a day off), default to PRESENT to avoid null status.
+                attendanceRecord.setStatus(AttendanceStatus.PRESENT);
+                System.out.println("DEBUG: Status set to PRESENT by default.");
             }
         }
 
+        System.out.println("DEBUG: Before saving, status is: " + attendanceRecord.getStatus());
         return attendanceRepositoryPort.save(attendanceRecord);
     }
 
@@ -111,5 +133,41 @@ public class AttendanceApplicationService implements AttendanceUseCase {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         return attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
+    }
+
+    @Override
+    public AttendanceRecordClass updateAttendance(AttendanceRecordClass attendanceRecord) {
+        if (attendanceRecord.getId() == null) {
+            throw new IllegalArgumentException("Attendance record ID cannot be null for update.");
+        }
+
+        AttendanceRecordClass existingRecord = attendanceRepositoryPort.findById(attendanceRecord.getId())
+                .orElseThrow(() -> new AttendanceNotFoundException("Attendance record not found: " + attendanceRecord.getId()));
+
+        if (attendanceRecord.getEntryDateTime() != null) {
+            existingRecord.setEntryDateTime(attendanceRecord.getEntryDateTime());
+        }
+        if (attendanceRecord.getExitDateTime() != null) {
+            existingRecord.setExitDateTime(attendanceRecord.getExitDateTime());
+        }
+        if (attendanceRecord.getStatus() != null) {
+            existingRecord.setStatus(attendanceRecord.getStatus());
+        }
+
+        if (existingRecord.getExitDateTime() != null &&
+                existingRecord.getEntryDateTime() != null &&
+                existingRecord.getExitDateTime().isBefore(existingRecord.getEntryDateTime())) {
+            throw new InvalidAttendanceDataException("Exit time cannot be before entry time.");
+        }
+
+        return attendanceRepositoryPort.save(existingRecord);
+    }
+
+    @Override
+    public void deleteById(Long attendanceId) {
+        if (!attendanceRepositoryPort.findById(attendanceId).isPresent()) {
+            throw new AttendanceNotFoundException("Attendance record not found: " + attendanceId);
+        }
+        attendanceRepositoryPort.deleteById(attendanceId);
     }
 }

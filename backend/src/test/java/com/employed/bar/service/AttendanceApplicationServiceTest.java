@@ -2,6 +2,7 @@ package com.employed.bar.service;
 
 import com.employed.bar.application.service.AttendanceApplicationService;
 import com.employed.bar.domain.enums.AttendanceStatus;
+import com.employed.bar.domain.exceptions.AttendanceNotFoundException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.InvalidAttendanceDataException;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
@@ -391,5 +392,133 @@ public class AttendanceApplicationServiceTest {
         verify(employeeRepository, times(1)).findById(1L);
         verify(scheduleRepositoryPort, times(1)).findByEmployeeAndDate(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(attendanceRepositoryPort, times(1)).save(attendanceRecord);
+    }
+
+    @Test
+    void testRegisterAttendance_OvernightShift_Success() {
+        LocalDateTime entryTime = LocalDateTime.of(LocalDate.of(2023, 1, 1), LocalTime.of(22, 0)); // 10 PM on Jan 1st
+        LocalDateTime exitTime = LocalDateTime.of(LocalDate.of(2023, 1, 2), LocalTime.of(6, 0)); // 6 AM on Jan 2nd
+
+        attendanceRecord.setEntryDateTime(entryTime);
+        attendanceRecord.setExitDateTime(exitTime);
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(scheduleRepositoryPort.findByEmployeeAndDate(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(java.util.Collections.emptyList()); // No specific schedule for this test
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(invocation -> {
+            AttendanceRecordClass record = invocation.getArgument(0);
+            assertNotNull(record.getStatus());
+            // Assuming a valid overnight shift should be marked as PRESENT if no schedule dictates otherwise
+            assertEquals(AttendanceStatus.PRESENT, record.getStatus());
+            return record;
+        });
+
+        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
+
+        assertNotNull(result);
+        assertEquals(entryTime, result.getEntryDateTime());
+        assertEquals(exitTime, result.getExitDateTime());
+        assertEquals(AttendanceStatus.PRESENT, result.getStatus());
+        verify(employeeRepository, times(1)).findById(1L);
+        verify(scheduleRepositoryPort, times(1)).findByEmployeeAndDate(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(attendanceRepositoryPort, times(1)).save(attendanceRecord);
+    }
+    @Test
+    void testRegisterAttendance_NightShift_WithSchedule_ShouldNotBeNull() {
+        // Usar el mismo employee que ya está configurado en el setUp (ID 1)
+        ScheduleClass nightSchedule = new ScheduleClass();
+        nightSchedule.setStartTime(LocalDateTime.of(2025, 11, 4, 21, 58));
+        nightSchedule.setEndTime(LocalDateTime.of(2025, 11, 5, 5, 58));
+
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(2025, 11, 4, 22, 0));
+        attendanceRecord.setExitDateTime(LocalDateTime.of(2025, 11, 5, 6, 0));
+
+        // Mock con ID 1 que es el del employee del setUp
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(scheduleRepositoryPort.findByEmployeeAndDate(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(List.of(nightSchedule));
+
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(invocation -> {
+            AttendanceRecordClass savedRecord = invocation.getArgument(0);
+            System.out.println("DEBUG - Status after logic: " + savedRecord.getStatus());
+            return savedRecord;
+        });
+
+        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
+        assertNotNull(result.getStatus(), "Status no debe ser null con horario nocturno existente");
+    }
+
+    @Test
+    void testRegisterAttendance_NightShift_CrossMidnight_StatusCalculation() {
+        ScheduleClass overnightSchedule = new ScheduleClass();
+        overnightSchedule.setStartTime(LocalDateTime.of(2025, 11, 4, 21, 0));
+        overnightSchedule.setEndTime(LocalDateTime.of(2025, 11, 5, 5, 0));
+
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(2025, 11, 4, 22, 0));
+        attendanceRecord.setExitDateTime(LocalDateTime.of(2025, 11, 5, 6, 0));
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(scheduleRepositoryPort.findByEmployeeAndDate(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(List.of(overnightSchedule));
+
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenReturn(attendanceRecord);
+
+        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
+
+        // Verificar que el status no sea null como mínimo
+        assertNotNull(result.getStatus());
+    }
+
+    @Test
+    void testUpdateAttendance_Success() {
+        attendanceRecord.setId(1L);
+        when(attendanceRepositoryPort.findById(1L)).thenReturn(Optional.of(attendanceRecord));
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenReturn(attendanceRecord);
+
+        AttendanceRecordClass updatedRecord = new AttendanceRecordClass();
+        updatedRecord.setId(1L);
+        updatedRecord.setEntryDateTime(LocalDateTime.now());
+
+        AttendanceRecordClass result = attendanceApplicationService.updateAttendance(updatedRecord);
+
+        assertNotNull(result);
+        verify(attendanceRepositoryPort, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, times(1)).save(attendanceRecord);
+    }
+
+    @Test
+    void testUpdateAttendance_NotFound() {
+        attendanceRecord.setId(1L);
+        when(attendanceRepositoryPort.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(AttendanceNotFoundException.class, () -> {
+            attendanceApplicationService.updateAttendance(attendanceRecord);
+        });
+
+        verify(attendanceRepositoryPort, times(1)).findById(1L);
+        verify(attendanceRepositoryPort, never()).save(any(AttendanceRecordClass.class));
+    }
+
+    @Test
+    void testDeleteAttendance_Success() {
+        Long attendanceId = 1L;
+        when(attendanceRepositoryPort.findById(attendanceId)).thenReturn(Optional.of(new AttendanceRecordClass()));
+        doNothing().when(attendanceRepositoryPort).deleteById(attendanceId);
+
+        attendanceApplicationService.deleteById(attendanceId);
+
+        verify(attendanceRepositoryPort, times(1)).deleteById(attendanceId);
+    }
+
+    @Test
+    void testDeleteAttendance_NotFound() {
+        Long attendanceId = 1L;
+        when(attendanceRepositoryPort.findById(attendanceId)).thenReturn(Optional.empty());
+
+        assertThrows(AttendanceNotFoundException.class, () -> {
+            attendanceApplicationService.deleteById(attendanceId);
+        });
+
+        verify(attendanceRepositoryPort, never()).deleteById(anyLong());
     }
 }

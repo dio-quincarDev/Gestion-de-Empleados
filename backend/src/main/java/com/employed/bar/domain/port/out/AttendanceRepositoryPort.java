@@ -12,4 +12,6 @@ public interface AttendanceRepositoryPort {
     List<AttendanceRecordClass> findByEmployeeAndDateRange(EmployeeClass employee, LocalDateTime startDate, LocalDateTime endDate);
     List<AttendanceRecordClass> findByEmployee(EmployeeClass employee);
     Optional<AttendanceRecordClass> findTopByEmployeeOrderByEntryDateTimeDesc(EmployeeClass employee);
+    Optional<AttendanceRecordClass> findById(Long attendanceId);
+    void deleteById(Long attendanceId);
 }
