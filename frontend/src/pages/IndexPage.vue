@@ -1,61 +1,157 @@
 <template>
   <q-page class="flex column flex-center q-pa-md animated-gradient">
     <div class="dashboard-container">
+      <!-- Filtros de Fecha -->
+      <div class="row justify-center q-mb-md q-gutter-sm">
+        <q-date
+          v-model="dateRange"
+          range
+          minimal
+          dark
+          color="primary"
+          class="q-mx-sm"
+          style="max-width: 300px"
+        />
+        <q-btn
+          flat
+          round
+          icon="refresh"
+          color="white"
+          @click="loadReport"
+          :loading="loading"
+          :disable="loading"
+        />
+      </div>
+
       <div class="text-h4 text-white q-mb-lg text-center">Colaboradores 1800</div>
 
-      <!-- Sección de Métricas Clave -->
+      <!-- Métricas Clave -->
       <div class="q-gutter-md q-mb-xl metrics-grid">
+        <!-- Empleados Activos -->
         <q-card class="glass-card metric-card animated fadeInUp">
           <q-card-section class="text-center">
-            <q-icon name="people" size="lg" color="primary" />
-            <div class="text-h5 text-primary">
-              {{ loadingEmployees ? '...' : activeEmployeesCount }}
+            <q-icon name="people" size="lg" color="positive" />
+            <div class="text-h5 text-positive">
+              {{ loading ? '...' : (report?.totalActiveEmployees ?? '--') }}
             </div>
+            <div class="text-caption text-grey">Activos</div>
           </q-card-section>
         </q-card>
 
+        <!-- Empleados Inactivos -->
         <q-card class="glass-card metric-card animated fadeInUp delay-1">
           <q-card-section class="text-center">
-            <q-icon name="local_bar" size="lg" color="primary" />
-            <div class="text-h6 text-white">Consumos del Día</div>
-            <div class="text-h5 text-primary">--</div>
+            <q-icon name="person_off" size="lg" color="negative" />
+            <div class="text-h5 text-negative">
+              {{ loading ? '...' : (report?.totalInactiveEmployees ?? '--') }}
+            </div>
+            <div class="text-caption text-grey">Inactivos</div>
           </q-card-section>
         </q-card>
 
+        <!-- Total Horas Trabajadas -->
         <q-card class="glass-card metric-card animated fadeInUp delay-2">
           <q-card-section class="text-center">
             <q-icon name="schedule" size="lg" color="primary" />
-            <div class="text-h6 text-white">Próximos Turnos</div>
-            <div class="text-h5 text-primary">--</div>
+            <div class="text-h5 text-primary">
+              {{ loading ? '...' : formatHours(report?.totalHoursWorkedOverall) }}
+            </div>
+            <div class="text-caption text-grey">Horas Totales</div>
+          </q-card-section>
+        </q-card>
+
+        <!-- Total Consumos -->
+        <q-card class="glass-card metric-card animated fadeInUp delay-3">
+          <q-card-section class="text-center">
+            <q-icon name="receipt_long" size="lg" color="warning" />
+            <div class="text-h5 text-warning">
+              ${{ loading ? '...' : formatAmount(report?.totalConsumptionsOverall) }}
+            </div>
+            <div class="text-caption text-grey">Consumos Totales</div>
           </q-card-section>
         </q-card>
       </div>
 
-      <!-- Sección de Acciones Rápidas -->
+      <!-- Top 5 por Horas y Consumos -->
+      <div class="row q-gutter-md q-mb-xl">
+        <!-- Top 5 Horas -->
+        <div class="col-12 col-md-6">
+          <q-card class="glass-card animated fadeInUp delay-4">
+            <q-card-section>
+              <div class="text-subtitle1 text-primary q-mb-sm">Top 5 por Horas Trabajadas</div>
+              <q-list v-if="topHours.length" dense>
+                <q-item v-for="(emp, i) in topHours" :key="emp.employeeId">
+                  <q-item-section avatar>
+                    <q-avatar :color="i === 0 ? 'positive' : 'grey-7'" text-color="white" size="sm">
+                      {{ i + 1 }}
+                    </q-avatar>
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-medium">{{ emp.employeeName }}</q-item-label>
+                    <q-item-label caption>{{ formatHours(emp.totalHoursWorked) }}h</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-linear-progress :value="emp.percentage" color="primary" size="6px" rounded />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+              <div v-else class="text-center text-grey q-pa-md">No hay datos</div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- Top 5 Consumos -->
+        <div class="col-12 col-md-6">
+          <q-card class="glass-card animated fadeInUp delay-5">
+            <q-card-section>
+              <div class="text-subtitle1 text-warning q-mb-sm">Top 5 por Consumo</div>
+              <q-list v-if="topConsumptions.length" dense>
+                <q-item v-for="(emp, i) in topConsumptions" :key="emp.employeeId">
+                  <q-item-section avatar>
+                    <q-avatar :color="i === 0 ? 'warning' : 'grey-7'" text-color="white" size="sm">
+                      {{ i + 1 }}
+                    </q-avatar>
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-medium">{{ emp.employeeName }}</q-item-label>
+                    <q-item-label caption>${{ formatAmount(emp.totalConsumptions) }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-linear-progress :value="emp.percentage" color="warning" size="6px" rounded />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+              <div v-else class="text-center text-grey q-pa-md">No hay datos</div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <!-- Acciones Rápidas (manteniendo tu estilo) -->
       <div class="q-gutter-md actions-grid">
         <q-btn
-          class="gradient-button full-width animated fadeInUp delay-3"
+          class="gradient-button full-width animated fadeInUp delay-6"
           label="Registrar Asistencia"
           icon="how_to_reg"
           size="lg"
           to="/main/attendance"
         />
         <q-btn
-          class="gradient-button full-width animated fadeInUp delay-4"
+          class="gradient-button full-width animated fadeInUp delay-7"
           label="Añadir Consumo"
           icon="add_shopping_cart"
           size="lg"
           to="/main/consumptions"
         />
         <q-btn
-          class="gradient-button full-width animated fadeInUp delay-5"
+          class="gradient-button full-width animated fadeInUp delay-8"
           label="Ver Empleados"
           icon="group"
           size="lg"
           to="/main/employees"
         />
         <q-btn
-          class="gradient-button full-width animated fadeInUp delay-6"
+          class="gradient-button full-width animated fadeInUp delay-9"
           label="Planificar Horarios"
           icon="calendar_today"
           size="lg"
@@ -67,32 +163,80 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useReportStore } from 'src/stores/report-module'
+import { date } from 'quasar'
 
-defineOptions({
-  name: 'IndexPage',
+const reportStore = useReportStore()
+
+// Filtros de fecha (últimos 30 días por defecto)
+const dateRange = ref({
+  from: date.formatDate(date.subtractFromDate(new Date(), { days: 30 }), 'YYYY-MM-DD'),
+  to: date.formatDate(new Date(), 'YYYY-MM-DD'),
 })
 
-const activeEmployeesCount = ref('12') // Número temporal
-const loadingEmployees = ref(false)
+const loading = computed(() => reportStore.loading)
+const report = computed(() => reportStore.reportData)
 
-onMounted(async () => {
-  //try {
-  //await employeeStore.fetchEmployees()
-  //const activeEmployees = employeeStore.getAllEmployees.filter((emp) => emp.status === 'ACTIVE') // Asumiendo un campo 'status'
-  //activeEmployeesCount.value = activeEmployees.length
-  //} catch (error) {
-  //console.error('Error fetching active employees:', error)
-  //activeEmployeesCount.value = 'Error'
-  //} finally {
-  //loadingEmployees.value = false
-  //}
-  loadingEmployees.value = false
-  activeEmployeesCount.value = '12'
+// Cálculo de máximos para barras
+const maxHours = computed(() => {
+  const values = report.value?.topEmployeesByHoursWorked?.map((e) => e.totalHoursWorked) || [1]
+  return Math.max(...values, 1)
 })
+
+const maxConsumption = computed(() => {
+  const values = report.value?.topEmployeesByConsumptions?.map((e) => e.totalConsumptions) || [1]
+  return Math.max(...values, 1)
+})
+
+const topHours = computed(() => {
+  return (report.value?.topEmployeesByHoursWorked || []).map((emp) => ({
+    ...emp,
+    percentage: emp.totalHoursWorked / maxHours.value,
+  }))
+})
+
+const topConsumptions = computed(() => {
+  return (report.value?.topEmployeesByConsumptions || []).map((emp) => ({
+    ...emp,
+    percentage: emp.totalConsumptions / maxConsumption.value,
+  }))
+})
+
+// Formateo
+const formatHours = (hours) => {
+  if (hours == null) return '--'
+  return hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)
+}
+
+const formatAmount = (amount) => {
+  if (amount == null) return '--'
+  return Number(amount).toFixed(2)
+}
+
+// Cargar reporte
+const loadReport = () => {
+  const { from, to } = dateRange.value
+  reportStore.loadReport({ startDate: from, endDate: to })
+}
+
+// Carga inicial
+onMounted(() => {
+  loadReport()
+})
+
+// Recargar al cambiar fechas
+watch(
+  dateRange,
+  () => {
+    loadReport()
+  },
+  { deep: true },
+)
 </script>
 
 <style lang="scss" scoped>
+/* === TUS ESTILOS ORIGINALES (sin cambios) === */
 .animated-gradient {
   background: linear-gradient(-45deg, $dark-page, $primary, $secondary, $dark-page);
   background-size: 400% 400%;
@@ -112,7 +256,7 @@ onMounted(async () => {
 }
 
 .dashboard-container {
-  max-width: 800px;
+  max-width: 900px;
   width: 100%;
   padding: 20px;
 }
@@ -124,7 +268,7 @@ onMounted(async () => {
 }
 
 .metric-card {
-  background: rgba($dark, 0.7); // Usar variable SASS
+  background: rgba($dark, 0.7);
   backdrop-filter: blur(10px);
   border-radius: 15px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -150,12 +294,12 @@ onMounted(async () => {
 }
 
 .gradient-button {
-  background: linear-gradient(to right, $primary, $secondary); // Usar variables SASS
+  background: linear-gradient(to right, $primary, $secondary);
   color: white;
   font-weight: bold;
   border: none;
   transition: transform 0.2s;
-  border-radius: 8px; // Añadir bordes redondeados
+  border-radius: 8px;
 
   &:hover {
     transform: scale(1.02);
@@ -163,31 +307,39 @@ onMounted(async () => {
   }
 }
 
-/* Animaciones de entrada escalonadas */
+/* Animaciones */
 .animated.fadeInUp {
   animation-duration: 0.6s;
   animation-fill-mode: both;
 }
-.animated.fadeInUp.delay-1 {
+.delay-1 {
   animation-delay: 0.1s;
 }
-.animated.fadeInUp.delay-2 {
+.delay-2 {
   animation-delay: 0.2s;
 }
-.animated.fadeInUp.delay-3 {
+.delay-3 {
   animation-delay: 0.3s;
 }
-.animated.fadeInUp.delay-4 {
+.delay-4 {
   animation-delay: 0.4s;
 }
-.animated.fadeInUp.delay-5 {
+.delay-5 {
   animation-delay: 0.5s;
 }
-.animated.fadeInUp.delay-6 {
+.delay-6 {
   animation-delay: 0.6s;
 }
+.delay-7 {
+  animation-delay: 0.7s;
+}
+.delay-8 {
+  animation-delay: 0.8s;
+}
+.delay-9 {
+  animation-delay: 0.9s;
+}
 
-/* Responsive adjustments */
 @media (min-width: 600px) {
   .actions-grid {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
