@@ -164,10 +164,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useReportStore } from 'src/stores/report-module'
+import { useKpiStore } from 'src/stores/kpi-module'
 import { date } from 'quasar'
 
-const reportStore = useReportStore()
+const kpiStore = useKpiStore()
 
 // Filtros de fecha (últimos 30 días por defecto)
 const dateRange = ref({
@@ -175,8 +175,8 @@ const dateRange = ref({
   to: date.formatDate(new Date(), 'YYYY-MM-DD'),
 })
 
-const loading = computed(() => reportStore.loading)
-const report = computed(() => reportStore.reportData)
+const loading = computed(() => kpiStore.loading)
+const report = computed(() => kpiStore.reportData)
 
 // Cálculo de máximos para barras
 const maxHours = computed(() => {
@@ -216,8 +216,13 @@ const formatAmount = (amount) => {
 
 // Cargar reporte
 const loadReport = () => {
-  const { from, to } = dateRange.value
-  reportStore.loadReport({ startDate: from, endDate: to })
+  if (!dateRange.value || !dateRange.value.from || !dateRange.value.to) {
+    kpiStore.reportData = null
+    return
+  }
+  const from = date.formatDate(dateRange.value.from, 'YYYY-MM-DD')
+  const to = date.formatDate(dateRange.value.to, 'YYYY-MM-DD')
+  kpiStore.loadReport({ startDate: from, endDate: to })
 }
 
 // Carga inicial

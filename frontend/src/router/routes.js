@@ -26,8 +26,16 @@ const routes = [
       },
       { path: 'consumptions', component: () => import('pages/main/ConsumptionsPage.vue') },
       { path: 'attendance', component: () => import('pages/main/AttendancePage.vue') },
-      { path: 'schedules', component: () => import('pages/main/SchedulesPage.vue'), meta: { roles: ['MANAGER', 'ADMIN'] } },
-      { path: 'reports', component: () => import('pages/main/ReportsPage.vue') },
+      {
+        path: 'schedules',
+        component: () => import('pages/main/SchedulesPage.vue'),
+        meta: { roles: ['MANAGER', 'ADMIN'] },
+      },
+      {
+        path: 'reports',
+        component: () => import('pages/main/ReportsPage.vue'),
+        meta: { roles: ['MANAGER'] },
+      },
       {
         path: 'employee/:id',
         name: 'employee-detail',
