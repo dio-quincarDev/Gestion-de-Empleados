@@ -4,18 +4,19 @@ import { reportService } from 'src/service/report.service'
 
 export const useReportStore = defineStore('report', {
   state: () => ({
-    reportData: null, // Todo el payload del backend
+    report: null,
     loading: false,
   }),
 
   actions: {
-    /**
-     * Carga el reporte general del manager
-     */
-    async loadReport({ startDate, endDate }) {
+    async loadReport({ employeeId, startDate, endDate }) {
       this.loading = true
       try {
-        this.reportData = await reportService.getManagerReport({ startDate, endDate })
+        this.report = await reportService.getCompleteReport({
+          employeeId,
+          startDate,
+          endDate,
+        })
       } finally {
         this.loading = false
       }
