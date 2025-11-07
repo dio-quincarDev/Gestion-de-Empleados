@@ -1,13 +1,12 @@
-<!-- AttendanceForm.vue -->
+<!-- AttendanceForm.vue - VERSIÓN CORREGIDA -->
 <template>
   <q-card class="bg-dark text-white q-pa-md" style="max-width: 500px; width: 90vw">
     <q-card-section>
-      <div class="text-h6">Registrar Asistencia</div>
+      <div class="text-h6">{{ isEditMode ? 'Editar' : 'Registrar' }} Asistencia</div>
     </q-card-section>
 
     <q-card-section>
       <q-form @submit.prevent="onSubmit" class="q-gutter-md">
-
         <!-- Empleado ya seleccionado (readonly) -->
         <q-input
           outlined
@@ -50,7 +49,7 @@
           <q-btn
             unelevated
             color="primary"
-            label="Registrar"
+            :label="isEditMode ? 'Actualizar' : 'Registrar'"
             type="submit"
             :loading="loading"
           />
@@ -61,20 +60,50 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
 
 const props = defineProps({
   employeeId: { type: Number, required: true },
-  employeeName: { type: String, required: true }
+  employeeName: { type: String, required: true },
+  // NUEVO: Prop para modo edición
+  editData: {
+    type: Object,
+    default: null,
+  },
 })
 
-const emit = defineEmits(['save', 'cancel'])
+const emit = defineEmits(['save', 'update', 'cancel'])
 const $q = useQuasar()
 
 const entryDateTime = ref('')
 const exitDateTime = ref('')
 const loading = ref(false)
+
+// NUEVO: Computed para saber si estamos en modo edición
+const isEditMode = computed(() => props.editData !== null)
+
+// NUEVO: Función para formatear fecha para input datetime-local
+const formatDateForInput = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toISOString().slice(0, 16) // Formato: YYYY-MM-DDTHH:mm
+}
+
+// NUEVO: Cargar datos cuando hay edición
+watch(
+  () => props.editData,
+  (newEditData) => {
+    if (newEditData) {
+      entryDateTime.value = formatDateForInput(newEditData.entryDateTime)
+      exitDateTime.value = formatDateForInput(newEditData.exitDateTime)
+    } else {
+      entryDateTime.value = ''
+      exitDateTime.value = ''
+    }
+  },
+  { immediate: true },
+)
 
 const onSubmit = () => {
   if (!entryDateTime.value || !exitDateTime.value) {
@@ -84,12 +113,24 @@ const onSubmit = () => {
 
   const payload = {
     employeeId: props.employeeId,
-    entryDateTime: entryDateTime.value + ':00', // Asegurar formato ISO
-    exitDateTime: exitDateTime.value + ':00'
+    entryDateTime: entryDateTime.value + ':00',
+    exitDateTime: exitDateTime.value + ':00',
+  }
+
+  // NUEVO: En modo edición, agregar el ID
+  if (isEditMode.value) {
+    payload.id = props.editData.id
   }
 
   loading.value = true
-  emit('save', payload)
+
+  // NUEVO: Emitir evento diferente según el modo
+  if (isEditMode.value) {
+    emit('update', payload)
+  } else {
+    emit('save', payload)
+  }
+
   loading.value = false
 }
 
