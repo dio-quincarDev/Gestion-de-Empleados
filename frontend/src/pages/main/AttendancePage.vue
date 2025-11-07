@@ -25,7 +25,7 @@
     </div>
 
     <!-- Mensaje cuando no hay empleado seleccionado -->
-    <div v-if="!selectedEmployee && currentView === 'list'" class="text-center q-pa-xl">
+    <div v-if="!selectedEmployee" class="text-center q-pa-xl">
       <q-icon name="person_search" size="4em" color="grey-5" />
       <div class="text-h6 q-mt-md text-grey-5">
         Seleccione un empleado para gestionar asistencias
@@ -33,35 +33,46 @@
     </div>
 
     <!-- Vista Principal - Tabla de Asistencias -->
-    <div v-else-if="currentView === 'list' && selectedEmployee">
+    <div v-else>
       <attendance-table
         :employee="selectedEmployee"
-        @create="showCreateForm"
-        @view="showDetails"
-        @edit="showEditForm"
+        @create="showCreateDialog = true"
+        @view="handleView"
+        @edit="handleEdit"
         @delete="handleDelete"
       />
     </div>
 
-    <!-- Vista de Crear/Editar Asistencia -->
-    <div v-else-if="currentView === 'form'" class="row justify-center">
+    <!-- Diálogo para Crear Asistencia -->
+    <q-dialog v-model="showCreateDialog" persistent>
       <attendance-form
-        :employee-id="selectedEmployee.value.value"
-        :employee-name="selectedEmployee.value.label"
-        @save="handleSaveAttendance"
-        @cancel="showListView"
+        :employee-id="selectedEmployee.value"
+        :employee-name="selectedEmployee.label"
+        @save="handleCreateAttendance"
+        @cancel="showCreateDialog = false"
       />
-    </div>
+    </q-dialog>
 
-    <!-- Vista de Detalles -->
-    <div v-else-if="currentView === 'details'" class="row justify-center">
+    <!-- Diálogo para Editar Asistencia -->
+    <q-dialog v-model="showEditDialog" persistent>
+      <attendance-form
+        :employee-id="selectedEmployee.value"
+        :employee-name="selectedEmployee.label"
+        :edit-data="selectedAttendance"
+        @update="handleUpdateAttendance"
+        @cancel="showEditDialog = false"
+      />
+    </q-dialog>
+
+    <!-- Diálogo para Ver Detalles -->
+    <q-dialog v-model="showDetailsDialog" persistent>
       <attendance-details
         :attendance="selectedAttendance"
-        @close="showListView"
-        @edit="showEditForm"
+        @close="showDetailsDialog = false"
+        @edit="handleEditFromDetails"
         @delete="handleDelete"
       />
-    </div>
+    </q-dialog>
 
     <!-- Loading Overlay Global -->
     <q-inner-loading :showing="globalLoading" label="Cargando..." label-class="text-white" />
@@ -83,10 +94,14 @@ const attendanceStore = useAttendanceStore()
 const employeeStore = useEmployeeStore()
 
 // Estado de la página
-const currentView = ref('list')
-const selectedAttendance = ref(null)
 const globalLoading = ref(false)
 const selectedEmployee = ref(null)
+const selectedAttendance = ref(null)
+
+// Diálogos
+const showCreateDialog = ref(false)
+const showEditDialog = ref(false)
+const showDetailsDialog = ref(false)
 
 // Computed
 const employeeOptions = computed(() => {
@@ -96,55 +111,45 @@ const employeeOptions = computed(() => {
   }))
 })
 
-// Manejo de vistas
-const showListView = () => {
-  currentView.value = 'list'
-  selectedAttendance.value = null
-}
-
-const showCreateForm = () => {
-  currentView.value = 'form'
-  selectedAttendance.value = null
-}
-
-const showEditForm = (attendance) => {
-  currentView.value = 'form'
+// MÉTODOS PARA MANEJAR EVENTOS
+const handleView = (attendance) => {
   selectedAttendance.value = attendance
+  showDetailsDialog.value = true
 }
 
-const showDetails = (attendance) => {
-  currentView.value = 'details'
+const handleEdit = (attendance) => {
   selectedAttendance.value = attendance
+  showEditDialog.value = true
+}
+
+const handleEditFromDetails = () => {
+  showDetailsDialog.value = false
+  showEditDialog.value = true
 }
 
 // Búsqueda de empleados
 const filterEmployees = async (val, update, abort) => {
-  globalLoading.value = true // Start loading
+  globalLoading.value = true
   try {
     if (val.length < 2) {
-      update(() => {
-        // Mostrar empleados recientes o vacío
-      })
+      update(() => {})
       return
     }
 
     await employeeStore.searchEmployees({ name: val })
-    // Asegurarse de que employeeStore.employees sea siempre un array
     employeeStore.employees = Array.isArray(employeeStore.employees) ? employeeStore.employees : []
-    update(() => {
-      // Las opciones se actualizan automáticamente por el computed
-    })
-  } catch (error) { // Catch error to stop loading
+    update(() => {})
+  } catch (error) {
     $q.notify({ type: 'negative', message: error.message || 'Error al buscar empleados' })
     abort()
   } finally {
-    globalLoading.value = false // Stop loading
+    globalLoading.value = false
   }
 }
 
 // Cargar asistencias cuando se selecciona un empleado
 watch(selectedEmployee, async (newEmp) => {
-  if (newEmp) { // Check if an employee object is selected
+  if (newEmp) {
     globalLoading.value = true
     try {
       const endDate = new Date().toISOString().split('T')[0]
@@ -153,7 +158,7 @@ watch(selectedEmployee, async (newEmp) => {
       const startDateStr = startDate.toISOString().split('T')[0]
 
       await attendanceStore.loadAttendanceList({
-        employeeId: newEmp.value, // The value from the option is the ID
+        employeeId: newEmp.value,
         startDate: startDateStr,
         endDate,
       })
@@ -172,8 +177,8 @@ watch(selectedEmployee, async (newEmp) => {
   }
 })
 
-// Operaciones CRUD
-const handleSaveAttendance = async (attendanceData) => {
+// MÉTODOS PARA CREAR Y ACTUALIZAR
+const handleCreateAttendance = async (attendanceData) => {
   globalLoading.value = true
   try {
     const payload = {
@@ -182,18 +187,14 @@ const handleSaveAttendance = async (attendanceData) => {
       exitDateTime: attendanceData.exitDateTime,
     }
 
-    if (attendanceData.id) {
-      await attendanceStore.updateAttendance(attendanceData.id, payload)
-    } else {
-      await attendanceStore.createAttendance(payload)
-    }
-
+    await attendanceStore.createAttendance(payload)
     $q.notify({
       type: 'positive',
-      message: attendanceData.id ? 'Actualizada' : 'Registrada correctamente',
+      message: 'Asistencia registrada correctamente',
     })
 
-    showListView()
+    showCreateDialog.value = false
+
     // Recargar lista
     const endDate = new Date().toISOString().split('T')[0]
     const startDate = new Date()
@@ -204,7 +205,40 @@ const handleSaveAttendance = async (attendanceData) => {
       endDate,
     })
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.message || 'Error al guardar' })
+    $q.notify({ type: 'negative', message: error.message || 'Error al crear asistencia' })
+  } finally {
+    globalLoading.value = false
+  }
+}
+
+const handleUpdateAttendance = async (attendanceData) => {
+  globalLoading.value = true
+  try {
+    const payload = {
+      employeeId: selectedEmployee.value.value,
+      entryDateTime: attendanceData.entryDateTime,
+      exitDateTime: attendanceData.exitDateTime,
+    }
+
+    await attendanceStore.updateAttendance(attendanceData.id, payload)
+    $q.notify({
+      type: 'positive',
+      message: 'Asistencia actualizada correctamente',
+    })
+
+    showEditDialog.value = false
+
+    // Recargar lista
+    const endDate = new Date().toISOString().split('T')[0]
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - 30)
+    await attendanceStore.loadAttendanceList({
+      employeeId: selectedEmployee.value.value,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate,
+    })
+  } catch (error) {
+    $q.notify({ type: 'negative', message: error.message || 'Error al actualizar asistencia' })
   } finally {
     globalLoading.value = false
   }
@@ -221,10 +255,17 @@ const handleDelete = async (attendanceId) => {
       timeout: 3000,
     })
 
-    // Si estamos en la vista de detalles, volver a la lista
-    if (currentView.value === 'details') {
-      showListView()
-    }
+    showDetailsDialog.value = false
+
+    // Recargar lista
+    const endDate = new Date().toISOString().split('T')[0]
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - 30)
+    await attendanceStore.loadAttendanceList({
+      employeeId: selectedEmployee.value.value,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate,
+    })
   } catch (error) {
     $q.notify({
       type: 'negative',

@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useEmployeeStore } from 'src/stores/employee-module.js'
 import { ATTENDANCE_STATUS } from 'src/constants/attendance.js'
@@ -118,7 +118,7 @@ const showDeleteDialog = ref(false)
 
 // Computed Properties
 const employee = computed(() => {
-  return employeeStore.employees.find(e => e.id === props.attendance.employeeId) || {}
+  return employeeStore.employees.find((e) => e.id === props.attendance.employeeId) || {}
 })
 
 const formattedRole = computed(() => {
@@ -205,7 +205,6 @@ const confirmDelete = () => {
 }
 
 // Lifecycle
-
 </script>
 
 <style lang="scss" scoped>
