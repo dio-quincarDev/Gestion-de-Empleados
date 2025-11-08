@@ -22,10 +22,10 @@ public class WeeklyReportScheduler {
 
 
     /**
-     * This scheduler runs every Sunday at 10 PM.
+     * This scheduler runs every Monday at 7 AM.
      * It triggers the generation of a weekly report for the past week (Monday to Sunday).
      */
-    @Scheduled(cron = "0 0 22 * * SUN")
+    @Scheduled(cron = "0 0 7 * * MON")
     public void triggerWeeklyReportGeneration() {
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.with(DayOfWeek.MONDAY).minusWeeks(1);

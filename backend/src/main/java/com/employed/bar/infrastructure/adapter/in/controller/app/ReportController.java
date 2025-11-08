@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,6 +57,7 @@ public class ReportController {
                     content = @Content(mediaType = "text/plain"))
     })
     @GetMapping("/complete")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
     public ResponseEntity<?> getCompleteReport(
             @Parameter(description = "Fecha de inicio del periodo del reporte en formato YYYY-MM-DD. **Obligatorio.**", required = true, example = "2023-01-01")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -101,6 +103,7 @@ public class ReportController {
                     content = @Content(mediaType = "text/plain"))
     })
     @GetMapping("/payment")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
     public ResponseEntity<BigDecimal> generatePayment(
             @Parameter(description = "ID único del empleado.", required = true, example = "1")
             @RequestParam Long employeeId,

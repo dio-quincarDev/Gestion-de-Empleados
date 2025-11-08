@@ -35,7 +35,7 @@ public class KpiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "KPIs retrieved successfully.")
     })
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     @GetMapping("/manager")
     public ResponseEntity<ManagerKpis> getManagerKpis(
             @RequestParam LocalDate startDate,
