@@ -6,5 +6,5 @@ import com.employed.bar.domain.model.structure.EmployeeClass;
 
 public interface NotificationPort {
     void sendReportByEmail(EmployeeClass employee, Report report);
-    void sendManagerReportByEmail(String managerEmail, ManagerReport managerReport);
+    void sendManagerReportByEmail(String managerEmail, ManagerReport managerReport, byte[] pdfAttachment);
 }

@@ -12,6 +12,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -20,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.util.StreamUtils;
+import org.springframework.core.io.ByteArrayResource;
 
 // ... (rest of imports)
 
@@ -42,7 +43,6 @@ public class EmailAdapter implements NotificationPort {
     }
 
     @Override
-
     public void sendReportByEmail(EmployeeClass employee, Report report) {
         System.out.println("📬 [EMAIL ADAPTER] Preparando email para: " + employee.getEmail());
         try {
@@ -51,7 +51,7 @@ public class EmailAdapter implements NotificationPort {
             System.out.println("✅ [EMAIL ADAPTER] Cuerpo del email generado, longitud: " + body.length());
             System.out.println("📧 [EMAIL ADAPTER] Contenido preview: " + (body.length() > 100 ? body.substring(0, 100) + "..." : body));
 
-            sendHtmlEmail(employee.getEmail(), subject, body);
+            sendHtmlEmail(employee.getEmail(), subject, body, null); // No attachment for employee report
             System.out.println("🎉 [EMAIL ADAPTER] EMAIL ENVIADO EXITOSAMENTE");
         } catch (Exception e) {
             System.out.println("❌ [EMAIL ADAPTER] ERROR CRÍTICO: " + e.getMessage());
@@ -105,14 +105,14 @@ public class EmailAdapter implements NotificationPort {
         }
     }
     @Override
-    public void sendManagerReportByEmail(String managerEmail, ManagerReport managerReport) {
+    public void sendManagerReportByEmail(String managerEmail, ManagerReport managerReport, byte[] pdfAttachment) {
         System.out.println("📬 [EMAIL ADAPTER] Preparando email de manager para: " + managerEmail);
         try {
             String subject = "Manager Weekly Report";
             String body = generateManagerEmailBody(managerReport);
             System.out.println("✅ [EMAIL ADAPTER] Cuerpo del email de manager generado, longitud: " + body.length());
 
-            sendHtmlEmail(managerEmail, subject, body);
+            sendHtmlEmail(managerEmail, subject, body, pdfAttachment); // Pass attachment
             System.out.println("🎉 [EMAIL ADAPTER] EMAIL DE MANAGER ENVIADO EXITOSAMENTE");
         } catch (Exception e) {
             System.out.println("❌ [EMAIL ADAPTER] ERROR enviando email de manager: " + e.getMessage());
@@ -156,7 +156,7 @@ public class EmailAdapter implements NotificationPort {
         }
     }
 
-    private void sendHtmlEmail(String to, String subject, String body) throws MessagingException {
+    private void sendHtmlEmail(String to, String subject, String body, byte[] attachment) throws MessagingException {
         System.out.println("📤 [SEND HTML] Enviando email a: " + to);
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // 'true' for multipart, 'UTF-8' for encoding
@@ -167,6 +167,11 @@ public class EmailAdapter implements NotificationPort {
 
             // Add the inline image
             helper.addInline("1800-logo.png", logoResource, "image/png"); // Content-ID matches the 'cid:' in HTML
+
+            // Add attachment if provided
+            if (attachment != null && attachment.length > 0) {
+                helper.addAttachment("Manager-Report.pdf", new ByteArrayResource(attachment));
+            }
 
             System.out.println("🔄 [SEND HTML] Ejecutando mailSender.send()...");
             mailSender.send(mimeMessage);
