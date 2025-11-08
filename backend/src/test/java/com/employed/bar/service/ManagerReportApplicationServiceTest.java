@@ -75,36 +75,50 @@ public class ManagerReportApplicationServiceTest {
         // Arrange
         List<EmployeeClass> employees = Collections.singletonList(employee);
         List<Report> individualReports = Collections.singletonList(individualReport);
+        byte[] dummyPdf = "dummy-pdf-content".getBytes();
         String managerEmail = "manager@example.com";
 
         when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(employees));
         when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId())).thenReturn(individualReport);
         when(managerReportCalculator.calculate(employees, individualReports)).thenReturn(managerReport);
+        when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(dummyPdf);
 
         // Act
         managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
 
         // Assert
+        ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
         verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(reportingUseCase, times(1)).generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         verify(managerReportCalculator, times(1)).calculate(employees, individualReports);
-        verify(notificationPort, times(1)).sendManagerReportByEmail(managerEmail, managerReport);
+        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport);
+        verify(notificationPort, times(1)).sendManagerReportByEmail(eq(managerEmail), eq(managerReport), pdfCaptor.capture());
+        
+        assertArrayEquals(dummyPdf, pdfCaptor.getValue());
     }
 
     @Test
     void testGenerateAndSendManagerReport_NoEmployees() {
         // Arrange
+        byte[] dummyPdf = "dummy-pdf-for-empty-report".getBytes();
         when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
         when(managerReportCalculator.calculate(any(), any())).thenReturn(managerReport);
+        // Even with no employees, a PDF of an empty report is generated
+        when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(dummyPdf);
 
         // Act
         managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
 
         // Assert
+        ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
         verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verifyNoInteractions(reportingUseCase); // No reports should be generated
         verify(managerReportCalculator, times(1)).calculate(Collections.emptyList(), Collections.emptyList());
-        verify(notificationPort, times(1)).sendManagerReportByEmail(anyString(), any(ManagerReport.class));
+        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport); // Verify PDF generation is still called
+        verify(notificationPort, times(1)).sendManagerReportByEmail(anyString(), any(ManagerReport.class), pdfCaptor.capture());
+        
+        // Verify that the captured PDF is the one we mocked
+        assertArrayEquals(dummyPdf, pdfCaptor.getValue());
     }
 
     @Test
@@ -217,31 +231,34 @@ public class ManagerReportApplicationServiceTest {
         // Mock the behavior of managerReportCalculator.calculate
         when(managerReportCalculator.calculate(anyList(), anyList())).thenReturn(mockManagerReport);
 
+        // Mock the PDF generation
+        byte[] dummyPdf = "dummy-pdf".getBytes();
+        when(pdfGeneratorPort.generateManagerReportPdf(mockManagerReport)).thenReturn(dummyPdf);
+
         // When
         managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
 
         // Then
         ArgumentCaptor<ManagerReport> managerReportCaptor = ArgumentCaptor.forClass(ManagerReport.class);
-        verify(notificationPort).sendManagerReportByEmail(eq("manager@example.com"), managerReportCaptor.capture());
+        ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
+        verify(notificationPort).sendManagerReportByEmail(eq("manager@example.com"), managerReportCaptor.capture(), pdfCaptor.capture());
 
+        // Assertions for the report content
         ManagerReport capturedReport = managerReportCaptor.getValue();
         assertNotNull(capturedReport);
         assertFalse(capturedReport.getEmployeeSummaries().isEmpty());
 
         EmployeeSummary employeeSummary = capturedReport.getEmployeeSummaries().get(0);
-
-        // ✅ DEBUG: Verificar qué hay en el paymentMethod
-        System.out.println("🔍 [TEST DEBUG] Captured paymentMethod: " + employeeSummary.getPaymentMethod());
-        System.out.println("🔍 [TEST DEBUG] Captured paymentMethod class: " +
-                (employeeSummary.getPaymentMethod() != null ? employeeSummary.getPaymentMethod().getClass().getName() : "NULL"));
-
         assertNotNull(employeeSummary.getPaymentMethod(), "PaymentMethod should not be null");
-        assertTrue(employeeSummary.getPaymentMethod() instanceof AchPaymentMethod,
-                "PaymentMethod should be instance of AchPaymentMethod");
+        assertTrue(employeeSummary.getPaymentMethod() instanceof AchPaymentMethod, "PaymentMethod should be instance of AchPaymentMethod");
 
         AchPaymentMethod capturedAchPaymentMethod = (AchPaymentMethod) employeeSummary.getPaymentMethod();
         assertEquals("Bank of America", capturedAchPaymentMethod.getBankName());
         assertEquals("123456789", capturedAchPaymentMethod.getAccountNumber());
         assertEquals(BankAccount.SAVINGS, capturedAchPaymentMethod.getBankAccountType());
+
+        // Assertion for the PDF attachment
+        assertNotNull(pdfCaptor.getValue());
+        assertArrayEquals(dummyPdf, pdfCaptor.getValue());
     }
 }
