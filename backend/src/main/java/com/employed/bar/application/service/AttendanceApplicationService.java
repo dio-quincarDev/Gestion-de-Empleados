@@ -57,16 +57,17 @@ public class AttendanceApplicationService implements AttendanceUseCase {
             System.out.println("DEBUG: Entering status calculation logic.");
             LocalDate attendanceDate = attendanceRecord.getEntryDateTime().toLocalDate();
             // We define a 48-hour search window to catch schedules that cross midnight.
-            LocalDateTime searchStart = attendanceDate.atStartOfDay();
-            LocalDateTime searchEnd = attendanceDate.plusDays(1).atTime(LocalTime.MAX);
+            LocalDateTime searchStart = attendanceDate.atStartOfDay().minusDays(1); // Search from the previous day to catch overnight schedules
+            LocalDateTime searchEnd = attendanceDate.atStartOfDay().plusDays(2); // Until the end of the next day
 
             List<ScheduleClass> potentialSchedules = scheduleRepositoryPort.findByEmployeeAndDate(employee, searchStart, searchEnd);
             System.out.println("DEBUG: Found " + potentialSchedules.size() + " potential schedules in 48h window.");
 
-            // Find the most likely schedule: the one that started most recently before the employee clocked in.
+            // Find the schedule whose start time is closest to the employee's clock-in time.
             Optional<ScheduleClass> relevantScheduleOpt = potentialSchedules.stream()
-                    .filter(s -> !s.getStartTime().isAfter(attendanceRecord.getEntryDateTime()))
-                    .max(Comparator.comparing(ScheduleClass::getStartTime));
+                    .min(Comparator.comparing(s ->
+                            java.time.Duration.between(s.getStartTime(), attendanceRecord.getEntryDateTime()).abs()
+                    ));
 
             if (relevantScheduleOpt.isPresent()) {
                 ScheduleClass schedule = relevantScheduleOpt.get();

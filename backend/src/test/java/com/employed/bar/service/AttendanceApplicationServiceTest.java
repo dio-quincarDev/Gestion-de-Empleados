@@ -424,49 +424,95 @@ public class AttendanceApplicationServiceTest {
         verify(attendanceRepositoryPort, times(1)).save(attendanceRecord);
     }
     @Test
-    void testRegisterAttendance_NightShift_WithSchedule_ShouldNotBeNull() {
-        // Usar el mismo employee que ya está configurado en el setUp (ID 1)
-        ScheduleClass nightSchedule = new ScheduleClass();
-        nightSchedule.setStartTime(LocalDateTime.of(2025, 11, 4, 21, 58));
-        nightSchedule.setEndTime(LocalDateTime.of(2025, 11, 5, 5, 58));
-
-        attendanceRecord.setEntryDateTime(LocalDateTime.of(2025, 11, 4, 22, 0));
-        attendanceRecord.setExitDateTime(LocalDateTime.of(2025, 11, 5, 6, 0));
-
-        // Mock con ID 1 que es el del employee del setUp
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(scheduleRepositoryPort.findByEmployeeAndDate(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(List.of(nightSchedule));
-
-        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(invocation -> {
-            AttendanceRecordClass savedRecord = invocation.getArgument(0);
-            System.out.println("DEBUG - Status after logic: " + savedRecord.getStatus());
-            return savedRecord;
-        });
-
-        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
-        assertNotNull(result.getStatus(), "Status no debe ser null con horario nocturno existente");
-    }
-
-    @Test
-    void testRegisterAttendance_NightShift_CrossMidnight_StatusCalculation() {
+    void testRegisterAttendance_OvernightShift_ArrivesLate_ShouldBeLate() {
+        // Arrange: Schedule from 10 PM to 6 AM next day
         ScheduleClass overnightSchedule = new ScheduleClass();
-        overnightSchedule.setStartTime(LocalDateTime.of(2025, 11, 4, 21, 0));
-        overnightSchedule.setEndTime(LocalDateTime.of(2025, 11, 5, 5, 0));
+        overnightSchedule.setStartTime(LocalDateTime.of(2025, 11, 4, 22, 0)); // 10 PM
+        overnightSchedule.setEndTime(LocalDateTime.of(2025, 11, 5, 6, 0));   // 6 AM
 
-        attendanceRecord.setEntryDateTime(LocalDateTime.of(2025, 11, 4, 22, 0));
+        // Act: Employee clocks in 15 minutes late
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(2025, 11, 4, 22, 15));
         attendanceRecord.setExitDateTime(LocalDateTime.of(2025, 11, 5, 6, 0));
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         when(scheduleRepositoryPort.findByEmployeeAndDate(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(List.of(overnightSchedule));
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenReturn(attendanceRecord);
-
+        // Action
         AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
 
-        // Verificar que el status no sea null como mínimo
-        assertNotNull(result.getStatus());
+        // Assert
+        assertNotNull(result.getStatus(), "Status should not be null");
+        assertEquals(AttendanceStatus.LATE, result.getStatus(), "Status should be LATE for an overnight shift arrival");
+    }
+
+    @Test
+    void testRegisterAttendance_NoMatchingSchedule_ShouldDefaultToPresent() {
+        // Arrange: Employee clocks in on a day with no scheduled shift
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(2025, 11, 4, 9, 0));
+        attendanceRecord.setExitDateTime(LocalDateTime.of(2025, 11, 4, 17, 0));
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        // No schedules are returned
+        when(scheduleRepositoryPort.findByEmployeeAndDate(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(java.util.Collections.emptyList());
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Action
+        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
+
+        // Assert
+        assertNotNull(result.getStatus(), "Status should not be null");
+        assertEquals(AttendanceStatus.PRESENT, result.getStatus(), "Status should default to PRESENT when no schedule is found");
+    }
+
+    @Test
+    void testRegisterAttendance_OvernightShift_ArrivesEarly_ShouldBePresent() {
+        // Arrange: Schedule from 10 PM to 6 AM next day
+        ScheduleClass overnightSchedule = new ScheduleClass();
+        overnightSchedule.setStartTime(LocalDateTime.of(2025, 11, 4, 22, 0)); // 10 PM
+        overnightSchedule.setEndTime(LocalDateTime.of(2025, 11, 5, 6, 0));   // 6 AM
+
+        // Act: Employee clocks in 5 minutes early
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(2025, 11, 4, 21, 55));
+        attendanceRecord.setExitDateTime(LocalDateTime.of(2025, 11, 5, 6, 0));
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(scheduleRepositoryPort.findByEmployeeAndDate(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(List.of(overnightSchedule));
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Action
+        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
+
+        // Assert
+        assertNotNull(result.getStatus(), "Status should not be null");
+        assertEquals(AttendanceStatus.PRESENT, result.getStatus(), "Status should be PRESENT for an early arrival to an overnight shift");
+    }
+
+    @Test
+    void testRegisterAttendance_DayShift_ArrivesEarly_ShouldBePresent() {
+        // Arrange: Schedule from 9 AM to 5 PM
+        ScheduleClass daySchedule = new ScheduleClass();
+        daySchedule.setStartTime(LocalDateTime.of(2025, 11, 4, 9, 0));
+        daySchedule.setEndTime(LocalDateTime.of(2025, 11, 4, 17, 0));
+
+        // Act: Employee clocks in 10 minutes early
+        attendanceRecord.setEntryDateTime(LocalDateTime.of(2025, 11, 4, 8, 50));
+        attendanceRecord.setExitDateTime(LocalDateTime.of(2025, 11, 4, 17, 0));
+
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(scheduleRepositoryPort.findByEmployeeAndDate(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(List.of(daySchedule));
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Action
+        AttendanceRecordClass result = attendanceApplicationService.registerAttendance(attendanceRecord);
+
+        // Assert
+        assertNotNull(result.getStatus(), "Status should not be null");
+        assertEquals(AttendanceStatus.PRESENT, result.getStatus(), "Status should be PRESENT for an early arrival to a day shift");
     }
 
     @Test
