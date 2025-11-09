@@ -4,14 +4,13 @@
     :rows="props.employees"
     :columns="columns"
     row-key="id"
-    dark
     flat
     class="employee-table"
     :grid="$q.screen.xs"
   >
     <template v-slot:item="props">
       <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4 col-lg-3 grid-style-transition">
-        <q-card dark bordered flat class="employee-card">
+        <q-card bordered flat class="employee-card">
           <q-card-section>
             <div class="text-h6 text-primary">{{ props.row.name }}</div>
             <div class="text-subtitle2">{{ props.row.email }}</div>

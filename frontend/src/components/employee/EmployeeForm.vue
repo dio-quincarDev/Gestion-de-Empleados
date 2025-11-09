@@ -1,44 +1,45 @@
 <template>
-  <q-card
-    class="employee-form-card"
-    :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 600px; max-width: 90vw;'"
-  >
-    <q-card-section class="bg-dark text-white">
+  <q-card class="employee-form-card">
+    <q-card-section class="text-white">
       <div class="text-h6">{{ props.employee ? 'Editar Empleado' : 'Nuevo Empleado' }}</div>
     </q-card-section>
 
-    <q-separator dark />
+    <q-separator />
 
     <q-card-section>
-      <q-stepper v-model="step" ref="stepper" color="primary" animated dark class="bg-transparent">
+      <q-stepper v-model="step" ref="stepper" color="primary" animated class="bg-transparent">
         <q-step :name="1" title="Información Personal" icon="person" :done="step > 1">
           <q-input
             v-model="formData.name"
             label="Nombre Completo *"
-            dark
+            dense
             outlined
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-sm"
+            class="q-mb-xs"
             :rules="[(val) => !!val || 'Campo requerido']"
           />
           <q-input
             v-model="formData.email"
             label="Email *"
+            dense
+            outlined
+            color="primary"
+            label-color="grey-5"
             input-class="text-white"
-            class="q-mb-sm"
+            class="q-mb-xs"
             :rules="[(val) => !!val || 'Campo requerido']"
           />
           <q-input
             v-model="formData.contactPhone"
             label="Teléfono de Contacto *"
-            dark
+            dense
             outlined
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-sm"
+            class="q-mb-xs"
             :rules="[(val) => !!val || 'Campo requerido']"
           />
           <div class="row q-col-gutter-md">
@@ -48,7 +49,7 @@
               label="Rol *"
               emit-value
               map-options
-              dark
+              dense
               outlined
               color="primary"
               label-color="grey-5"
@@ -59,7 +60,7 @@
               v-model="formData.status"
               :options="statusOptions"
               label="Estado *"
-              dark
+              dense
               outlined
               color="primary"
               label-color="grey-5"
@@ -77,24 +78,24 @@
             emit-value
             map-options
             @update:model-value="onPaymentTypeChange"
-            dark
+            dense
             outlined
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-sm"
+            class="q-mb-xs"
           />
           <q-input
             v-model.number="formData.hourlyRate"
             label="Tarifa por Hora *"
             type="number"
             :disable="formData.paymentType !== 'HOURLY'"
-            dark
+            dense
             outlined
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-sm"
+            class="q-mb-xs"
             min="0"
             step="0.01"
             prefix="$"
@@ -109,12 +110,12 @@
             label="Salario Mensual *"
             type="number"
             :disable="formData.paymentType !== 'SALARIED'"
-            dark
+            dense
             outlined
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-sm"
+            class="q-mb-xs"
             min="0"
             step="0.01"
             prefix="$"
@@ -126,23 +127,21 @@
           <q-toggle
             v-model="formData.paysOvertime"
             label="Paga Horas Extra"
-            dark
             color="primary"
-            class="q-mb-sm"
+            class="q-mb-xs"
             @update:model-value="onOvertimeChange"
           />
-          <q-select
-            v-if="formData.paysOvertime"
-            v-model="formData.overtimeRateType"
-            :options="OVERTIME_RATE_TYPE_OPTIONS"
-            label="Tipo de Tarifa Extra *"
-            dark
-            outlined
-            color="primary"
-            label-color="grey-5"
-            input-class="text-white"
-          />
-        </q-step>
+                      <q-select
+                        v-if="formData.paysOvertime"
+                        v-model="formData.overtimeRateType"
+                        :options="OVERTIME_RATE_TYPE_OPTIONS"
+                        label="Tipo de Tarifa Extra *"
+                        dense
+                        outlined
+                        color="primary"
+                        label-color="grey-5"
+                        input-class="text-white"
+                      />        </q-step>
 
         <q-step :name="3" title="Método de Pago" icon="credit_card">
           <q-select
@@ -151,12 +150,12 @@
             label="Método *"
             emit-value
             map-options
-            dark
+            dense
             outlined
             color="primary"
             label-color="grey-5"
             input-class="text-white"
-            class="q-mb-sm"
+            class="q-mb-xs"
             @update:model-value="onPaymentMethodChange"
           />
           <!-- ACH Transfer -->
@@ -164,23 +163,23 @@
             <q-input
               v-model="formData.paymentMethod.bankName"
               label="Nombre del Banco *"
-              dark
+              dense
               outlined
               color="primary"
               label-color="grey-5"
               input-class="text-white"
-              class="col-xs-12 col-sm-6"
+              class="col-xs-12 col-sm-6 q-mb-xs"
               :rules="[(val) => !!val || 'Campo requerido']"
             />
             <q-input
               v-model="formData.paymentMethod.accountNumber"
               label="Número de Cuenta *"
-              dark
+              dense
               outlined
               color="primary"
               label-color="grey-5"
               input-class="text-white"
-              class="col-xs-12 col-sm-6"
+              class="col-xs-12 col-sm-6 q-mb-xs"
               :rules="[
                 (val) => !!val || 'Campo requerido',
                 (val) => /^\d+$/.test(val) || 'Solo números',
@@ -191,12 +190,12 @@
               v-model="formData.paymentMethod.bankAccountType"
               :options="BANK_ACCOUNT_TYPE_OPTIONS"
               label="Tipo de Cuenta *"
-              dark
+              dense
               outlined
               color="primary"
               label-color="grey-5"
               input-class="text-white"
-              class="col-xs-12 q-mt-sm"
+              class="col-xs-12 q-mt-xs"
               :rules="[(val) => !!val || 'Seleccione tipo de cuenta']"
             />
           </div>
@@ -206,12 +205,13 @@
             <q-input
               v-model="formData.paymentMethod.phoneNumber"
               label="Número de Yappy *"
-              dark
+              dense
               outlined
               color="primary"
               label-color="grey-5"
               input-class="text-white"
               mask="+507 ####-####"
+              class="q-mb-xs"
               :rules="[
                 (val) => !!val || 'Campo requerido',
                 (val) => val.replace(/[^0-9]/g, '').length === 11 || 'Número inválido',
@@ -222,7 +222,7 @@
           <!-- CASH - Mensaje informativo -->
           <div
             v-show="formData.paymentMethod.type === 'CASH'"
-            class="text-caption text-grey-5 q-mt-sm"
+            class="text-caption text-grey-5 q-mt-xs"
           >
             El pago se realizará en efectivo directamente al empleado.
           </div>
@@ -250,9 +250,9 @@
       </q-stepper>
     </q-card-section>
 
-    <q-separator dark />
+    <q-separator />
 
-    <q-card-actions align="right" class="bg-dark">
+    <q-card-actions align="right">
       <q-btn flat rounded label="Cancelar" color="grey-5" @click="onCancel" />
     </q-card-actions>
   </q-card>

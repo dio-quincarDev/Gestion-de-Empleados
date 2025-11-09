@@ -1,34 +1,14 @@
 <template>
-  <q-page class="flex column flex-center q-pa-md animated-gradient">
+  <q-page class="flex column flex-center q-pa-md">
     <div class="dashboard-container">
-      <!-- Filtros de Fecha -->
-      <div class="row justify-center q-mb-md q-gutter-sm">
-        <q-date
-          v-model="dateRange"
-          range
-          minimal
-          dark
-          color="primary"
-          class="q-mx-sm"
-          style="max-width: 300px"
-        />
-        <q-btn
-          flat
-          round
-          icon="refresh"
-          color="white"
-          @click="loadReport"
-          :loading="loading"
-          :disable="loading"
-        />
-      </div>
+
 
       <div class="text-h4 text-white q-mb-lg text-center">Colaboradores 1800</div>
 
       <!-- Métricas Clave -->
       <div class="q-gutter-md q-mb-xl metrics-grid">
         <!-- Empleados Activos -->
-        <q-card class="glass-card metric-card animated fadeInUp">
+        <q-card class="metric-card animated fadeInUp">
           <q-card-section class="text-center">
             <q-icon name="people" size="lg" color="positive" />
             <div class="text-h5 text-positive">
@@ -39,7 +19,7 @@
         </q-card>
 
         <!-- Empleados Inactivos -->
-        <q-card class="glass-card metric-card animated fadeInUp delay-1">
+        <q-card class="metric-card animated fadeInUp delay-1">
           <q-card-section class="text-center">
             <q-icon name="person_off" size="lg" color="negative" />
             <div class="text-h5 text-negative">
@@ -50,7 +30,7 @@
         </q-card>
 
         <!-- Total Horas Trabajadas -->
-        <q-card class="glass-card metric-card animated fadeInUp delay-2">
+        <q-card class="metric-card animated fadeInUp delay-2">
           <q-card-section class="text-center">
             <q-icon name="schedule" size="lg" color="primary" />
             <div class="text-h5 text-primary">
@@ -61,7 +41,7 @@
         </q-card>
 
         <!-- Total Consumos -->
-        <q-card class="glass-card metric-card animated fadeInUp delay-3">
+        <q-card class="metric-card animated fadeInUp delay-3">
           <q-card-section class="text-center">
             <q-icon name="receipt_long" size="lg" color="warning" />
             <div class="text-h5 text-warning">
@@ -76,10 +56,10 @@
       <div class="row q-gutter-md q-mb-xl">
         <!-- Top 5 Horas -->
         <div class="col-12 col-md-6">
-          <q-card class="glass-card animated fadeInUp delay-4">
+          <q-card class="animated fadeInUp delay-4">
             <q-card-section>
               <div class="text-subtitle1 text-primary q-mb-sm">Top 5 por Horas Trabajadas</div>
-              <q-list v-if="topHours.length" dense>
+              <q-list v-if="topHours.length">
                 <q-item v-for="(emp, i) in topHours" :key="emp.employeeId">
                   <q-item-section avatar>
                     <q-avatar :color="i === 0 ? 'positive' : 'grey-7'" text-color="white" size="sm">
@@ -102,10 +82,10 @@
 
         <!-- Top 5 Consumos -->
         <div class="col-12 col-md-6">
-          <q-card class="glass-card animated fadeInUp delay-5">
+          <q-card class="animated fadeInUp delay-5">
             <q-card-section>
               <div class="text-subtitle1 text-warning q-mb-sm">Top 5 por Consumo</div>
-              <q-list v-if="topConsumptions.length" dense>
+              <q-list v-if="topConsumptions.length">
                 <q-item v-for="(emp, i) in topConsumptions" :key="emp.employeeId">
                   <q-item-section avatar>
                     <q-avatar :color="i === 0 ? 'warning' : 'grey-7'" text-color="white" size="sm">
@@ -130,32 +110,44 @@
       <!-- Acciones Rápidas (manteniendo tu estilo) -->
       <div class="q-gutter-md actions-grid">
         <q-btn
-          class="gradient-button full-width animated fadeInUp delay-6"
+          class="full-width animated fadeInUp delay-6"
           label="Registrar Asistencia"
           icon="how_to_reg"
           size="lg"
           to="/main/attendance"
+          unelevated
+          rounded
+          color="primary"
         />
         <q-btn
-          class="gradient-button full-width animated fadeInUp delay-7"
+          class="full-width animated fadeInUp delay-7"
           label="Añadir Consumo"
           icon="add_shopping_cart"
           size="lg"
           to="/main/consumptions"
+          unelevated
+          rounded
+          color="primary"
         />
         <q-btn
-          class="gradient-button full-width animated fadeInUp delay-8"
+          class="full-width animated fadeInUp delay-8"
           label="Ver Empleados"
           icon="group"
           size="lg"
           to="/main/employees"
+          unelevated
+          rounded
+          color="primary"
         />
         <q-btn
-          class="gradient-button full-width animated fadeInUp delay-9"
+          class="full-width animated fadeInUp delay-9"
           label="Planificar Horarios"
           icon="calendar_today"
           size="lg"
           to="/main/schedules"
+          unelevated
+          rounded
+          color="primary"
         />
       </div>
     </div>
@@ -163,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue' // watch is no longer needed
 import { useKpiStore } from 'src/stores/kpi-module'
 import { date } from 'quasar'
 
@@ -229,37 +221,10 @@ const loadReport = () => {
 onMounted(() => {
   loadReport()
 })
-
-// Recargar al cambiar fechas
-watch(
-  dateRange,
-  () => {
-    loadReport()
-  },
-  { deep: true },
-)
 </script>
 
 <style lang="scss" scoped>
 /* === TUS ESTILOS ORIGINALES (sin cambios) === */
-.animated-gradient {
-  background: linear-gradient(-45deg, $dark-page, $primary, $secondary, $dark-page);
-  background-size: 400% 400%;
-  animation: gradient 15s ease infinite;
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 .dashboard-container {
   max-width: 900px;
   width: 100%;
@@ -273,20 +238,11 @@ watch(
 }
 
 .metric-card {
-  background: rgba($dark, 0.7);
-  backdrop-filter: blur(10px);
+  background: $dark; // Fondo sólido para un look minimalista
   border-radius: 15px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 15px;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba($primary, 0.3);
-  }
-
+  // Transiciones y efectos de hover eliminados para un diseño más estático y limpio
   .text-h6 {
     font-weight: 600;
   }
@@ -298,19 +254,7 @@ watch(
   gap: 15px;
 }
 
-.gradient-button {
-  background: linear-gradient(to right, $primary, $secondary);
-  color: white;
-  font-weight: bold;
-  border: none;
-  transition: transform 0.2s;
-  border-radius: 8px;
 
-  &:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 15px rgba($primary, 0.4);
-  }
-}
 
 /* Animaciones */
 .animated.fadeInUp {

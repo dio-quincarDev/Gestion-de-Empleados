@@ -12,12 +12,11 @@
     </div>
 
     <!-- Search and Filter UI -->
-    <q-card class="q-mb-md bg-dark" dark>
+    <q-card class="q-mb-md bg-dark">
       <q-card-section>
         <q-input
           v-model="searchName"
           label="Buscar por Nombre"
-          dark
           outlined
           color="primary"
           label-color="grey-5"
@@ -44,7 +43,6 @@
             label="Rol"
             emit-value
             map-options
-            dark
             outlined
             color="primary"
             label-color="grey-5"
@@ -56,7 +54,6 @@
             v-model="filterStatus"
             :options="statusOptions"
             label="Estado"
-            dark
             outlined
             color="primary"
             label-color="grey-5"
@@ -82,7 +79,12 @@
       @delete="handleDelete"
     />
 
-    <q-dialog v-model="showFormDialog" transition-show="scale" transition-hide="scale">
+    <q-dialog
+      v-model="showFormDialog"
+      transition-show="scale"
+      transition-hide="scale"
+      :full-width="$q.screen.lt.sm"
+    >
       <employee-form :employee="editingEmployee" @save="handleSaveEmployee" @cancel="cancelForm" />
     </q-dialog>
   </q-page>
@@ -189,7 +191,6 @@ function handleDelete(employee) {
     message: `¿Estás seguro de que quieres eliminar a ${employee.name}?`,
     cancel: true,
     persistent: true,
-    dark: true,
   }).onOk(async () => {
     try {
       await employeeStore.deleteEmployee(employee.id)

@@ -31,7 +31,9 @@ export default defineConfig(() => {
     ],
 
     framework: {
-      config: {},
+      config: {
+        dark: true // Activar el modo oscuro globalmente
+      },
       plugins: ['Notify']
     },
 
