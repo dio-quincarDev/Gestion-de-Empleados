@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 /**
  * REST controller for generating and managing manager-specific reports.
  * This controller provides endpoints for triggering the generation of weekly reports
@@ -37,6 +39,7 @@ public class ManagerReportController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Manager report generation triggered successfully.")
     })
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
     @PostMapping("/weekly")
     public ResponseEntity<String> generateManagerWeeklyReport(
             @RequestParam LocalDate startDate,
@@ -48,10 +51,12 @@ public class ManagerReportController {
         return ResponseEntity.ok("Manager report generation triggered successfully.");
     }
 
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
     @GetMapping("/weekly/pdf")
-    public ResponseEntity<byte[]> downloadManagerReportPdf() {
-        LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(6);
+    public ResponseEntity<byte[]> downloadManagerReportPdf(@RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().body(new byte[0]);
+        }
         byte[] pdf = managerReportServicePort.generateManagerReportPdf(startDate, endDate);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);

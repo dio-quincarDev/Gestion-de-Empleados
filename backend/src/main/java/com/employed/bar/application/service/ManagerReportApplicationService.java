@@ -47,11 +47,11 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
         ManagerReport managerReport = managerReportCalculator.calculate(allEmployees, individualReports);
 
         // Generate the PDF report as a byte array
-        byte[] pdfBytes = pdfGeneratorPort.generateManagerReportPdf(managerReport);
+        byte[] pdfBytes = pdfGeneratorPort.generateManagerReportPdf(managerReport, startDate, endDate);
 
         // TODO: Make the manager's email configurable
         String managerEmail = "manager@example.com";
-        notificationPort.sendManagerReportByEmail(managerEmail, managerReport, pdfBytes);
+        notificationPort.sendManagerReportByEmail(managerEmail, managerReport, pdfBytes, startDate, endDate);
     }
 
     @Override
@@ -66,6 +66,6 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
 
         ManagerReport managerReport = managerReportCalculator.calculate(allEmployees, individualReports);
 
-        return pdfGeneratorPort.generateManagerReportPdf(managerReport);
+        return pdfGeneratorPort.generateManagerReportPdf(managerReport, startDate, endDate);
     }
 }
