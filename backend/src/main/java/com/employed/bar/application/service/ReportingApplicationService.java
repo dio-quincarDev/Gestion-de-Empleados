@@ -1,5 +1,6 @@
 package com.employed.bar.application.service;
 
+import com.employed.bar.domain.enums.AttendanceStatus;
 import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.report.AttendanceReportLine;
@@ -56,22 +57,44 @@ public class ReportingApplicationService implements ReportingUseCase {
     }
 
     private Report generateCompleteReportForEmployee(LocalDate startDate, LocalDate endDate, EmployeeClass employee) {
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+        // Determine the employee's earliest activity date from all attendance records
+        LocalDateTime employeeFirstActivityDate = attendanceRepositoryPort.findByEmployeeAndDateRange(
+                        employee, LocalDateTime.of(1900, 1, 1, 0, 0), LocalDateTime.now()) // Use a reasonable min and current max date
+                .stream()
+                .map(AttendanceRecordClass::getEntryDateTime)
+                .min(LocalDateTime::compareTo)
+                .orElse(startDate.atStartOfDay()); // Fallback to original startDate if no attendance records found
 
-        List<AttendanceRecordClass> attendanceRecords = attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
+        // Adjust the report's start date to be no earlier than the employee's first activity date
+        LocalDateTime effectiveStartDateTime = startDate.atStartOfDay().isAfter(employeeFirstActivityDate) ?
+                startDate.atStartOfDay() : employeeFirstActivityDate;
+
+        LocalDateTime effectiveEndDateTime = endDate.plusDays(1).atStartOfDay();
+
+        List<AttendanceRecordClass> attendanceRecords = attendanceRepositoryPort.findByEmployeeAndDateRange(employee, effectiveStartDateTime, effectiveEndDateTime);
         List<AttendanceReportLine> attendanceLines = attendanceRecords.stream()
-                .map(record -> reportCalculator.mapToAttendanceReportLine(record, startDateTime, endDateTime))
+                .map(record -> reportCalculator.mapToAttendanceReportLine(record, effectiveStartDateTime, effectiveEndDateTime))
                 .collect(Collectors.toList());
 
-        List<ConsumptionReportLine> consumptionLines = consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, startDateTime,
-                        endDateTime, null).stream()
+        List<ConsumptionReportLine> consumptionLines = consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, effectiveStartDateTime,
+                        effectiveEndDateTime, null).stream()
                 .map(reportCalculator::mapToConsumptionReportLine)
                 .collect(Collectors.toList());
 
-        HoursCalculation hoursCalculation = reportCalculator.calculateHours(attendanceRecords, startDateTime, endDateTime);
+        // Check if there are any 'PRESENT' or 'LATE' attendance records
+        boolean hasMeaningfulAttendance = attendanceRecords.stream()
+                .anyMatch(record -> record.getStatus() == AttendanceStatus.PRESENT || record.getStatus() == AttendanceStatus.LATE);
 
-        // Bug 1: Do not include hourly employees with 0 hours in the report
+        // If there are no meaningful attendance records AND no consumption records, return null.
+        // This ensures that employees with only 'ABSENT' records or no records, and no consumption, do not appear in reports.
+        if (!hasMeaningfulAttendance && consumptionLines.isEmpty()) {
+            return null;
+        }
+
+        HoursCalculation hoursCalculation = reportCalculator.calculateHours(attendanceRecords, effectiveStartDateTime, effectiveEndDateTime);
+
+        // Bug 1: Do not include hourly employees with 0 hours in the report.
+        // This is a specific business rule for hourly employees.
         if (employee.getPaymentType() == PaymentType.HOURLY && hoursCalculation.getTotalHours().compareTo(BigDecimal.ZERO) == 0) {
             return null;
         }
