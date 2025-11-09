@@ -10,16 +10,24 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
 public class ReportCalculator {
 
-    public HoursCalculation calculateHours(List<AttendanceRecordClass> records) {
+    public HoursCalculation calculateHours(List<AttendanceRecordClass> records, LocalDateTime startDate, LocalDateTime endDate) {
         BigDecimal totalHours = records.stream()
                 .map(record -> {
                     if (record.getEntryDateTime() != null && record.getExitDateTime() != null) {
-                        return BigDecimal.valueOf(Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes())
+                        LocalDateTime effectiveEntry = record.getEntryDateTime().isBefore(startDate) ? startDate : record.getEntryDateTime();
+                        LocalDateTime effectiveExit = record.getExitDateTime().isAfter(endDate) ? endDate : record.getExitDateTime();
+
+                        if (effectiveEntry.isAfter(effectiveExit)) {
+                            return BigDecimal.ZERO;
+                        }
+
+                        return BigDecimal.valueOf(Duration.between(effectiveEntry, effectiveExit).toMinutes())
                                 .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
                     }
                     return BigDecimal.ZERO;
@@ -33,11 +41,16 @@ public class ReportCalculator {
         return new HoursCalculation(totalHours, regularHours, overtimeHours);
     }
 
-    public AttendanceReportLine mapToAttendanceReportLine(AttendanceRecordClass record) {
+    public AttendanceReportLine mapToAttendanceReportLine(AttendanceRecordClass record, LocalDateTime startDate, LocalDateTime endDate) {
         BigDecimal workedHours = BigDecimal.ZERO;
         if (record.getEntryDateTime() != null && record.getExitDateTime() != null) {
-            workedHours = BigDecimal.valueOf(Duration.between(record.getEntryDateTime(), record.getExitDateTime()).toMinutes())
-                    .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+            LocalDateTime effectiveEntry = record.getEntryDateTime().isBefore(startDate) ? startDate : record.getEntryDateTime();
+            LocalDateTime effectiveExit = record.getExitDateTime().isAfter(endDate) ? endDate : record.getExitDateTime();
+
+            if (effectiveEntry.isBefore(effectiveExit)) {
+                workedHours = BigDecimal.valueOf(Duration.between(effectiveEntry, effectiveExit).toMinutes())
+                        .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+            }
         }
         return new AttendanceReportLine(
                 record.getEmployee().getName(),

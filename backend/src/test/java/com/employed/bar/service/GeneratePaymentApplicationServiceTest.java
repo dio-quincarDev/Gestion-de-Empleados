@@ -78,7 +78,7 @@ public class GeneratePaymentApplicationServiceTest {
         when(employeeUseCase.getEmployeeById(1L)).thenReturn(Optional.of(employee));
         when(attendanceUseCase.getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate))
                 .thenReturn(Arrays.asList(record1, record2));
-        when(reportCalculator.calculateHours(anyList())).thenReturn(hoursCalculation);
+        when(reportCalculator.calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(hoursCalculation);
         when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class)))
                 .thenReturn(BigDecimal.valueOf(120.0));
 
@@ -110,7 +110,7 @@ public class GeneratePaymentApplicationServiceTest {
         when(employeeUseCase.getEmployeeById(1L)).thenReturn(Optional.of(employee));
         when(attendanceUseCase.getAttendanceListByEmployeeAndDateRange(1L, startDate, endDate))
                 .thenReturn(Collections.emptyList());
-        when(reportCalculator.calculateHours(anyList())).thenReturn(hoursCalculation);
+        when(reportCalculator.calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(hoursCalculation);
         when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(BigDecimal.ZERO), eq(BigDecimal.ZERO)))
                 .thenReturn(BigDecimal.ZERO);
 
