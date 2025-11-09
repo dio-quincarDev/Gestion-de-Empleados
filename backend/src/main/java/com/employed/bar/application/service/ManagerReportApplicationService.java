@@ -42,6 +42,7 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
         List<EmployeeClass> allEmployees = employeeRepository.findAll(Pageable.unpaged()).getContent();
         List<Report> individualReports = allEmployees.stream()
                 .map(employee -> reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId()))
+                .filter(java.util.Objects::nonNull) // Filter out null reports
                 .collect(Collectors.toList());
 
         ManagerReport managerReport = managerReportCalculator.calculate(allEmployees, individualReports);
@@ -62,6 +63,7 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
         List<EmployeeClass> allEmployees = employeeRepository.findAll(Pageable.unpaged()).getContent();
         List<Report> individualReports = allEmployees.stream()
                 .map(employee -> reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId()))
+                .filter(java.util.Objects::nonNull) // Filter out null reports
                 .collect(Collectors.toList());
 
         ManagerReport managerReport = managerReportCalculator.calculate(allEmployees, individualReports);

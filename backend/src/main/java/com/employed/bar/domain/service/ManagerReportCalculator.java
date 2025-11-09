@@ -16,10 +16,15 @@ public class ManagerReportCalculator {
     public ManagerReport calculate(List<EmployeeClass> employees, List<Report> reports) {
         List<EmployeeSummary> employeeSummaries = employees.stream()
                 .map(employee -> {
+                    // Intenta encontrar el reporte individual para el empleado
                     Report report = reports.stream()
                             .filter(r -> r.getEmployeeId().equals(employee.getId()))
                             .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("Report not found for employee: " + employee.getId()));
+                            .orElse(null); // Si no se encuentra, devuelve null
+
+                    if (report == null) {
+                        return null; // Si no hay reporte, este empleado no se incluirá en el resumen
+                    }
 
                     BigDecimal totalEarnings = report.getTotalEarnings();
                     BigDecimal totalConsumptions = report.getTotalConsumptionAmount();
@@ -34,9 +39,11 @@ public class ManagerReportCalculator {
                             employee.getPaymentMethod()
                     );
                 })
+                .filter(java.util.Objects::nonNull) // Filtra los EmployeeSummary nulos (empleados sin reporte)
                 .collect(Collectors.toList());
 
-        // ✅ CORRECCIÓN: Calcular horas de manera consistente desde los reports
+        // Los cálculos de totales agregados deben basarse en los reportes individuales que SÍ existen
+        // (la lista 'reports' ya está filtrada de nulos en ManagerReportApplicationService)
         BigDecimal aggregatedRegularHours = reports.stream()
                 .map(report -> report.getHoursCalculation().getRegularHours())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -45,7 +52,7 @@ public class ManagerReportCalculator {
                 .map(report -> report.getHoursCalculation().getOvertimeHours())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // ✅ Calcular totales desde los employeeSummaries
+        // Los cálculos de totales desde employeeSummaries ya son correctos si los EmployeeSummary se crean solo para empleados con reporte
         BigDecimal totalEarnings = employeeSummaries.stream()
                 .map(EmployeeSummary::getTotalEarnings)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -58,7 +65,6 @@ public class ManagerReportCalculator {
                 .map(EmployeeSummary::getNetPay)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // ✅ ELIMINAR la variable inconsistente totalRegularHoursWorked
         ReportTotals totals = new ReportTotals(
                 aggregatedRegularHours,
                 aggregatedOvertimeHours,
