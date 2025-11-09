@@ -12,9 +12,7 @@
         :options="employeeOptions"
         option-label="label"
         @filter="filterEmployees"
-        style="width: 400px"
-        input-class="text-white"
-        label-color="grey-5"
+        class="col-12 col-sm-8 col-md-6"
       >
         <template v-slot:no-option>
           <q-item>
@@ -44,7 +42,7 @@
     </div>
 
     <!-- Diálogo para Crear Asistencia -->
-    <q-dialog v-model="showCreateDialog" persistent>
+    <q-dialog v-model="showCreateDialog" persistent :full-width="$q.screen.lt.sm">
       <attendance-form
         :employee-id="selectedEmployee.value"
         :employee-name="selectedEmployee.label"
@@ -54,7 +52,7 @@
     </q-dialog>
 
     <!-- Diálogo para Editar Asistencia -->
-    <q-dialog v-model="showEditDialog" persistent>
+    <q-dialog v-model="showEditDialog" persistent :full-width="$q.screen.lt.sm">
       <attendance-form
         :employee-id="selectedEmployee.value"
         :employee-name="selectedEmployee.label"
@@ -65,7 +63,7 @@
     </q-dialog>
 
     <!-- Diálogo para Ver Detalles -->
-    <q-dialog v-model="showDetailsDialog" persistent>
+    <q-dialog v-model="showDetailsDialog" persistent :full-width="$q.screen.lt.sm">
       <attendance-details
         :attendance="selectedAttendance"
         @close="showDetailsDialog = false"
@@ -291,9 +289,4 @@ watch(
 )
 </script>
 
-<style lang="scss" scoped>
-.q-page {
-  background: linear-gradient(135deg, $dark 0%, $grey-10 100%);
-  min-height: 100vh;
-}
-</style>
+

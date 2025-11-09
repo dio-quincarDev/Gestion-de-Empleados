@@ -1,6 +1,6 @@
 <!-- AttendanceForm.vue - VERSIÓN CORREGIDA -->
 <template>
-  <q-card class="bg-dark text-white q-pa-md" style="max-width: 500px; width: 90vw">
+  <q-card class="text-white q-pa-md">
     <q-card-section>
       <div class="text-h6">{{ isEditMode ? 'Editar' : 'Registrar' }} Asistencia</div>
     </q-card-section>
@@ -13,9 +13,6 @@
           :model-value="employeeName"
           label="Empleado"
           readonly
-          dark
-          input-class="text-white"
-          label-color="grey-5"
         >
           <template #prepend>
             <q-icon name="person" />
@@ -27,10 +24,7 @@
           v-model="entryDateTime"
           type="datetime-local"
           label="Hora de entrada"
-          dark
           required
-          input-class="text-white"
-          label-color="grey-5"
         />
 
         <q-input
@@ -38,10 +32,7 @@
           v-model="exitDateTime"
           type="datetime-local"
           label="Hora de salida"
-          dark
           required
-          input-class="text-white"
-          label-color="grey-5"
         />
 
         <div class="row justify-end q-gutter-sm q-mt-md">
