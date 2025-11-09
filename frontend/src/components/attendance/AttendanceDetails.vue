@@ -1,13 +1,10 @@
 <template>
-  <q-card
-    class="attendance-details-card"
-    :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 600px; max-width: 90vw;'"
-  >
-    <q-card-section class="bg-dark text-white">
+  <q-card class="attendance-details-card">
+    <q-card-section class="text-white">
       <div class="text-h6">Detalles de Asistencia</div>
     </q-card-section>
 
-    <q-separator dark />
+    <q-separator />
 
     <q-card-section class="q-pa-lg">
       <!-- Estado de la Asistencia -->
@@ -66,17 +63,17 @@
       </div>
     </q-card-section>
 
-    <q-separator dark />
+    <q-separator />
 
-    <q-card-actions align="right" class="bg-dark">
+    <q-card-actions align="right">
       <q-btn flat rounded label="Cerrar" color="grey-5" @click="onClose" />
       <q-btn flat rounded label="Editar" color="primary" @click="onEdit" />
       <q-btn flat rounded label="Eliminar" color="negative" @click="onDelete" />
     </q-card-actions>
 
     <!-- Dialogo de Confirmación -->
-    <q-dialog v-model="showDeleteDialog" persistent>
-      <q-card class="bg-dark text-white" style="width: 300px">
+    <q-dialog v-model="showDeleteDialog" persistent :full-width="$q.screen.lt.sm">
+      <q-card class="text-white">
         <q-card-section>
           <div class="text-h6">Confirmar Eliminación</div>
         </q-card-section>
@@ -209,7 +206,6 @@ const confirmDelete = () => {
 
 <style lang="scss" scoped>
 .attendance-details-card {
-  background: $dark;
   border-radius: 15px;
 }
 </style>

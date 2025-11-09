@@ -1,6 +1,6 @@
 <template>
-  <q-card class="attendance-table-card bg-dark">
-    <q-card-section class="bg-dark text-white">
+  <q-card class="attendance-table-card">
+    <q-card-section class="text-white">
       <div class="row items-center justify-between">
         <div class="text-h6">Registros de Asistencia para {{ employee.label }}</div>
         <q-btn
@@ -23,7 +23,6 @@
             v-model="filters.startDate"
             label="Desde"
             type="date"
-            dark
             outlined
             dense
             color="primary"
@@ -36,7 +35,6 @@
             v-model="filters.endDate"
             label="Hasta"
             type="date"
-            dark
             outlined
             dense
             color="primary"
@@ -59,7 +57,7 @@
       </div>
     </q-card-section>
 
-    <q-separator dark class="q-mt-md" />
+    <q-separator class="q-mt-md" />
 
     <!-- Tabla -->
     <q-card-section class="q-pa-none">
@@ -70,8 +68,7 @@
         :pagination="pagination"
         row-key="id"
         flat
-        dark
-        class="bg-dark text-white"
+        class="text-white"
         :rows-per-page-options="[10, 20, 50]"
       >
         <!-- Header Personalizado -->
@@ -135,8 +132,8 @@
   </q-card>
 
   <!-- Dialogo de Confirmación de Eliminación -->
-  <q-dialog v-model="showDeleteDialog" persistent>
-    <q-card class="bg-dark text-white" style="width: 300px">
+  <q-dialog v-model="showDeleteDialog" persistent :full-width="$q.screen.lt.sm">
+    <q-card class="text-white">
       <q-card-section>
         <div class="text-h6">Confirmar Eliminación</div>
       </q-card-section>

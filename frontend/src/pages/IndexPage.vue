@@ -59,7 +59,7 @@
           <q-card class="animated fadeInUp delay-4">
             <q-card-section>
               <div class="text-subtitle1 text-primary q-mb-sm">Top 5 por Horas Trabajadas</div>
-              <q-list v-if="topHours.length">
+              <q-list v-if="topHours.length" dense>
                 <q-item v-for="(emp, i) in topHours" :key="emp.employeeId">
                   <q-item-section avatar>
                     <q-avatar :color="i === 0 ? 'positive' : 'grey-7'" text-color="white" size="sm">
@@ -85,7 +85,7 @@
           <q-card class="animated fadeInUp delay-5">
             <q-card-section>
               <div class="text-subtitle1 text-warning q-mb-sm">Top 5 por Consumo</div>
-              <q-list v-if="topConsumptions.length">
+              <q-list v-if="topConsumptions.length" dense>
                 <q-item v-for="(emp, i) in topConsumptions" :key="emp.employeeId">
                   <q-item-section avatar>
                     <q-avatar :color="i === 0 ? 'warning' : 'grey-7'" text-color="white" size="sm">
@@ -155,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue' // watch is no longer needed
+import { ref, computed, onMounted, watch } from 'vue'
 import { useKpiStore } from 'src/stores/kpi-module'
 import { date } from 'quasar'
 
@@ -221,6 +221,8 @@ const loadReport = () => {
 onMounted(() => {
   loadReport()
 })
+
+
 </script>
 
 <style lang="scss" scoped>
