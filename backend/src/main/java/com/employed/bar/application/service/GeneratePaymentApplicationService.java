@@ -36,7 +36,7 @@ public class GeneratePaymentApplicationService implements GeneratePaymentUseCase
 
         List<AttendanceRecordClass> attendanceRecords = attendanceUseCase.getAttendanceListByEmployeeAndDateRange(employeeId, startDate, endDate);
 
-        HoursCalculation hoursCalculation = reportCalculator.calculateHours(attendanceRecords);
+        HoursCalculation hoursCalculation = reportCalculator.calculateHours(attendanceRecords, startDate.atStartOfDay(), endDate.atTime(23, 59, 59));
 
         return paymentCalculationUseCase.calculateTotalPay(
                 employee.getPaymentType(),

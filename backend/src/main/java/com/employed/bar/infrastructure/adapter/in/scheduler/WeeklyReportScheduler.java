@@ -28,8 +28,9 @@ public class WeeklyReportScheduler {
     @Scheduled(cron = "0 0 7 * * MON")
     public void triggerWeeklyReportGeneration() {
         LocalDate today = LocalDate.now();
-        LocalDate startDate = today.with(DayOfWeek.MONDAY).minusWeeks(1);
-        LocalDate endDate = today.with(DayOfWeek.SUNDAY);
+        // Set the range to be the previous week, from Monday to Sunday.
+        LocalDate startDate = today.minusWeeks(1).with(DayOfWeek.MONDAY);
+        LocalDate endDate = today.minusWeeks(1).with(DayOfWeek.SUNDAY);
 
         // Trigger employee reports
         WeeklyReportRequestedEvent employeeEvent = new WeeklyReportRequestedEvent(this, startDate, endDate);

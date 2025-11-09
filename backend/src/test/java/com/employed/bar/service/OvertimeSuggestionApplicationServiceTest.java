@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
@@ -185,7 +186,7 @@ public class OvertimeSuggestionApplicationServiceTest {
 
     @Test
     void testGenerateSuggestions_NullEmployeeRepositoryFindAll() {
-        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(null);
+        when(employeeRepositoryPort.findAll(any(Pageable.class))).thenReturn(Page.empty());
 
         List<OvertimeSuggestion> suggestions = overtimeSuggestionService.generateSuggestions();
 

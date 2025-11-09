@@ -99,9 +99,9 @@ public class ReportingApplicationServiceTest {
         when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class),
                 eq(null)))
                 .thenReturn(Collections.singletonList(consumptionClass));
-        when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
+        when(reportCalculator.mapToAttendanceReportLine(any(AttendanceRecordClass.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(attendanceReportLine);
         when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
-        when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
+        when(reportCalculator.calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(hoursCalculation);
         when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class)))
                 .thenReturn(BigDecimal.valueOf(80.0)); // Example total pay
 
@@ -120,10 +120,60 @@ public class ReportingApplicationServiceTest {
         verify(employeeRepository, times(1)).findById(employee.getId());
         verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(consumptionRepositoryPort, times(1)).findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), eq(null));
-        verify(reportCalculator, times(1)).mapToAttendanceReportLine(attendanceRecord);
+        verify(reportCalculator, times(1)).mapToAttendanceReportLine(any(AttendanceRecordClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(reportCalculator, times(1)).mapToConsumptionReportLine(consumptionClass);
-        verify(reportCalculator, times(1)).calculateHours(Collections.singletonList(attendanceRecord));
+        verify(reportCalculator, times(1)).calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(paymentCalculationUseCase, times(1)).calculateTotalPay(employee.getPaymentType(), employee.getSalary(), employee.getHourlyRate(), employee.isPaysOvertime(), employee.getOvertimeRateType(), hoursCalculation.getRegularHours(), hoursCalculation.getOvertimeHours());
+    }
+
+    @Test
+    void testGenerateReport_WithOvernightShift_CalculatesHoursCorrectly() {
+        // GIVEN
+        // Report for one day: Sunday, Jan 1st, 2023
+        LocalDate reportDate = LocalDate.of(2023, 1, 1);
+        LocalDateTime reportStart = reportDate.atStartOfDay(); // 2023-01-01 00:00
+        LocalDateTime reportEnd = reportDate.plusDays(1).atStartOfDay(); // 2023-01-02 00:00:00
+
+        // Shift from Sunday 10 PM to Monday 3 AM
+        AttendanceRecordClass overnightShift = new AttendanceRecordClass();
+        overnightShift.setEmployee(employee);
+        overnightShift.setEntryDateTime(LocalDateTime.of(reportDate, LocalTime.of(22, 0))); // Sunday 22:00
+        overnightShift.setExitDateTime(LocalDateTime.of(reportDate.plusDays(1), LocalTime.of(3, 0))); // Monday 03:00
+
+        // Use a real calculator to test the actual logic
+        ReportCalculator realReportCalculator = new ReportCalculator();
+
+        // Re-inject mocks, but use the real calculator
+        reportingApplicationService = new ReportingApplicationService(
+                employeeRepository,
+                consumptionRepositoryPort,
+                attendanceRepositoryPort,
+                realReportCalculator, // Use real instance
+                paymentCalculationUseCase,
+                sendEmployeeReportNotificationUseCase
+        );
+
+        when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), eq(reportStart), eq(reportEnd)))
+                .thenReturn(Collections.singletonList(overnightShift));
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), isNull()))
+                .thenReturn(Collections.emptyList());
+        when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(), any()))
+                .thenReturn(BigDecimal.ZERO); // Not relevant for this test
+
+        // WHEN
+        Report result = reportingApplicationService.generateCompleteReportForEmployeeById(reportDate, reportDate, employee.getId());
+
+        // THEN
+        assertNotNull(result);
+        // The shift is from 22:00 to 03:00 the next day.
+        // The report ends at 23:59:59.
+        // So, the hours worked within the report period are from 22:00 to 23:59:59, which is 2 hours.
+        assertEquals(new BigDecimal("2.00"), result.getTotalAttendanceHours());
+        assertEquals(1, result.getAttendanceLines().size());
+        // The line should show the full shift time, but the calculated hours should be clamped.
+        assertEquals(overnightShift.getEntryDateTime(), result.getAttendanceLines().get(0).getEntryDateTime());
+        assertEquals(new BigDecimal("2.00"), result.getAttendanceLines().get(0).getWorkedHours());
     }
 
     // ... other tests updated similarly
@@ -140,7 +190,7 @@ public class ReportingApplicationServiceTest {
 
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(Collections.singletonList(new AttendanceRecordClass()));
-        when(reportCalculator.calculateHours(anyList())).thenReturn(overtimeHours);
+        when(reportCalculator.calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(overtimeHours);
         when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), isNull())).thenReturn(Collections.emptyList());
 
         // Mock the payment calculation
@@ -184,7 +234,7 @@ public class ReportingApplicationServiceTest {
 
         when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
         when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(Collections.emptyList());
-        when(reportCalculator.calculateHours(anyList())).thenReturn(new HoursCalculation(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
+        when(reportCalculator.calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(new HoursCalculation(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
         when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), isNull())).thenReturn(Collections.singletonList(consumption));
         when(reportCalculator.mapToConsumptionReportLine(any())).thenReturn(consumptionLine);
         when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), eq(BigDecimal.ZERO), eq(BigDecimal.ZERO)))
@@ -212,6 +262,37 @@ public class ReportingApplicationServiceTest {
     }
 
     @Test
+    void testGenerateCompleteReportForEmployee_HourlyEmployeeWithZeroHours_ReturnsNull() {
+        // GIVEN
+        employee.setPaymentType(PaymentType.HOURLY); // Ensure employee is hourly
+        employee.setHourlyRate(BigDecimal.valueOf(15.0)); // Set some hourly rate
+
+        when(employeeRepository.findById(employee.getId())).thenReturn(Optional.of(employee));
+        // Mock attendance to return empty list, simulating zero hours
+        when(attendanceRepositoryPort.findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(Collections.emptyList());
+        // Mock reportCalculator to return zero total hours
+        when(reportCalculator.calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(new HoursCalculation(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
+        // Mock consumption to return empty list
+        when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), isNull()))
+                .thenReturn(Collections.emptyList());
+        // Payment calculation is not relevant as report should be null
+
+        // WHEN
+        Report result = reportingApplicationService.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
+
+        // THEN
+        assertNull(result); // Expect null report for hourly employee with zero hours
+
+        verify(employeeRepository, times(1)).findById(employee.getId());
+        verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(reportCalculator, times(1)).calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(consumptionRepositoryPort, times(1)).findByEmployeeAndDateTimeBetween(eq(employee), any(LocalDateTime.class), any(LocalDateTime.class), isNull());
+        verify(paymentCalculationUseCase, never()).calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class));
+    }
+
+    @Test
     void testSendTestEmailToEmployee_Success() {
         // GIVEN
         LocalDate lastActivityDate = LocalDate.of(2025, 10, 28);
@@ -228,9 +309,9 @@ public class ReportingApplicationServiceTest {
                 .thenReturn(Collections.singletonList(attendanceRecord));
         when(consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(eq(employee), eq(expectedStartDate.atStartOfDay()), eq(expectedEndDate.atTime(23, 59, 59)), eq(null)))
                 .thenReturn(Collections.singletonList(consumptionClass));
-        when(reportCalculator.mapToAttendanceReportLine(attendanceRecord)).thenReturn(attendanceReportLine);
+        when(reportCalculator.mapToAttendanceReportLine(any(AttendanceRecordClass.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(attendanceReportLine);
         when(reportCalculator.mapToConsumptionReportLine(consumptionClass)).thenReturn(consumptionReportLine);
-        when(reportCalculator.calculateHours(Collections.singletonList(attendanceRecord))).thenReturn(hoursCalculation);
+        when(reportCalculator.calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(hoursCalculation);
         when(paymentCalculationUseCase.calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class)))
                 .thenReturn(BigDecimal.valueOf(80.0));
 
@@ -242,9 +323,9 @@ public class ReportingApplicationServiceTest {
         verify(attendanceRepositoryPort, times(1)).findTopByEmployeeOrderByEntryDateTimeDesc(employee);
         verify(attendanceRepositoryPort, times(1)).findByEmployeeAndDateRange(eq(employee), eq(expectedStartDate.atStartOfDay()), eq(expectedEndDate.atTime(23, 59, 59)));
         verify(consumptionRepositoryPort, times(1)).findByEmployeeAndDateTimeBetween(eq(employee), eq(expectedStartDate.atStartOfDay()), eq(expectedEndDate.atTime(23, 59, 59)), eq(null));
-        verify(reportCalculator, times(1)).mapToAttendanceReportLine(attendanceRecord);
+        verify(reportCalculator, times(1)).mapToAttendanceReportLine(any(AttendanceRecordClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(reportCalculator, times(1)).mapToConsumptionReportLine(consumptionClass);
-        verify(reportCalculator, times(1)).calculateHours(Collections.singletonList(attendanceRecord));
+        verify(reportCalculator, times(1)).calculateHours(anyList(), any(LocalDateTime.class), any(LocalDateTime.class));
         verify(paymentCalculationUseCase, times(1)).calculateTotalPay(any(), any(), any(), anyBoolean(), any(), any(BigDecimal.class), any(BigDecimal.class));
         verify(sendEmployeeReportNotificationUseCase, times(1)).sendReport(anyList(), anyList());
     }}

@@ -1,5 +1,6 @@
 package com.employed.bar.application.service;
 
+import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.model.report.AttendanceReportLine;
 import com.employed.bar.domain.model.report.ConsumptionReportLine;
@@ -56,11 +57,11 @@ public class ReportingApplicationService implements ReportingUseCase {
 
     private Report generateCompleteReportForEmployee(LocalDate startDate, LocalDate endDate, EmployeeClass employee) {
         LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
         List<AttendanceRecordClass> attendanceRecords = attendanceRepositoryPort.findByEmployeeAndDateRange(employee, startDateTime, endDateTime);
         List<AttendanceReportLine> attendanceLines = attendanceRecords.stream()
-                .map(reportCalculator::mapToAttendanceReportLine)
+                .map(record -> reportCalculator.mapToAttendanceReportLine(record, startDateTime, endDateTime))
                 .collect(Collectors.toList());
 
         List<ConsumptionReportLine> consumptionLines = consumptionRepositoryPort.findByEmployeeAndDateTimeBetween(employee, startDateTime,
@@ -68,7 +69,13 @@ public class ReportingApplicationService implements ReportingUseCase {
                 .map(reportCalculator::mapToConsumptionReportLine)
                 .collect(Collectors.toList());
 
-        HoursCalculation hoursCalculation = reportCalculator.calculateHours(attendanceRecords);
+        HoursCalculation hoursCalculation = reportCalculator.calculateHours(attendanceRecords, startDateTime, endDateTime);
+
+        // Bug 1: Do not include hourly employees with 0 hours in the report
+        if (employee.getPaymentType() == PaymentType.HOURLY && hoursCalculation.getTotalHours().compareTo(BigDecimal.ZERO) == 0) {
+            return null;
+        }
+
         BigDecimal totalConsumption = consumptionLines.stream()
                 .map(ConsumptionReportLine::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -105,6 +112,12 @@ public class ReportingApplicationService implements ReportingUseCase {
             System.out.println("📊 [SERVICE] Generando reporte para el rango de fechas: " + startDate + " a " + endDate);
 
             Report report = generateCompleteReportForEmployee(startDate, endDate, employee);
+
+            if (report == null) {
+                System.out.println("⚠️ [SERVICE] No se generó reporte para el empleado " + employee.getName() + " (ID: " + employee.getId() + ") en el rango de fechas especificado.");
+                return; // Exit if no report is generated
+            }
+
             System.out.println("📈 [SERVICE] Reporte generado:");
             System.out.println("   - AttendanceLines: " + report.getAttendanceLines().size());
             System.out.println("   - ConsumptionLines: " + report.getConsumptionLines().size());
@@ -125,6 +138,7 @@ public class ReportingApplicationService implements ReportingUseCase {
         List<EmployeeClass> allEmployees = employeeRepository.findAll(Pageable.unpaged()).getContent();
         List<Report> reports = allEmployees.stream()
                 .map(employee -> generateCompleteReportForEmployee(startDate, endDate, employee))
+                .filter(java.util.Objects::nonNull) // Filter out null reports
                 .collect(Collectors.toList());
 
         sendEmployeeReportNotificationUseCase.sendReport(allEmployees, reports);

@@ -14,8 +14,8 @@ import java.util.Optional;
 @Repository
 public interface SpringAttendanceJpaRepository extends JpaRepository<AttendanceRecordEntity, Long> {
 
-    @Query("SELECT ar FROM AttendanceRecordEntity ar JOIN FETCH ar.employee WHERE ar.employee.id = :employeeId AND ar.entryDateTime BETWEEN :startDateTime AND :endDateTime")
-    List<AttendanceRecordEntity> findByEmployeeAndEntryDateTimeBetween(@Param("employeeId") Long employeeId, @Param("startDateTime") LocalDateTime startDateTime, @Param("endDateTime") LocalDateTime endDateTime);
+    @Query("SELECT ar FROM AttendanceRecordEntity ar JOIN FETCH ar.employee WHERE ar.employee.id = :employeeId AND ar.entryDateTime < :endDateTime AND ar.exitDateTime > :startDateTime")
+    List<AttendanceRecordEntity> findAttendanceByEmployeeAndDateRangeOverlapping(@Param("employeeId") Long employeeId, @Param("startDateTime") LocalDateTime startDateTime, @Param("endDateTime") LocalDateTime endDateTime);
 
     List<AttendanceRecordEntity> findByEmployee(EmployeeEntity employee);
 
