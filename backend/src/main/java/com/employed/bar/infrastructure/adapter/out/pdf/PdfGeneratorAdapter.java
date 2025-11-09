@@ -11,6 +11,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -33,21 +34,21 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
     private static final BaseColor LIGHT_GRAY = new BaseColor(242, 242, 242);
 
     @Override
-    public byte[] generateManagerReportPdf(ManagerReport managerReport) {
+    public byte[] generateManagerReportPdf(ManagerReport managerReport, LocalDate startDate, LocalDate endDate) {
         try {
-            return createProfessionalPdf(managerReport);
+            return createProfessionalPdf(managerReport, startDate, endDate);
         } catch (Exception e) {
             throw new RuntimeException("Error generating PDF", e);
         }
     }
 
-    private byte[] createProfessionalPdf(ManagerReport report) {
+    private byte[] createProfessionalPdf(ManagerReport report, LocalDate startDate, LocalDate endDate) {
         try (ByteArrayOutputStream pdfOut = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.A4.rotate()); // Horizontal para tablas anchas
             PdfWriter.getInstance(document, pdfOut);
 
             document.open();
-            addProfessionalContent(document, report);
+            addProfessionalContent(document, report, startDate, endDate);
             document.close();
 
             return pdfOut.toByteArray();
@@ -57,12 +58,12 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         }
     }
 
-    private void addProfessionalContent(Document document, ManagerReport report) throws DocumentException {
+    private void addProfessionalContent(Document document, ManagerReport report, LocalDate startDate, LocalDate endDate) throws DocumentException {
         // Header con logo y título (simulado)
         addHeaderSection(document);
 
         // Información de fechas
-        addDateSection(document);
+        addDateSection(document, startDate, endDate);
 
         // Tabla de resumen ejecutivo
         addExecutiveSummary(document, report.getTotals());
@@ -99,13 +100,13 @@ public class PdfGeneratorAdapter implements PdfGeneratorPort {
         document.add(subtitle);
     }
 
-    private void addDateSection(Document document) throws DocumentException {
-        String startDate = java.time.LocalDate.now().minusDays(7).format(DATE_FORMATTER);
-        String endDate = java.time.LocalDate.now().format(DATE_FORMATTER);
+    private void addDateSection(Document document, LocalDate startDate, LocalDate endDate) throws DocumentException {
+        String formattedStartDate = startDate.format(DATE_FORMATTER);
+        String formattedEndDate = endDate.format(DATE_FORMATTER);
 
         Paragraph periodInfo = new Paragraph();
         periodInfo.add(new Chunk("Período del Reporte: ", BOLD_FONT));
-        periodInfo.add(new Chunk(startDate + " al " + endDate, NORMAL_FONT));
+        periodInfo.add(new Chunk(formattedStartDate + " al " + formattedEndDate, NORMAL_FONT));
         periodInfo.setSpacingAfter(10f);
         document.add(periodInfo);
 

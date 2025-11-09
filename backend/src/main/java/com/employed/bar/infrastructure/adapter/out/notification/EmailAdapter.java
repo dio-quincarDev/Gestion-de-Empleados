@@ -18,6 +18,7 @@ import org.thymeleaf.context.Context;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,11 +106,11 @@ public class EmailAdapter implements NotificationPort {
         }
     }
     @Override
-    public void sendManagerReportByEmail(String managerEmail, ManagerReport managerReport, byte[] pdfAttachment) {
+    public void sendManagerReportByEmail(String managerEmail, ManagerReport managerReport, byte[] pdfAttachment, LocalDate startDate, LocalDate endDate) {
         System.out.println("📬 [EMAIL ADAPTER] Preparando email de manager para: " + managerEmail);
         try {
             String subject = "Manager Weekly Report";
-            String body = generateManagerEmailBody(managerReport);
+            String body = generateManagerEmailBody(managerReport, startDate, endDate);
             System.out.println("✅ [EMAIL ADAPTER] Cuerpo del email de manager generado, longitud: " + body.length());
 
             sendHtmlEmail(managerEmail, subject, body, pdfAttachment); // Pass attachment
@@ -121,7 +122,7 @@ public class EmailAdapter implements NotificationPort {
         }
     }
 
-    private String generateManagerEmailBody(ManagerReport managerReport) {
+    private String generateManagerEmailBody(ManagerReport managerReport, LocalDate startDate, LocalDate endDate) {
         System.out.println("🛠️ [TEMPLATE] Generando HTML para manager...");
 
         Context context = new Context();
@@ -133,10 +134,8 @@ public class EmailAdapter implements NotificationPort {
 
         // Calculate and add startDate and endDate dynamically
         java.time.format.DateTimeFormatter DATE_FORMATTER = java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        String startDate = java.time.LocalDate.now().minusDays(7).format(DATE_FORMATTER);
-        String endDate = java.time.LocalDate.now().format(DATE_FORMATTER);
-        dataMap.put("startDate", startDate);
-        dataMap.put("endDate", endDate);
+        dataMap.put("startDate", startDate.format(DATE_FORMATTER));
+        dataMap.put("endDate", endDate.format(DATE_FORMATTER));
 
         // ✅ SOLUCIÓN: Pasar el Map al Context
         context.setVariables(dataMap);

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.time.LocalDate;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,6 +45,9 @@ class PdfGeneratorAdapterTest {
     @Test
     void shouldGeneratePdfFromManagerReport() throws IOException {
         // Arrange
+        LocalDate testStartDate = LocalDate.of(2023, 1, 1);
+        LocalDate testEndDate = LocalDate.of(2023, 1, 7);
+
         ReportTotals totals = new ReportTotals(
                 BigDecimal.valueOf(40),
                 BigDecimal.valueOf(5),
@@ -63,7 +67,7 @@ class PdfGeneratorAdapterTest {
 
         // Act & Assert
         try {
-            byte[] pdfBytes = pdfGeneratorAdapter.generateManagerReportPdf(report);
+            byte[] pdfBytes = pdfGeneratorAdapter.generateManagerReportPdf(report, testStartDate, testEndDate);
 
             // Assert that the PDF is not null or empty
             assertNotNull(pdfBytes);

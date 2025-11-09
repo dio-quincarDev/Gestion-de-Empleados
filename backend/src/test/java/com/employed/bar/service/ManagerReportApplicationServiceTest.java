@@ -81,7 +81,7 @@ public class ManagerReportApplicationServiceTest {
         when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(employees));
         when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId())).thenReturn(individualReport);
         when(managerReportCalculator.calculate(employees, individualReports)).thenReturn(managerReport);
-        when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(dummyPdf);
+        when(pdfGeneratorPort.generateManagerReportPdf(managerReport, startDate, endDate)).thenReturn(dummyPdf);
 
         // Act
         managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
@@ -91,8 +91,8 @@ public class ManagerReportApplicationServiceTest {
         verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(reportingUseCase, times(1)).generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         verify(managerReportCalculator, times(1)).calculate(employees, individualReports);
-        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport);
-        verify(notificationPort, times(1)).sendManagerReportByEmail(eq(managerEmail), eq(managerReport), pdfCaptor.capture());
+        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport, startDate, endDate);
+        verify(notificationPort, times(1)).sendManagerReportByEmail(eq(managerEmail), eq(managerReport), pdfCaptor.capture(), eq(startDate), eq(endDate));
         
         assertArrayEquals(dummyPdf, pdfCaptor.getValue());
     }
@@ -104,7 +104,7 @@ public class ManagerReportApplicationServiceTest {
         when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
         when(managerReportCalculator.calculate(any(), any())).thenReturn(managerReport);
         // Even with no employees, a PDF of an empty report is generated
-        when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(dummyPdf);
+        when(pdfGeneratorPort.generateManagerReportPdf(managerReport, startDate, endDate)).thenReturn(dummyPdf);
 
         // Act
         managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
@@ -114,8 +114,8 @@ public class ManagerReportApplicationServiceTest {
         verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verifyNoInteractions(reportingUseCase); // No reports should be generated
         verify(managerReportCalculator, times(1)).calculate(Collections.emptyList(), Collections.emptyList());
-        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport); // Verify PDF generation is still called
-        verify(notificationPort, times(1)).sendManagerReportByEmail(anyString(), any(ManagerReport.class), pdfCaptor.capture());
+        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport, startDate, endDate); // Verify PDF generation is still called
+        verify(notificationPort, times(1)).sendManagerReportByEmail(anyString(), any(ManagerReport.class), pdfCaptor.capture(), eq(startDate), eq(endDate));
         
         // Verify that the captured PDF is the one we mocked
         assertArrayEquals(dummyPdf, pdfCaptor.getValue());
@@ -131,7 +131,7 @@ public class ManagerReportApplicationServiceTest {
         when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(employees));
         when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId())).thenReturn(individualReport);
         when(managerReportCalculator.calculate(employees, individualReports)).thenReturn(managerReport);
-        when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(expectedPdf);
+        when(pdfGeneratorPort.generateManagerReportPdf(managerReport, startDate, endDate)).thenReturn(expectedPdf);
 
         // Act
         byte[] actualPdf = managerReportApplicationService.generateManagerReportPdf(startDate, endDate);
@@ -142,7 +142,7 @@ public class ManagerReportApplicationServiceTest {
         verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verify(reportingUseCase, times(1)).generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         verify(managerReportCalculator, times(1)).calculate(employees, individualReports);
-        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport);
+        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport, startDate, endDate);
     }
 
     @Test
@@ -151,7 +151,7 @@ public class ManagerReportApplicationServiceTest {
         byte[] expectedPdf = {1, 2, 3, 4};
         when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(Collections.emptyList()));
         when(managerReportCalculator.calculate(any(), any())).thenReturn(managerReport);
-        when(pdfGeneratorPort.generateManagerReportPdf(managerReport)).thenReturn(expectedPdf);
+        when(pdfGeneratorPort.generateManagerReportPdf(managerReport, startDate, endDate)).thenReturn(expectedPdf);
 
         // Act
         byte[] actualPdf = managerReportApplicationService.generateManagerReportPdf(startDate, endDate);
@@ -162,7 +162,7 @@ public class ManagerReportApplicationServiceTest {
         verify(employeeRepository, times(1)).findAll(any(Pageable.class));
         verifyNoInteractions(reportingUseCase);
         verify(managerReportCalculator, times(1)).calculate(Collections.emptyList(), Collections.emptyList());
-        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport);
+        verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport, startDate, endDate);
     }
 
     @Test
@@ -233,7 +233,7 @@ public class ManagerReportApplicationServiceTest {
 
         // Mock the PDF generation
         byte[] dummyPdf = "dummy-pdf".getBytes();
-        when(pdfGeneratorPort.generateManagerReportPdf(mockManagerReport)).thenReturn(dummyPdf);
+        when(pdfGeneratorPort.generateManagerReportPdf(mockManagerReport, startDate, endDate)).thenReturn(dummyPdf);
 
         // When
         managerReportApplicationService.generateAndSendManagerReport(startDate, endDate);
@@ -241,7 +241,7 @@ public class ManagerReportApplicationServiceTest {
         // Then
         ArgumentCaptor<ManagerReport> managerReportCaptor = ArgumentCaptor.forClass(ManagerReport.class);
         ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
-        verify(notificationPort).sendManagerReportByEmail(eq("manager@example.com"), managerReportCaptor.capture(), pdfCaptor.capture());
+        verify(notificationPort).sendManagerReportByEmail(eq("manager@example.com"), managerReportCaptor.capture(), pdfCaptor.capture(), eq(startDate), eq(endDate));
 
         // Assertions for the report content
         ManagerReport capturedReport = managerReportCaptor.getValue();

@@ -90,8 +90,10 @@ public class ManagerReportControllerTest {
                         .param("endDate", endDate.toString()))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE))
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"manager_weekly_report.pdf\""))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "form-data; name=\"attachment\"; filename=\"manager-report.pdf\""))
                 .andExpect(content().bytes(pdfBytes));
+
+        verify(managerReportServicePort).generateManagerReportPdf(startDate, endDate);
     }
 
     @Test
