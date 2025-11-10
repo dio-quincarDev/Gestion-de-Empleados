@@ -1,8 +1,11 @@
 package com.employed.bar.infrastructure.adapter.in.controller.app;
 
+import com.employed.bar.domain.model.structure.EmployeeClass;
+import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.dto.domain.ConsumptionDto;
 import com.employed.bar.application.service.ConsumptionApplicationService;
+import com.employed.bar.domain.exceptions.ConsumptionNotFoundException;
 import com.employed.bar.domain.exceptions.EmployeeNotFoundException;
 import com.employed.bar.domain.exceptions.InvalidConsumptionDataException;
 import com.employed.bar.domain.model.structure.ConsumptionClass;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +46,7 @@ import java.util.Map;
 public class ConsumptionController {
     private final ConsumptionApplicationService consumptionApplicationService;
     private final ConsumptionApiMapper consumptionApiMapper;
+    private final EmployeeRepositoryPort employeeRepository;
 
     @Operation(
             summary = "Registrar nuevo consumo",
@@ -195,6 +200,122 @@ public class ConsumptionController {
         return ResponseEntity.ok(total);
     }
 
+    @Operation(
+            summary = "Actualizar consumo",
+            description = "Actualiza un registro de consumo existente",
+            operationId = "updateConsumption"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Consumo actualizado exitosamente",
+                    content = @Content(schema = @Schema(implementation = ConsumptionDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Datos de consumo inválidos",
+                    content = @Content(schema = @Schema(example = "{\"amount\": \"El monto debe ser positivo\"}"))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Consumo o empleado no encontrado",
+                    content = @Content(schema = @Schema(example = "{\"message\": \"Consumption not found\"}"))
+            )
+    })
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ConsumptionDto> updateConsumption(
+            @Parameter(description = "ID del consumo a actualizar", required = true, example = "1")
+            @PathVariable Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Datos del consumo a actualizar",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = ConsumptionDto.class))
+            )
+            @RequestBody @Valid ConsumptionDto consumptionDto) {
+        ConsumptionClass consumptionClass = consumptionApiMapper.toDomain(consumptionDto);
+        consumptionClass.setId(id);
+        ConsumptionClass updatedConsumption = consumptionApplicationService.updateConsumption(consumptionClass);
+        return ResponseEntity.ok(consumptionApiMapper.toDto(updatedConsumption));
+    }
+
+    @Operation(
+            summary = "Eliminar consumo",
+            description = "Elimina un registro de consumo por su ID",
+            operationId = "deleteConsumption"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Consumo eliminado exitosamente"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Consumo no encontrado",
+                    content = @Content(schema = @Schema(example = "{\"message\": \"Consumption not found\"}"))
+            )
+    })
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deleteConsumption(
+            @Parameter(description = "ID del consumo a eliminar", required = true, example = "1")
+            @PathVariable Long id) {
+        consumptionApplicationService.deleteConsumption(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Obtener consumos por empleado",
+            description = "Obtiene la lista de consumos de un empleado en un rango de fechas, opcionalmente filtrado por descripción",
+            operationId = "getConsumptionsByEmployee"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Lista de consumos del empleado",
+                    content = @Content(schema = @Schema(implementation = ConsumptionDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Parámetros inválidos",
+                    content = @Content(schema = @Schema(example = "{\"message\": \"Invalid date range\"}"))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Empleado no encontrado",
+                    content = @Content(schema = @Schema(example = "{\"message\": \"Employee not found\"}"))
+            )
+    })
+    @GetMapping("/employee/{employeeId}")
+    @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<List<ConsumptionDto>> getConsumptionsByEmployee(
+            @Parameter(description = "ID del empleado", required = true, example = "1")
+            @PathVariable Long employeeId,
+
+            @Parameter(description = "Fecha de inicio (YYYY-MM-DD)", required = true, example = "2023-01-01")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+
+            @Parameter(description = "Fecha de fin (YYYY-MM-DD)", required = true, example = "2023-12-31")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+
+            @Parameter(description = "Descripción del consumo (opcional)", required = false, example = "Almuerzo")
+            @RequestParam(required = false) String description) {
+
+        // Convertir LocalDate a LocalDateTime
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        // Obtener el empleado
+        EmployeeClass employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id " + employeeId));
+
+        List<ConsumptionClass> consumptions = consumptionApplicationService.getConsumptionByEmployee(employee, startDateTime, endDateTime, description);
+        return ResponseEntity.ok(consumptionApiMapper.toDtoList(consumptions));
+    }
+
+
+
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleValidationConsumption(MethodArgumentNotValidException ex) {
@@ -218,6 +339,18 @@ public class ConsumptionController {
     @ExceptionHandler(InvalidConsumptionDataException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<String> handleInvalidConsumptionDataException(InvalidConsumptionDataException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(ConsumptionNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<String> handleConsumptionNotFoundException(ConsumptionNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }

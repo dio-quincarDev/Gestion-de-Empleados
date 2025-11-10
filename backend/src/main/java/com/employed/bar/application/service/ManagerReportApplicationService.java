@@ -50,8 +50,13 @@ public class ManagerReportApplicationService implements ManagerReportServicePort
         // Generate the PDF report as a byte array
         byte[] pdfBytes = pdfGeneratorPort.generateManagerReportPdf(managerReport, startDate, endDate);
 
-        // TODO: Make the manager's email configurable
-        String managerEmail = "manager@example.com";
+        // Dynamically retrieve the manager's email
+        String managerEmail = allEmployees.stream()
+                .filter(employee -> employee.getRole() == com.employed.bar.domain.enums.EmployeeRole.MANAGER)
+                .map(EmployeeClass::getEmail)
+                .findFirst()
+                .orElse("devpruebas.zar@gmail.com"); // Fallback to a default email if no manager is found
+
         notificationPort.sendManagerReportByEmail(managerEmail, managerReport, pdfBytes, startDate, endDate);
     }
 

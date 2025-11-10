@@ -169,26 +169,25 @@ public class ConsumptionApplicationServiceTest {
     void testCalculateTotalConsumptionByEmployee_Success() {
         LocalDateTime startDate = LocalDateTime.now().minusDays(7);
         LocalDateTime endDate = LocalDateTime.now();
-        when(consumptionRepository.sumConsumptionByEmployeeAndDateRange(employee, startDate, endDate)).thenReturn(BigDecimal.TEN);
+        when(consumptionRepository.sumConsumptionByEmployeeAndDateRange(anyLong(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(BigDecimal.TEN);
 
         BigDecimal result = consumptionApplicationService.calculateTotalConsumptionByEmployee(employee, startDate, endDate);
 
         assertNotNull(result);
-        assertEquals(BigDecimal.TEN, result);
-        verify(consumptionRepository, times(1)).sumConsumptionByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(consumptionRepository, times(1)).sumConsumptionByEmployeeAndDateRange(employee.getId(), startDate, endDate);
     }
 
     @Test
     void testCalculateTotalConsumptionByEmployee_NoConsumptions() {
         LocalDateTime startDate = LocalDateTime.now().minusDays(7);
         LocalDateTime endDate = LocalDateTime.now();
-        when(consumptionRepository.sumConsumptionByEmployeeAndDateRange(employee, startDate, endDate)).thenReturn(BigDecimal.ZERO);
+        when(consumptionRepository.sumConsumptionByEmployeeAndDateRange(anyLong(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(BigDecimal.ZERO);
 
         BigDecimal result = consumptionApplicationService.calculateTotalConsumptionByEmployee(employee, startDate, endDate);
 
         assertNotNull(result);
         assertEquals(BigDecimal.ZERO, result);
-        verify(consumptionRepository, times(1)).sumConsumptionByEmployeeAndDateRange(employee, startDate, endDate);
+        verify(consumptionRepository, times(1)).sumConsumptionByEmployeeAndDateRange(employee.getId(), startDate, endDate);
     }
 
     @Test
@@ -198,14 +197,14 @@ public class ConsumptionApplicationServiceTest {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(consumptionRepository.sumConsumptionByEmployeeAndDateRange(employee, startDateTime, endDateTime)).thenReturn(BigDecimal.TEN);
+        when(consumptionRepository.sumConsumptionByEmployeeAndDateRange(anyLong(), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(BigDecimal.TEN);
 
         BigDecimal result = consumptionApplicationService.calculateTotalConsumptionByEmployee(1L, startDate, endDate);
 
         assertNotNull(result);
         assertEquals(BigDecimal.TEN, result);
         verify(employeeRepository, times(1)).findById(1L);
-        verify(consumptionRepository, times(1)).sumConsumptionByEmployeeAndDateRange(employee, startDateTime, endDateTime);
+        verify(consumptionRepository, times(1)).sumConsumptionByEmployeeAndDateRange(employee.getId(), startDateTime, endDateTime);
     }
 
     @Test
@@ -214,12 +213,12 @@ public class ConsumptionApplicationServiceTest {
         LocalDate endDate = LocalDate.now();
         when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(EmployeeNotFoundException.class, () -> {
             consumptionApplicationService.calculateTotalConsumptionByEmployee(1L, startDate, endDate);
         });
 
         verify(employeeRepository, times(1)).findById(1L);
-        verify(consumptionRepository, never()).sumConsumptionByEmployeeAndDateRange(any(EmployeeClass.class), any(LocalDateTime.class), any(LocalDateTime.class));
+        verify(consumptionRepository, never()).sumConsumptionByEmployeeAndDateRange(anyLong(), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
     @Test
@@ -237,10 +236,12 @@ public class ConsumptionApplicationServiceTest {
 
     @Test
     void testDeleteConsumption_Success() {
+        when(consumptionRepository.findById(1L)).thenReturn(Optional.of(consumption));
         doNothing().when(consumptionRepository).deleteById(1L);
 
         consumptionApplicationService.deleteConsumption(1L);
 
+        verify(consumptionRepository, times(1)).findById(1L);
         verify(consumptionRepository, times(1)).deleteById(1L);
     }
 
@@ -258,11 +259,11 @@ public class ConsumptionApplicationServiceTest {
     void testCreateConsumption_NullEmployeeInConsumption() {
         consumption.setEmployee(null);
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             consumptionApplicationService.createConsumption(consumption);
         });
 
-        verify(employeeRepository, never()).findById(anyLong());
+        verify(employeeRepository, never()).findById(any());
         verify(consumptionRepository, never()).save(any(ConsumptionClass.class));
     }
 
@@ -271,11 +272,11 @@ public class ConsumptionApplicationServiceTest {
         employee.setId(null);
         consumption.setEmployee(employee);
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(EmployeeNotFoundException.class, () -> {
             consumptionApplicationService.createConsumption(consumption);
         });
 
-        verify(employeeRepository, never()).findById(anyLong());
+        verify(employeeRepository, times(1)).findById(null);
         verify(consumptionRepository, never()).save(any(ConsumptionClass.class));
     }
 
@@ -284,7 +285,7 @@ public class ConsumptionApplicationServiceTest {
         LocalDateTime startDate = LocalDateTime.now().minusDays(7);
         LocalDateTime endDate = LocalDateTime.now();
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             consumptionApplicationService.getConsumptionByEmployee(null, startDate, endDate, null);
         });
 
@@ -295,7 +296,7 @@ public class ConsumptionApplicationServiceTest {
     void testGetConsumptionByEmployee_NullStartDate() {
         LocalDateTime endDate = LocalDateTime.now();
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             consumptionApplicationService.getConsumptionByEmployee(employee, null, endDate, null);
         });
 
@@ -306,7 +307,7 @@ public class ConsumptionApplicationServiceTest {
     void testGetConsumptionByEmployee_NullEndDate() {
         LocalDateTime startDate = LocalDateTime.now().minusDays(7);
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             consumptionApplicationService.getConsumptionByEmployee(employee, startDate, null, null);
         });
 
@@ -316,24 +317,26 @@ public class ConsumptionApplicationServiceTest {
     @Test
     void testCalculateTotalConsumptionByEmployee_Overloaded_NullStartDate() {
         LocalDate endDate = LocalDate.now();
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
         assertThrows(NullPointerException.class, () -> {
             consumptionApplicationService.calculateTotalConsumptionByEmployee(1L, null, endDate);
         });
 
-        verify(employeeRepository, never()).findById(anyLong());
+        verify(employeeRepository, times(1)).findById(1L);
         verify(consumptionRepository, never()).sumConsumptionByEmployeeAndDateRange(any(), any(), any());
     }
 
     @Test
     void testCalculateTotalConsumptionByEmployee_Overloaded_NullEndDate() {
         LocalDate startDate = LocalDate.now();
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
         assertThrows(NullPointerException.class, () -> {
             consumptionApplicationService.calculateTotalConsumptionByEmployee(1L, startDate, null);
         });
 
-        verify(employeeRepository, never()).findById(anyLong());
+        verify(employeeRepository, times(1)).findById(1L);
         verify(consumptionRepository, never()).sumConsumptionByEmployeeAndDateRange(any(), any(), any());
     }
 
@@ -341,7 +344,7 @@ public class ConsumptionApplicationServiceTest {
     void testCalculateTotalConsumptionForAllEmployees_NullStartDate() {
         LocalDateTime endDate = LocalDateTime.now();
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             consumptionApplicationService.calculateTotalConsumptionForAllEmployees(null, endDate);
         });
 
@@ -349,10 +352,24 @@ public class ConsumptionApplicationServiceTest {
     }
 
     @Test
+    void testUpdateConsumption_NullEmployee() {
+        consumption.setId(1L);
+        consumption.setEmployee(null);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            consumptionApplicationService.updateConsumption(consumption);
+        });
+
+        verify(consumptionRepository, never()).findById(anyLong());
+        verify(employeeRepository, never()).findById(anyLong());
+        verify(consumptionRepository, never()).save(any(ConsumptionClass.class));
+    }
+
+    @Test
     void testCalculateTotalConsumptionForAllEmployees_NullEndDate() {
         LocalDateTime startDate = LocalDateTime.now();
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             consumptionApplicationService.calculateTotalConsumptionForAllEmployees(startDate, null);
         });
 

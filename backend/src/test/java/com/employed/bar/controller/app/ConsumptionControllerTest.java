@@ -8,16 +8,20 @@ import com.employed.bar.infrastructure.adapter.out.persistence.repository.Spring
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.dto.domain.ConsumptionDto;
+import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
+import com.employed.bar.infrastructure.mail.TestMailConfig;
 import com.employed.bar.infrastructure.security.jwt.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.hamcrest.Matchers.hasSize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestMailConfig.class)
 public class ConsumptionControllerTest {
 
     private static final String BASE_URL = ApiPathConstants.V1_ROUTE + ApiPathConstants.CONSUMPTION_ROUTE;
@@ -79,7 +84,7 @@ public class ConsumptionControllerTest {
         // Crear empleado y usuario de prueba usando los métodos helper
         testEmployee = createTestEmployee("Juan Pérez", "juan.perez@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
         managerUser = createTestUser("manager-consumption@test.com", "password", EmployeeRole.MANAGER);
-        managerToken = "Bearer " + jwtService.generateToken(managerUser.getEmail(), managerUser.getRole().name()).getAccessToken();
+        managerToken = "Bearer " + jwtService.generateToken(managerUser.getEmail(), "ROLE_" + managerUser.getRole().name()).getAccessToken();
     }
 
     // Métodos helper para crear entidades de prueba
@@ -91,6 +96,7 @@ public class ConsumptionControllerTest {
                 .hourlyRate(new BigDecimal("10.00"))
                 .salary(new BigDecimal("1500.00"))
                 .status(status)
+                .paymentType(PaymentType.HOURLY)
                 .build();
         return employeeRepository.save(employee);
     }
@@ -493,7 +499,7 @@ public class ConsumptionControllerTest {
     void createConsumption_WithUserRoleAdmin_ShouldReturnSuccess() throws Exception {
         // Given - Crear usuario con rol ADMIN (debe tener acceso)
         UserEntity adminUser = createTestUser("admin-consumption@test.com", "password", EmployeeRole.ADMIN);
-        String adminToken = "Bearer " + jwtService.generateToken(adminUser.getEmail(), adminUser.getRole().name()).getAccessToken();
+        String adminToken = "Bearer " + jwtService.generateToken(adminUser.getEmail(), "ROLE_" + adminUser.getRole().name()).getAccessToken();
 
         ConsumptionDto consumptionDto = ConsumptionDto.builder()
                 .employeeId(testEmployee.getId())
@@ -535,4 +541,222 @@ public class ConsumptionControllerTest {
         consumptionRepository.save(consumption1);
         consumptionRepository.save(consumption2);
     }
+
+    @Test
+    void updateConsumption_WithValidData_ShouldReturnUpdatedConsumption() throws Exception {
+        // Given
+        ConsumptionEntity existingConsumption = consumptionRepository.save(ConsumptionEntity.builder()
+                .employee(testEmployee)
+                .amount(new BigDecimal("20.00"))
+                .description("Bebidas")
+                .consumptionDate(LocalDateTime.now())
+                .build());
+
+        ConsumptionDto updatedDto = ConsumptionDto.builder()
+                .employeeId(testEmployee.getId())
+                .amount(new BigDecimal("30.00"))
+                .description("Bebidas y snacks")
+                .date(existingConsumption.getConsumptionDate())
+                .build();
+
+        // When
+        ResultActions response = mockMvc.perform(put(BASE_URL + "/" + existingConsumption.getId())
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updatedDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.amount", is(30.00)))
+                .andExpect(jsonPath("$.description", is("Bebidas y snacks")));
+    }
+
+    @Test
+    void updateConsumption_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+        // Given
+        ConsumptionDto updatedDto = ConsumptionDto.builder()
+                .employeeId(testEmployee.getId())
+                .amount(new BigDecimal("30.00"))
+                .description("Inexistente")
+                .date(LocalDateTime.now())
+                .build();
+
+        // When
+        ResultActions response = mockMvc.perform(put(BASE_URL + "/999")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updatedDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteConsumption_WithValidId_ShouldReturnNoContent() throws Exception {
+        // Given
+        ConsumptionEntity existingConsumption = consumptionRepository.save(ConsumptionEntity.builder()
+                .employee(testEmployee)
+                .amount(new BigDecimal("50.00"))
+                .description("Cena especial")
+                .consumptionDate(LocalDateTime.now())
+                .build());
+
+        // When
+        ResultActions response = mockMvc.perform(delete(BASE_URL + "/" + existingConsumption.getId())
+                .header("Authorization", managerToken));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteConsumption_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+        // When
+        ResultActions response = mockMvc.perform(delete(BASE_URL + "/999")
+                .header("Authorization", managerToken));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Consumption not found with id 999"));
+    }
+    @Test
+    void getConsumptionsByEmployee_WithValidData_ShouldReturnList() throws Exception {
+        // Given - Crear consumos de prueba
+        createTestConsumptions();
+
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        LocalDate endDate = LocalDate.now();
+
+        // When
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/employee/{employeeId}", testEmployee.getId())
+                .header("Authorization", managerToken)
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString()));
+
+        // Then - Ordenado por fecha descendente
+        response.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].amount", is(25.50))) // Más reciente primero
+                .andExpect(jsonPath("$[0].description", is("Almuerzo")))
+                .andExpect(jsonPath("$[1].amount", is(15.75)))
+                .andExpect(jsonPath("$[1].description", is("Cena")));
+    }
+
+    @Test
+    void getConsumptionsByEmployee_WithNonExistentEmployee_ShouldReturnNotFound() throws Exception {
+        // Given
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        LocalDate endDate = LocalDate.now();
+
+        // When
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/employee/{employeeId}", 999L)
+                .header("Authorization", managerToken)
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString()));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getConsumptionsByEmployee_WithDescriptionFilter_ShouldReturnFilteredList() throws Exception {
+        // Given - Crear consumos de prueba
+        createTestConsumptions();
+
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        LocalDate endDate = LocalDate.now();
+
+        // When - Filtrar por descripción "Almuerzo"
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/employee/{employeeId}", testEmployee.getId())
+                .header("Authorization", managerToken)
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString())
+                .param("description", "Almuerzo"));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1))) // Solo un consumo con descripción "Almuerzo"
+                .andExpect(jsonPath("$[0].description", is("Almuerzo")));
+    }
+
+    @Test
+    void getConsumptionsByEmployee_WithInvalidDateRange_ShouldReturnBadRequest() throws Exception {
+        // Given - Fecha inicio mayor que fecha fin
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().minusDays(7);
+
+        // When
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/employee/{employeeId}", testEmployee.getId())
+                .header("Authorization", managerToken)
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString()));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getConsumptionsByEmployee_WithoutAuthentication_ShouldReturnUnauthorized() throws Exception {
+        // Given
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        LocalDate endDate = LocalDate.now();
+
+        // When - Sin header de Authorization
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/employee/{employeeId}", testEmployee.getId())
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString()));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getConsumptionsByEmployee_WithWaiterRole_ShouldReturnForbidden() throws Exception {
+        // Given - Crear usuario con rol WAITER (no tiene acceso)
+        UserEntity waiterUser = createTestUser("waiter-consumptions@test.com", "password", EmployeeRole.WAITER);
+        String waiterToken = "Bearer " + jwtService.generateToken(waiterUser.getEmail(), "ROLE_" + waiterUser.getRole().name()).getAccessToken();
+
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        LocalDate endDate = LocalDate.now();
+
+        // When
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/employee/{employeeId}", testEmployee.getId())
+                .header("Authorization", waiterToken)
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString()));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getConsumptionsByEmployee_WithEmptyResult_ShouldReturnEmptyList() throws Exception {
+        // Given - No hay consumos para este empleado
+        EmployeeEntity newEmployee = createTestEmployee("Nuevo Empleado", "nuevo@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
+
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        LocalDate endDate = LocalDate.now();
+
+        // When
+        ResultActions response = mockMvc.perform(get(BASE_URL + "/employee/{employeeId}", newEmployee.getId())
+                .header("Authorization", managerToken)
+                .param("startDate", startDate.toString())
+                .param("endDate", endDate.toString()));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
 }
