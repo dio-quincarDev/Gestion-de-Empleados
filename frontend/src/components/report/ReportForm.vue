@@ -1,42 +1,68 @@
 <template>
-  <div class="row q-mb-md q-gutter-sm items-center">
-    <!-- Búsqueda de empleado -->
-    <q-select
-      v-model="selectedEmployee"
-      :options="employeeOptions"
-      label="Seleccionar Empleado"
-      option-label="label"
-      option-value="value"
-      filled
-      dark
-      clearable
-      use-input
-      input-debounce="300"
-      @filter="filterFn"
-      style="min-width: 300px"
-      class="q-mr-sm"
-    >
-      <template v-slot:no-option>
-        <q-item>
-          <q-item-section class="text-grey">Sin resultados</q-item-section>
-        </q-item>
-      </template>
-    </q-select>
+  <q-card class="bg-dark text-white q-pa-md" style="max-width: 450px; width: 90vw">
+    <q-card-section>
+      <div class="text-h6">Generar Reporte</div>
+    </q-card-section>
 
-    <!-- Rango de fechas -->
-    <q-date v-model="dateRange" range minimal dark color="primary" class="q-mx-sm" />
+    <q-separator dark />
 
-    <!-- Botón actualizar -->
-    <q-btn flat round icon="refresh" color="white" @click="emit('load')" :loading="loading" />
+    <q-card-section class="q-gutter-md">
+      <!-- Búsqueda de empleado -->
+      <q-select
+        v-model="selectedEmployee"
+        :options="employeeOptions"
+        label="Seleccionar Empleado"
+        option-label="label"
+        option-value="value"
+        outlined
+        dark
+        clearable
+        use-input
+        input-debounce="300"
+        @filter="filterFn"
+      >
+        <template v-slot:no-option>
+          <q-item>
+            <q-item-section class="text-grey">Sin resultados</q-item-section>
+          </q-item>
+        </template>
+      </q-select>
 
-    <!-- Botón descargar PDF -->
-    <q-btn flat round icon="picture_as_pdf" color="red" @click="emit('downloadPdf')" :disable="loading" />
-  </div>
+      <!-- Rango de fechas -->
+      <q-input
+        v-model="dateRange.from"
+        type="date"
+        label="Fecha Inicio"
+        outlined
+        dark
+        stack-label
+      />
+      <q-input
+        v-model="dateRange.to"
+        type="date"
+        label="Fecha Fin"
+        outlined
+        dark
+        stack-label
+      />
+    </q-card-section>
+
+    <q-separator dark />
+
+    <q-card-actions align="right">
+      <!-- Botón actualizar -->
+      <q-btn flat label="Actualizar" color="primary" @click="emit('load')" :loading="loading" />
+
+      <!-- Botón descargar PDF -->
+      <q-btn flat label="Descargar PDF" color="red" @click="emit('downloadPdf')" :disable="loading" />
+    </q-card-actions>
+  </q-card>
 </template>
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useEmployeeStore } from 'src/stores/employee-module'
+import { date } from 'quasar' // Import Quasar date utility
 
 defineProps({
   loading: Boolean,
@@ -72,6 +98,14 @@ onMounted(async () => {
     label: emp.name,
     value: emp.id,
   }))
+
+  // Initialize dateRange if not already set
+  if (!dateRange.value.from || !dateRange.value.to) {
+    dateRange.value = {
+      from: date.formatDate(date.subtractFromDate(new Date(), { days: 30 }), 'YYYY-MM-DD'),
+      to: date.formatDate(new Date(), 'YYYY-MM-DD'),
+    }
+  }
 })
 
 watch(selectedEmployee, () => emit('load'))

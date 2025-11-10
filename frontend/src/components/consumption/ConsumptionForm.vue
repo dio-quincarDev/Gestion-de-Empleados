@@ -9,7 +9,7 @@
     <q-card-section>
       <q-form @submit.prevent="onSubmit" class="q-gutter-md">
         <q-input
-          filled
+          outlined
           v-model="formData.date"
           type="datetime-local"
           label="Fecha y Hora *"
@@ -18,7 +18,7 @@
         />
 
         <q-input
-          filled
+          outlined
           v-model="formData.description"
           type="textarea"
           label="Descripción"
@@ -27,7 +27,7 @@
         />
 
         <q-input
-          filled
+          outlined
           v-model.number="formData.amount"
           type="number"
           step="0.01"
@@ -112,19 +112,22 @@ const isValid = computed(() => {
   )
 })
 
-// En el método onSubmit, cambiar el payload:
+const formatDateForBackend = (dateString) => {
+  const date = new Date(dateString)
+  return date.toISOString().slice(0, 19) // "2025-10-26T21:10:00"
+}
+
 const onSubmit = () => {
   if (!isValid.value) return
 
   const payload = {
-    employeeId: props.employeeId, // Mantener esto
-    date: new Date(formData.value.date).toISOString(),
+    employeeId: props.employeeId,
+    date: formatDateForBackend(formData.value.date),
     description: formData.value.description || null,
     amount: parseFloat(formData.value.amount),
   }
 
   emit('save', payload)
 }
-
 const onCancel = () => emit('cancel')
 </script>

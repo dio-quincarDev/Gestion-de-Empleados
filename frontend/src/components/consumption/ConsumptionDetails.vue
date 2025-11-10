@@ -49,7 +49,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { date, useQuasar } from 'quasar'
+import { useQuasar } from 'quasar'
+import { formatDate, formatTime } from 'src/utils/formatters'
 
 const $q = useQuasar()
 
@@ -63,26 +64,17 @@ const props = defineProps({
 const emit = defineEmits(['close', 'edit', 'delete'])
 
 const formattedDate = computed(() => {
-  return date.formatDate(props.consumption.date, 'DD/MM/YYYY')
+  return formatDate(props.consumption.date)
 })
 
 const formattedTime = computed(() => {
-  return date.formatDate(props.consumption.date, 'HH:mm')
+  return formatTime(props.consumption.date)
 })
 
 const onEdit = () => emit('edit', props.consumption)
 
 const onDelete = () => {
-  $q.dialog({
-    title: 'Confirmar eliminación',
-    message: '¿Estás seguro de que quieres eliminar este consumo?',
-    cancel: true,
-    persistent: true,
-    dark: true,
-    color: 'negative',
-  }).onOk(() => {
-    emit('delete', props.consumption.id)
-  })
+  emit('delete', props.consumption.id)
 }
 
 const onClose = () => emit('close')

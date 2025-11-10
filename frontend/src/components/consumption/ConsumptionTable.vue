@@ -102,9 +102,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { date, useQuasar } from 'quasar'
-
-const $q = useQuasar()
+import { formatDate, formatTime, formatAmount } from 'src/utils/formatters'
 
 const props = defineProps({
   employee: {
@@ -158,34 +156,11 @@ const columns = [
   },
 ]
 
-const formatDate = (iso) => {
-  if (!iso) return '—'
-  return date.formatDate(iso, 'DD/MM/YYYY')
-}
-
-const formatTime = (iso) => {
-  if (!iso) return '—'
-  return date.formatDate(iso, 'HH:mm')
-}
-
-const formatAmount = (amount) => {
-  return `$${Number(amount || 0).toFixed(2)}`
-}
-
 const onCreate = () => emit('create')
 const onView = (row) => emit('view', row)
 const onEdit = (row) => emit('edit', row)
 
 const onDelete = (id) => {
-  $q.dialog({
-    title: 'Confirmar eliminación',
-    message: '¿Estás seguro de que quieres eliminar este consumo?',
-    cancel: true,
-    persistent: true,
-    dark: true,
-    color: 'negative',
-  }).onOk(() => {
-    emit('delete', id)
-  })
+  emit('delete', id)
 }
 </script>
