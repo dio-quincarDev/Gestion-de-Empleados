@@ -21,7 +21,7 @@ public interface ConsumptionRepositoryPort {
                                                             LocalDateTime endDate,
                                                             String description);
 
-    BigDecimal sumConsumptionByEmployeeAndDateRange(EmployeeClass employee,
+    BigDecimal sumConsumptionByEmployeeAndDateRange(Long employeeId,
                                                     LocalDateTime startDate,
                                                     LocalDateTime endDate);
 

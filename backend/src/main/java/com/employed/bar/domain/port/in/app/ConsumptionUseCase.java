@@ -25,5 +25,7 @@ public interface ConsumptionUseCase {
 
     List<ConsumptionClass> getAllConsumptions();
 
+    ConsumptionClass updateConsumption(ConsumptionClass consumptionClass);
+
 
 }

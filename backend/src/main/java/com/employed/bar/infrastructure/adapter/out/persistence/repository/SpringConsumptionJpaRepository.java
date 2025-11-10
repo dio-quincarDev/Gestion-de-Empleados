@@ -21,8 +21,8 @@ public interface SpringConsumptionJpaRepository extends JpaRepository<Consumptio
                                                             @Param("description") String description);
 
 
-    @Query("SELECT SUM(c.amount) FROM ConsumptionEntity c WHERE c.employee = :employee AND c.consumptionDate BETWEEN :startDate AND :endDate")
-    BigDecimal sumConsumptionByEmployeeAndDateRange(@Param("employee") EmployeeEntity employee,
+    @Query("SELECT SUM(c.amount) FROM ConsumptionEntity c WHERE c.employee.id = :employeeId AND c.consumptionDate BETWEEN :startDate AND :endDate")
+    BigDecimal sumConsumptionByEmployeeAndDateRange(@Param("employeeId") Long employeeId,
                                                     @Param("startDate") LocalDateTime startDate,
                                                     @Param("endDate") LocalDateTime endDate);
 

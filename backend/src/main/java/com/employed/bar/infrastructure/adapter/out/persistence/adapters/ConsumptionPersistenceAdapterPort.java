@@ -52,9 +52,9 @@ public class ConsumptionPersistenceAdapterPort implements ConsumptionRepositoryP
     }
 
     @Override
-    public BigDecimal sumConsumptionByEmployeeAndDateRange(EmployeeClass employee, LocalDateTime startDate, LocalDateTime endDate) {
+    public BigDecimal sumConsumptionByEmployeeAndDateRange(Long employeeId, LocalDateTime startDate, LocalDateTime endDate) {
         return springConsumptionJpaRepository.sumConsumptionByEmployeeAndDateRange(
-                employeeMapper.toEntity(employee), startDate, endDate);
+                employeeId, startDate, endDate);
     }
 
     @Override
