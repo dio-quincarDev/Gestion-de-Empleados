@@ -1,5 +1,9 @@
 <template>
   <q-page class="q-pa-md">
+    <div class="row justify-between items-center q-mb-md">
+      <div class="text-h4 text-white page-title">Gestión de Asistencias</div>
+    </div>
+
     <div class="row q-mb-md">
       <q-select
         outlined
@@ -13,6 +17,10 @@
         option-label="label"
         @filter="filterEmployees"
         class="col-12 col-sm-8 col-md-6"
+        dark
+        color="primary"
+        label-color="grey-5"
+        input-class="text-white"
       >
         <template v-slot:no-option>
           <q-item>
