@@ -34,7 +34,7 @@ export default defineConfig(() => {
       config: {
         dark: true // Activar el modo oscuro globalmente
       },
-      plugins: ['Notify']
+      plugins: ['Notify', 'Dialog']
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build

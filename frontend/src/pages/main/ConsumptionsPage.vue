@@ -19,6 +19,7 @@
           use-input
           hide-selected
           fill-input
+          option-label="name"
           @update:model-value="onEmployeeSelected"
           clearable
         >

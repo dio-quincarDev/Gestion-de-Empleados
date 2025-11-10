@@ -37,13 +37,13 @@
           :rows-per-page-options="[0]"
         >
           <template v-slot:body-cell-attendanceDate="props">
-            <q-td>{{ formatDate(props.row.attendanceDate) }}</q-td>
+            <q-td>{{ formatDate(arrayDateToISO(props.row.attendanceDate)) }}</q-td>
           </template>
           <template v-slot:body-cell-entryTime="props">
-            <q-td>{{ formatTime(props.row.entryTime) }}</q-td>
+            <q-td>{{ formatTime(arrayTimeToISO(props.row.entryTime)) }}</q-td>
           </template>
           <template v-slot:body-cell-exitTime="props">
-            <q-td>{{ formatTime(props.row.exitTime) }}</q-td>
+            <q-td>{{ formatTime(arrayTimeToISO(props.row.exitTime)) }}</q-td>
           </template>
           <template v-slot:no-data>
             <div class="full-width text-center text-grey q-pa-md">Sin registros de asistencia</div>
@@ -79,7 +79,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { date } from 'quasar'
+import { formatDate, formatTime, formatDateTime } from 'src/utils/formatters'
 
 const props = defineProps({
   report: Object,
@@ -120,18 +120,22 @@ const consumptionColumns = [
   },
 ]
 
-const formatDate = (arr) => {
-  if (!arr || arr.length < 3) return '--'
-  return date.formatDate(new Date(arr[0], arr[1] - 1, arr[2]), 'DD/MM/YYYY')
+// Helper to convert [year, month, day] array to ISO string
+const arrayDateToISO = (arr) => {
+  if (!arr || arr.length < 3) return null
+  const [year, month, day] = arr
+  // Month is 0-indexed in Date constructor, but 1-indexed in array
+  return new Date(year, month - 1, day).toISOString()
 }
 
-const formatTime = (arr) => {
-  if (!arr || arr.length < 2) return '--'
-  return `${String(arr[0]).padStart(2, '0')}:${String(arr[1]).padStart(2, '0')}`
-}
-
-const formatDateTime = (iso) => {
-  return date.formatDate(iso, 'DD/MM/YYYY HH:mm')
+// Helper to convert [hour, minute] array to ISO string (assuming a dummy date)
+const arrayTimeToISO = (arr) => {
+  if (!arr || arr.length < 2) return null
+  const [hour, minute] = arr
+  // Use a dummy date to create a Date object for time formatting
+  const dummyDate = new Date()
+  dummyDate.setHours(hour, minute, 0, 0)
+  return dummyDate.toISOString()
 }
 </script>
 
