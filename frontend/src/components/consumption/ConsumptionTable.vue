@@ -2,7 +2,7 @@
   <q-card class="bg-dark">
     <q-card-section class="bg-dark text-white">
       <div class="row items-center justify-between">
-        <div class="text-h6">Consumos de {{ employee.label }}</div>
+        <div class="text-h6">Consumos de {{ employee?.name || 'N/A' }}</div>
         <q-btn
           unelevated
           rounded
@@ -18,7 +18,7 @@
 
     <q-card-section class="q-pa-none">
       <q-table
-        :rows="consumptions"
+        :rows="safeConsumptions"
         :columns="columns"
         row-key="id"
         flat
@@ -27,7 +27,7 @@
         :pagination="{ rowsPerPage: 0 }"
         hide-pagination
       >
-        <template v-slot:body="props">
+        <template #body="props">
           <q-tr :props="props">
             <q-td key="date">
               <div>{{ formatDate(props.row.date) }}</div>
@@ -37,12 +37,13 @@
               {{ props.row.description || '—' }}
             </q-td>
             <q-td key="amount" class="text-right">
-              <strong>${{ props.row.amount.toFixed(2) }}</strong>
+              <strong>{{ formatAmount(props.row.amount) }}</strong>
             </q-td>
             <q-td key="actions" auto-width>
               <q-btn
                 flat
                 round
+                dense
                 icon="visibility"
                 color="info"
                 size="sm"
@@ -50,21 +51,46 @@
               >
                 <q-tooltip>Ver</q-tooltip>
               </q-btn>
-              <!-- Sin edit/delete porque no hay PUT/DELETE en API -->
+              <q-btn
+                flat
+                round
+                dense
+                icon="edit"
+                color="warning"
+                size="sm"
+                @click.stop="onEdit(props.row)"
+              >
+                <q-tooltip>Editar</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                round
+                dense
+                icon="delete"
+                color="negative"
+                size="sm"
+                @click.stop="onDelete(props.row.id)"
+              >
+                <q-tooltip>Eliminar</q-tooltip>
+              </q-btn>
             </q-td>
           </q-tr>
         </template>
 
-        <template v-slot:no-data>
+        <template #no-data>
           <div class="full-width row flex-center text-grey q-pa-lg">
-            <q-icon name="receipt_long" size="2em" class="q-mr-sm" />
-            <span>No hay consumos registrados</span>
+            <q-icon
+              :name="loading ? 'hourglass_empty' : 'receipt_long'"
+              size="2em"
+              class="q-mr-sm"
+              :class="{ 'q-spinner': loading }"
+            />
+            <span>{{ loading ? 'Cargando consumos...' : 'No hay consumos registrados' }}</span>
           </div>
         </template>
       </q-table>
     </q-card-section>
 
-    <!-- Total -->
     <q-card-section class="bg-grey-9 text-white">
       <div class="row justify-between">
         <div class="text-subtitle1">Total consumido</div>
@@ -76,33 +102,90 @@
 
 <script setup>
 import { computed } from 'vue'
-import { date } from 'quasar'
+import { date, useQuasar } from 'quasar'
+
+const $q = useQuasar()
 
 const props = defineProps({
-  employee: { type: Object, required: true },
-  consumptions: { type: Array, required: true },
-  totalAmount: { type: Number, required: true },
+  employee: {
+    type: Object,
+    required: true,
+  },
+  consumptions: {
+    type: Array,
+    default: () => [],
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['create', 'view'])
+const emit = defineEmits(['create', 'view', 'edit', 'delete'])
 
-const loading = computed(() => !props.consumptions) // Ejemplo de carga basada en props
+const safeConsumptions = computed(() => props.consumptions || [])
+
+const totalAmount = computed(() => {
+  return safeConsumptions.value.reduce((sum, c) => sum + Number(c.amount || 0), 0)
+})
 
 const columns = [
-  { name: 'date', label: 'Fecha', align: 'left' },
-  { name: 'description', label: 'Descripción', align: 'left' },
-  { name: 'amount', label: 'Monto', align: 'right' },
-  { name: 'actions', label: '', align: 'right' },
+  {
+    name: 'date',
+    label: 'Fecha',
+    align: 'left',
+    field: (row) => row.date,
+    sortable: true,
+  },
+  {
+    name: 'description',
+    label: 'Descripción',
+    align: 'left',
+    field: (row) => row.description,
+    sortable: true,
+  },
+  {
+    name: 'amount',
+    label: 'Monto',
+    align: 'right',
+    field: (row) => row.amount,
+    sortable: true,
+  },
+  {
+    name: 'actions',
+    label: '',
+    align: 'right',
+  },
 ]
 
 const formatDate = (iso) => {
+  if (!iso) return '—'
   return date.formatDate(iso, 'DD/MM/YYYY')
 }
 
 const formatTime = (iso) => {
+  if (!iso) return '—'
   return date.formatDate(iso, 'HH:mm')
+}
+
+const formatAmount = (amount) => {
+  return `$${Number(amount || 0).toFixed(2)}`
 }
 
 const onCreate = () => emit('create')
 const onView = (row) => emit('view', row)
+const onEdit = (row) => emit('edit', row)
+
+const onDelete = (id) => {
+  $q.dialog({
+    title: 'Confirmar eliminación',
+    message: '¿Estás seguro de que quieres eliminar este consumo?',
+    cancel: true,
+    persistent: true,
+    dark: true,
+    color: 'negative',
+  }).onOk(() => {
+    emit('delete', id)
+  })
+}
 </script>
