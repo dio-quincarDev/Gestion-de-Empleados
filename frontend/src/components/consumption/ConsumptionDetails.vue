@@ -6,17 +6,7 @@
 
     <q-separator dark />
 
-    <q-card-section class="q-gutter-y-lg">
-      <!-- Empleado -->
-      <div class="row items-start">
-        <div class="col-5 text-grey-6">Empleado:</div>
-        <div class="col-7">
-          <div class="text-weight-medium">{{ employeeName }}</div>
-          <div class="text-caption text-grey-5">ID: {{ consumption.employeeId }}</div>
-        </div>
-      </div>
-
-      <!-- Fecha y Hora -->
+    <q-card-section class="q-gutter-y-md">
       <div class="row items-start">
         <div class="col-5 text-grey-6">Fecha:</div>
         <div class="col-7">
@@ -25,47 +15,75 @@
         </div>
       </div>
 
-      <!-- Descripción -->
       <div class="row items-start">
         <div class="col-5 text-grey-6">Descripción:</div>
         <div class="col-7">
-          <div>{{ consumption.description || '—' }}</div>
+          <div :class="{ 'text-grey-5': !consumption.description }">
+            {{ consumption.description || 'Sin descripción' }}
+          </div>
         </div>
       </div>
 
-      <!-- Monto -->
       <div class="row items-center">
         <div class="col-5 text-grey-6">Monto:</div>
         <div class="col-7">
-          <div class="text-h6 text-primary">${{ consumption.amount.toFixed(2) }}</div>
+          <div class="text-h6 text-primary">${{ Number(consumption.amount || 0).toFixed(2) }}</div>
         </div>
+      </div>
+
+      <div v-if="consumption.id" class="row items-start">
+        <div class="col-5 text-grey-6">ID:</div>
+        <div class="col-7 text-caption text-grey-5">#{{ consumption.id }}</div>
       </div>
     </q-card-section>
 
-    <q-card-actions align="right" class="bg-dark">
-      <q-btn flat label="Cerrar" color="grey-5" @click="onClose" />
+    <q-separator dark />
+
+    <q-card-actions align="right">
+      <q-btn flat rounded label="Cerrar" color="grey-5" @click="onClose" />
+      <q-btn flat rounded label="Editar" color="primary" @click="onEdit" />
+      <q-btn flat rounded label="Eliminar" color="negative" @click="onDelete" />
     </q-card-actions>
   </q-card>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { date } from 'quasar'
+import { date, useQuasar } from 'quasar'
+
+const $q = useQuasar()
 
 const props = defineProps({
-  consumption: { type: Object, required: true },
-  employeeName: { type: String, required: true },
+  consumption: {
+    type: Object,
+    required: true,
+  },
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'edit', 'delete'])
 
 const formattedDate = computed(() => {
-  return date.formatDate(props.consumption.date, 'DD MMMM YYYY', { locale: 'es-ES' })
+  return date.formatDate(props.consumption.date, 'DD/MM/YYYY')
 })
 
 const formattedTime = computed(() => {
   return date.formatDate(props.consumption.date, 'HH:mm')
 })
+
+const onEdit = () => emit('edit', props.consumption)
+
+const onDelete = () => {
+  $q.dialog({
+    title: 'Confirmar eliminación',
+    message: '¿Estás seguro de que quieres eliminar este consumo?',
+    cancel: true,
+    persistent: true,
+    dark: true,
+    color: 'negative',
+  }).onOk(() => {
+    emit('delete', props.consumption.id)
+  })
+}
 
 const onClose = () => emit('close')
 </script>

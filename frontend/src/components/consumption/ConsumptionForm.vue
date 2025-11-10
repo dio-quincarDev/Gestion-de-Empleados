@@ -1,99 +1,130 @@
 <template>
-  <q-card class="bg-dark text-white q-pa-md" style="max-width: 500px; width: 90vw">
+  <q-card class="bg-dark text-white" style="max-width: 400px; width: 90vw">
     <q-card-section>
-      <div class="text-h6">Registrar Consumo</div>
+      <div class="text-h6">{{ isEditMode ? 'Editar Consumo' : 'Nuevo Consumo' }}</div>
     </q-card-section>
+
+    <q-separator dark />
 
     <q-card-section>
       <q-form @submit.prevent="onSubmit" class="q-gutter-md">
-        <!-- Empleado (solo lectura) -->
-        <q-input filled :model-value="employeeName" label="Empleado" readonly dark color="primary">
-          <template #prepend>
-            <q-icon name="person" />
-          </template>
-        </q-input>
-
-        <!-- Fecha y hora -->
-        <q-input filled v-model="date" type="datetime-local" label="Fecha y Hora" dark required />
-
-        <!-- Descripción -->
         <q-input
           filled
-          v-model="description"
+          v-model="formData.date"
+          type="datetime-local"
+          label="Fecha y Hora *"
+          dark
+          :rules="[(val) => !!val || 'Campo requerido']"
+        />
+
+        <q-input
+          filled
+          v-model="formData.description"
           type="textarea"
           label="Descripción"
           dark
-          :rules="[(val) => val.length <= 255 || 'Máximo 255 caracteres']"
+          :rules="[(val) => !val || val.length <= 255 || 'Máximo 255 caracteres']"
         />
 
-        <!-- Monto -->
         <q-input
           filled
-          v-model.number="amount"
+          v-model.number="formData.amount"
           type="number"
           step="0.01"
           min="0.01"
-          label="Monto ($)"
+          label="Monto ($) *"
           dark
-          required
+          :rules="[(val) => val > 0 || 'El monto debe ser mayor a 0']"
         />
 
-        <!-- Botones -->
-        <div class="row justify-end q-gutter-sm q-mt-md">
+        <q-card-actions align="right">
           <q-btn flat label="Cancelar" color="grey-5" @click="onCancel" />
           <q-btn
             unelevated
             color="primary"
-            label="Registrar"
+            :label="isEditMode ? 'Guardar' : 'Crear'"
             type="submit"
-            :loading="loading"
             :disable="!isValid"
           />
-        </div>
+        </q-card-actions>
       </q-form>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
-  employeeId: { type: Number, required: true },
-  employeeName: { type: String, required: true },
+  consumption: {
+    type: Object,
+    default: null,
+  },
+  employeeId: {
+    type: Number,
+    required: true,
+  },
 })
 
 const emit = defineEmits(['save', 'cancel'])
 
-const date = ref('')
-const description = ref('')
-const amount = ref(null)
-const loading = ref(false)
+const isEditMode = computed(() => !!props.consumption)
 
-// Validación local
-const isValid = computed(() => {
-  return date.value && description.value.length <= 255 && amount.value > 0
+const formData = ref({
+  date: '',
+  description: '',
+  amount: 0,
 })
 
+// Agregar esta función helper
+const toLocalISOString = (date) => {
+  const offset = date.getTimezoneOffset() * 60000
+  const localISOTime = new Date(date - offset).toISOString()
+  return localISOTime.slice(0, 16)
+}
+
+// Actualizar el watch
+watch(
+  () => props.consumption,
+  (newVal) => {
+    if (newVal) {
+      formData.value = {
+        date: toLocalISOString(new Date(newVal.date)),
+        description: newVal.description || '',
+        amount: Number(newVal.amount || 0),
+      }
+    } else {
+      formData.value = {
+        date: toLocalISOString(new Date()),
+        description: '',
+        amount: 0,
+      }
+    }
+  },
+  { immediate: true },
+)
+
+const isValid = computed(() => {
+  return (
+    formData.value.date &&
+    formData.value.amount > 0 &&
+    (!formData.value.description || formData.value.description.length <= 255)
+  )
+})
+
+// En el método onSubmit, cambiar el payload:
 const onSubmit = () => {
   if (!isValid.value) return
 
   const payload = {
-    employeeId: props.employeeId,
-    date: date.value + ':00', // ISO 8601 con segundos
-    description: description.value,
-    amount: parseFloat(amount.value),
+    employeeId: props.employeeId, // Mantener esto
+    date: new Date(formData.value.date).toISOString(),
+    description: formData.value.description || null,
+    amount: parseFloat(formData.value.amount),
   }
 
-  loading.value = true
   emit('save', payload)
-  loading.value = false
 }
 
-const onCancel = () => {
-  date.value = ''
-  description.value = ''
-  amount.value = null
-  emit('cancel')
-}
+const onCancel = () => emit('cancel')
 </script>

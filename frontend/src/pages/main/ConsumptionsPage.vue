@@ -1,77 +1,124 @@
 <template>
   <q-page class="q-pa-md">
-    <!-- Búsqueda de empleado -->
-    <div class="row q-mb-md">
-      <q-select
-        outlined
-        dark
-        dense
-        autofocus
-        clearable
-        v-model="selectedEmployee"
-        use-input
-        hide-selected
-        fill-input
-        input-debounce="500"
-        label="Buscar Empleado por nombre..."
-        :options="employeeOptions"
-        :loading="isSearching"
-        @filter="filterEmployees"
-        style="width: 450px"
-        bg-color="grey-9"
-      >
-        <template v-slot:prepend>
-          <q-icon name="search" />
-        </template>
-        <template v-slot:no-option>
-          <q-item>
-            <q-item-section class="text-grey">
-              <span v-if="isSearching">Buscando...</span>
-              <span v-else>No se encontraron empleados.</span>
-            </q-item-section>
-          </q-item>
-        </template>
-      </q-select>
+    <div class="row justify-between items-center q-mb-md">
+      <div class="text-h4 text-white page-title">Gestión de Consumos</div>
     </div>
 
-    <!-- Sin empleado seleccionado -->
-    <div v-if="!selectedEmployee" class="text-center q-pa-xl">
-      <q-icon name="receipt_long" size="4em" color="grey-5" />
-      <div class="text-h6 q-mt-md text-grey-5">Seleccione un empleado para gestionar consumos</div>
+    <q-card class="q-mb-md bg-dark" dark>
+      <q-card-section>
+        <q-select
+          v-model="selectedEmployee"
+          :options="employeeOptions"
+          label="Busque y seleccione un empleado para ver sus consumos"
+          dark
+          outlined
+          color="primary"
+          label-color="grey-5"
+          input-class="text-white"
+          @filter="filterEmployeeFn"
+          use-input
+          hide-selected
+          fill-input
+          @update:model-value="onEmployeeSelected"
+          clearable
+        >
+          <template v-slot:prepend>
+            <q-icon name="search" />
+          </template>
+          <template v-slot:no-option>
+            <q-item>
+              <q-item-section class="text-grey">
+                {{ employeeStore.loading ? 'Buscando...' : 'Escriba al menos 2 caracteres' }}
+              </q-item-section>
+            </q-item>
+          </template>
+          <template v-slot:selected-item="scope">
+            <div class="row items-center">
+              <div class="text-weight-medium">{{ scope.opt.name }}</div>
+              <div class="text-caption text-grey-5 q-ml-sm">- {{ scope.opt.role }}</div>
+            </div>
+          </template>
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section>
+                <q-item-label>{{ scope.opt.name }}</q-item-label>
+                <q-item-label caption>{{ scope.opt.role }} - {{ scope.opt.email }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
+      </q-card-section>
+    </q-card>
+
+    <!-- Selector de rango de fechas -->
+    <q-card v-if="selectedEmployee" class="q-mb-md bg-dark" dark>
+      <q-card-section class="row items-center q-gutter-md">
+        <q-input
+          v-model="dateRange.startDate"
+          type="date"
+          label="Fecha inicio"
+          dark
+          outlined
+          dense
+          @update:model-value="refreshConsumptions"
+        />
+        <q-input
+          v-model="dateRange.endDate"
+          type="date"
+          label="Fecha fin"
+          dark
+          outlined
+          dense
+          @update:model-value="refreshConsumptions"
+        />
+      </q-card-section>
+    </q-card>
+
+    <consumption-table
+      v-if="selectedEmployee"
+      :employee="selectedEmployee"
+      :consumptions="consumptions"
+      :loading="loading"
+      @create="showCreateForm"
+      @view="showDetails"
+      @edit="showEditFormDialog"
+      @delete="handleDelete"
+    />
+
+    <div v-else class="text-center text-grey q-mt-xl">
+      <q-icon name="receipt_long" size="4em" />
+      <p class="q-mt-md">Por favor, busque y seleccione un empleado para comenzar.</p>
     </div>
 
-    <!-- Vista principal -->
-    <div v-else>
-      <consumption-table
-        :employee="selectedEmployee"
-        :consumptions="filteredConsumptions"
-        :total-amount="filteredTotalAmount"
-        @create="showCreateForm"
-        @view="showDetails"
+    <!-- Formulario Crear -->
+    <q-dialog v-model="showForm">
+      <consumption-form
+        :employee-id="selectedEmployee?.id"
+        @save="handleCreate"
+        @cancel="showForm = false"
       />
+    </q-dialog>
 
-      <!-- Formulario -->
-      <q-dialog v-model="showForm" persistent>
-        <consumption-form
-          :employee-id="selectedEmployee.value"
-          :employee-name="selectedEmployee.label"
-          @save="handleSave"
-          @cancel="showForm = false"
-        />
-      </q-dialog>
+    <!-- Formulario Editar -->
+    <q-dialog v-model="showEditForm">
+      <consumption-form
+        :consumption="selectedConsumption"
+        :employee-id="selectedEmployee?.id"
+        @save="handleUpdate"
+        @cancel="showEditForm = false"
+      />
+    </q-dialog>
 
-      <!-- Detalles -->
-      <q-dialog v-model="showDetailsModal" persistent>
-        <consumption-details
-          v-if="selectedConsumption"
-          :consumption="selectedConsumption"
-          :employee-name="selectedEmployee.label"
-          @close="showDetailsModal = false"
-        />
-      </q-dialog>
-    </div>
-
-
+    <!-- Detalles -->
+    <q-dialog v-model="showDetailsModal">
+      <consumption-details
+        v-if="selectedConsumption"
+        :consumption="selectedConsumption"
+        @close="showDetailsModal = false"
+        @edit="showEditFormFromDetails"
+        @delete="handleDeleteFromDetails"
+      />
+    </q-dialog>
   </q-page>
 </template>
 
@@ -80,88 +127,191 @@ import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useConsumptionStore } from 'src/stores/consumption-module'
 import { useEmployeeStore } from 'src/stores/employee-module'
-import { EmployeeRole } from 'src/constants/roles'
 import ConsumptionTable from 'src/components/consumption/ConsumptionTable.vue'
 import ConsumptionForm from 'src/components/consumption/ConsumptionForm.vue'
 import ConsumptionDetails from 'src/components/consumption/ConsumptionDetails.vue'
+
+defineOptions({
+  name: 'ConsumptionsPage',
+})
 
 const $q = useQuasar()
 const consumptionStore = useConsumptionStore()
 const employeeStore = useEmployeeStore()
 
-// Estado
+const loading = ref(false)
 const selectedEmployee = ref(null)
+const employeeOptions = ref([])
 const showForm = ref(false)
+const showEditForm = ref(false)
 const showDetailsModal = ref(false)
 const selectedConsumption = ref(null)
-const isSearching = ref(false)
 
-// Cargar todos los consumos al montar la página
-onMounted(() => {
-  consumptionStore.ensureConsumptionsLoaded()
+const dateRange = ref({
+  startDate: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
+  endDate: new Date().toISOString().split('T')[0],
 })
 
-// Opciones de empleados para el select
-const employeeOptions = computed(() => {
-  return employeeStore.employees.map((emp) => ({
-    label: `${emp.name} - ${EmployeeRole[emp.role] || emp.role}`,
-    value: emp.id,
-  }))
-})
+let debounceTimer = null
 
-// Consumos filtrados por el empleado seleccionado
-const filteredConsumptions = computed(() => {
-  if (!selectedEmployee.value) {
-    return []
-  }
-  return consumptionStore.consumptions.filter(
-    (c) => c.employeeId === selectedEmployee.value.value
-  )
-})
+const consumptions = computed(() => consumptionStore.currentEmployeeConsumptions)
 
-// Total calculado de los consumos filtrados
-const filteredTotalAmount = computed(() => {
-  return filteredConsumptions.value.reduce((total, c) => total + c.amount, 0)
-})
+const filterEmployeeFn = async (val, update) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
 
-// Búsqueda dinámica de empleados
-const filterEmployees = async (val, update) => {
-  if (val.length < 2) {
-    update(() => {})
+  if (!val || val.length < 2) {
+    update(() => {
+      employeeOptions.value = []
+    })
     return
   }
 
-  isSearching.value = true
-  try {
-    await employeeStore.searchEmployees({ name: val })
-    update()
-  } catch (error) {
-    $q.notify({ type: 'negative', message: error.message || 'Error al buscar empleados' })
-  } finally {
-    isSearching.value = false
+  debounceTimer = setTimeout(async () => {
+    try {
+      await employeeStore.searchEmployees({ name: val, status: 'ACTIVE', size: 15 })
+      update(() => {
+        employeeOptions.value = employeeStore.employees
+      })
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: error.message || 'Error al buscar empleados.',
+        position: 'top',
+      })
+      update(() => {
+        employeeOptions.value = []
+      })
+    }
+  }, 300)
+}
+
+const onEmployeeSelected = async (employee) => {
+  if (employee && employee.id) {
+    loading.value = true
+    try {
+      await consumptionStore.loadConsumptionsByEmployee(
+        employee.id,
+        dateRange.value.startDate,
+        dateRange.value.endDate,
+      )
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: error.message || 'Error al cargar consumos.',
+        position: 'top',
+      })
+    } finally {
+      loading.value = false
+    }
+  } else {
+    consumptionStore.currentEmployeeConsumptions = []
   }
 }
 
-// Abrir formulario de creación
+const refreshConsumptions = async () => {
+  if (selectedEmployee.value) {
+    await onEmployeeSelected(selectedEmployee.value)
+  }
+}
+
 const showCreateForm = () => {
+  selectedConsumption.value = null
   showForm.value = true
 }
 
-// Mostrar detalles de un consumo
+const handleCreate = async (payload) => {
+  try {
+    await consumptionStore.createConsumption(payload)
+    $q.notify({ type: 'positive', message: 'Consumo registrado.', position: 'top' })
+    showForm.value = false
+
+    if (selectedEmployee.value) {
+      await refreshConsumptions()
+    }
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error.message || 'Error al registrar consumo.',
+      position: 'top',
+    })
+  }
+}
+
 const showDetails = (consumption) => {
   selectedConsumption.value = consumption
   showDetailsModal.value = true
 }
 
-// Guardar un nuevo consumo
-const handleSave = async (payload) => {
+const showEditFormDialog = (consumption) => {
+  selectedConsumption.value = consumption
+  showEditForm.value = true
+}
+
+const showEditFormFromDetails = () => {
+  showDetailsModal.value = false
+  showEditForm.value = true
+}
+
+const handleUpdate = async (payload) => {
+  if (!selectedConsumption.value?.id) return
+
   try {
-    await consumptionStore.createConsumption(payload)
-    $q.notify({ type: 'positive', message: 'Consumo registrado' })
-    showForm.value = false
-    // No es necesario recargar, el store se actualiza y los computeds reaccionan.
+    await consumptionStore.updateConsumption(selectedConsumption.value.id, payload)
+    $q.notify({ type: 'positive', message: 'Consumo actualizado.', position: 'top' })
+    showEditForm.value = false
+
+    if (selectedEmployee.value) {
+      await refreshConsumptions()
+    }
   } catch (error) {
-    $q.notify({ type: 'negative', message: error.message || 'Error al registrar' })
+    $q.notify({
+      type: 'negative',
+      message: error.message || 'Error al actualizar consumo.',
+      position: 'top',
+    })
   }
 }
+
+const handleDelete = (consumptionId) => {
+  $q.dialog({
+    title: 'Confirmar',
+    message: '¿Estás seguro de que quieres eliminar este consumo?',
+    cancel: true,
+    persistent: true,
+    dark: true,
+  }).onOk(async () => {
+    try {
+      await consumptionStore.deleteConsumption(consumptionId)
+      $q.notify({ type: 'positive', message: 'Consumo eliminado.', position: 'top' })
+
+      if (selectedEmployee.value) {
+        await refreshConsumptions()
+      }
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: error.message || 'Error al eliminar consumo.',
+        position: 'top',
+      })
+    }
+  })
+}
+
+const handleDeleteFromDetails = (consumptionId) => {
+  showDetailsModal.value = false
+  handleDelete(consumptionId)
+}
+
+onMounted(() => {
+  // Inicializar cualquier dato necesario
+})
 </script>
+
+<style lang="scss" scoped>
+.page-title {
+  font-weight: 700;
+  @media (max-width: $breakpoint-xs-max) {
+    font-size: 1.8rem;
+  }
+}
+</style>
