@@ -51,13 +51,7 @@ public class AuthServiceImpl implements AuthService {
 			throw new AccessDeniedException("El usuario no tiene privilegios para acceder al sistema.");
 		}
 
-		log.info("Login exitoso para usuario: {}", user.getEmail());
-
-        System.out.println("=== DEBUG AUTH ===");
-        System.out.println("Usuario: " + user.getEmail());
-        System.out.println("Rol en UserEntity: " + user.getRole());
-        System.out.println("Authorities: " + user.getAuthorities());
-        System.out.println("==================");
+        log.info("Login exitoso para usuario: {}", user.getEmail());
 
         String roleWithPrefix = "ROLE_" + user.getRole().name();
         return jwtService.generateToken(user.getEmail(), roleWithPrefix);

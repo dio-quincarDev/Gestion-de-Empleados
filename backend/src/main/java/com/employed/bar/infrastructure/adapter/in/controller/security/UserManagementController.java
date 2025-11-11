@@ -5,6 +5,7 @@ import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.dto.security.request.CreateUserRequest;
 import com.employed.bar.infrastructure.security.user.UserManagementService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,8 @@ public class UserManagementController {
     private final UserManagementService userManagementService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
+    @Operation(summary = "Create a new user", description = "Creates a new user with a specific role. Only accessible by users with the MANAGER role.")
     public ResponseEntity<UserEntity> createUser(@Valid @RequestBody CreateUserRequest request) {
         UserEntity createdUser = userManagementService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
@@ -37,6 +40,7 @@ public class UserManagementController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_MANAGER')")
+    @Operation(summary = "Delete a user", description = "Deletes a user by their ID. Only accessible by users with the MANAGER role.")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         userManagementService.deleteUser(id);
         return ResponseEntity.noContent().build();
@@ -44,6 +48,7 @@ public class UserManagementController {
 
     @PutMapping("/{id}/role")
     @PreAuthorize("hasAuthority('ROLE_MANAGER')")
+    @Operation(summary = "Update a user's role", description = "Updates the role of a specific user by their ID. Only accessible by users with the MANAGER role.")
     public ResponseEntity<Void> updateUserRole(@PathVariable UUID id, @RequestParam EmployeeRole role) {
         userManagementService.updateUserRole(id, role);
         return ResponseEntity.noContent().build();

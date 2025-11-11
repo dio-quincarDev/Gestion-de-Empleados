@@ -38,15 +38,17 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        // Public endpoints for API documentation and authentication
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/v1/auth/**"
+                                ApiPathConstants.V1_ROUTE + ApiPathConstants.AUTH_ROUTE + "/**"
                         )
                         .permitAll()
-                        .anyRequest().authenticated() // Solo esto - los roles se manejan con @PreAuthorize
+                        // All other requests must be authenticated
+                        .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

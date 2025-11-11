@@ -5,6 +5,7 @@ import com.employed.bar.infrastructure.dto.security.request.CreateUserRequest;
 import com.employed.bar.infrastructure.dto.security.request.LoginRequest;
 import com.employed.bar.infrastructure.dto.security.response.TokenResponse;
 import com.employed.bar.infrastructure.security.auth.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +30,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
+    @Operation(summary = "User Login", description = "Authenticates a user and returns a JWT token upon successful login.")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authService.login(loginRequest));
     }
 
     @PostMapping("/register-manager")
+    @Operation(summary = "Register Initial Manager", description = "Creates the initial MANAGER user. This endpoint should only be used once for initial setup. It is publicly accessible.")
     public ResponseEntity<Void> registerManager(@Valid @RequestBody CreateUserRequest request) {
         authService.registerManager(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
