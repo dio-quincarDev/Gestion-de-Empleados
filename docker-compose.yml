@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - 1800-network
+      - mysql-network
+    restart: always
+    # Monitorización como en tu ejemplo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - 1800-network
+    restart: always
+
+  mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    env_file:
+      - ./mysql/.env
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      mysql-network:
+        aliases:
+          - db-host
+    restart: always
+    # Healthcheck optimizado (como tu pg_isready)
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  mysql-data:
+
+networks:
+  1800-network:
+    name: 1800-network
+    external: true
+  mysql-network:
+    name: mysql-network
+    external: true

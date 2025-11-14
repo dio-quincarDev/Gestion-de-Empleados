@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class ConsumptionPersistenceAdapterPort implements ConsumptionRepositoryPort {
+public class ConsumptionPersistenceAdapter implements ConsumptionRepositoryPort {
 
     private final SpringConsumptionJpaRepository springConsumptionJpaRepository;
     private final ConsumptionMapper consumptionMapper;
