@@ -24,7 +24,7 @@ public class JwtServiceImpl implements JwtService {
 	private final SecretKey secretKey;
 	private static final long EXPIRATION_TIME = 864_000_000;
 	
-	public JwtServiceImpl(@Value("${jwt.secret}") String secret) {
+	public JwtServiceImpl(@Value("${jwt.secret:${JWT_SECRET}}") String secret) {
 		if (secret.getBytes().length < 32) {
 			throw new IllegalArgumentException("La clave secreta JWT debe tener al menos 32 caracateres.");
 		}

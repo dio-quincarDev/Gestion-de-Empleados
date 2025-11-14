@@ -401,14 +401,15 @@ const onSave = () => {
       type: 'YAPPY',
       phoneNumber: cleanData.paymentMethod.phoneNumber,
     }
-  } else if (cleanData.paymentMethod.type === 'ACH') {
-    cleanData.paymentMethod = {
-      type: 'ACH',
-      bankName: cleanData.paymentMethod.bankName,
-      accountNumber: cleanData.paymentMethod.accountNumber,
-      bankAccountType: cleanData.paymentMethod.bankAccountType,
-    }
-  }
+      } else if (cleanData.paymentMethod.type === 'ACH') {
+        console.log('bankAccountType before emit:', cleanData.paymentMethod.bankAccountType);
+        console.log('Type of bankAccountType before emit:', typeof cleanData.paymentMethod.bankAccountType);
+        cleanData.paymentMethod = {
+          type: 'ACH',
+          bankName: cleanData.paymentMethod.bankName,
+          accountNumber: cleanData.paymentMethod.accountNumber,
+          bankAccountType: cleanData.paymentMethod.bankAccountType,
+        }  }
 
   emit('save', cleanData)
 }

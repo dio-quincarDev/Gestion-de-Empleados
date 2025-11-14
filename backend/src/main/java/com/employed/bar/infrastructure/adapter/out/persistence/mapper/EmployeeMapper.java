@@ -6,6 +6,7 @@ import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEn
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.PaymentDetailEntity;
 import org.mapstruct.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +73,6 @@ public interface EmployeeMapper {
         }
         // For CASH, no extra fields are needed
 
-        entity.setPaymentDetails(List.of(pde));
+        entity.setPaymentDetails(new ArrayList<>(List.of(pde)));
     }
 }
