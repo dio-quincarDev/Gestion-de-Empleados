@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE)
 public interface EmployeeMapper {
 
     @Mapping(target = "paymentMethod", ignore = true)
@@ -22,7 +22,7 @@ public interface EmployeeMapper {
 
     @AfterMapping
     default void afterToDomain(@MappingTarget EmployeeClass domain, EmployeeEntity entity) {
-        // Map payment method from the default payment detail
+        // First, try to map payment method from the payment details collection
         if (entity.getPaymentDetails() != null && !entity.getPaymentDetails().isEmpty()) {
             Optional<PaymentDetailEntity> defaultPayment = entity.getPaymentDetails().stream()
                     .filter(PaymentDetailEntity::isDefault)
@@ -44,6 +44,19 @@ public interface EmployeeMapper {
                     case CASH -> new CashPaymentMethod();
                 });
             });
+        } else {
+            // Fallback: use the legacy fields from the employee table
+            if (entity.getPaymentMethodType() != null) {
+                domain.setPaymentMethod(switch (entity.getPaymentMethodType()) {
+                    case ACH -> new AchPaymentMethod(
+                            entity.getBankName(),
+                            entity.getAccountNumber(),
+                            entity.getBankAccountType()
+                    );
+                    case YAPPY -> new YappyPaymentMethod(entity.getPhoneNumber());
+                    case CASH -> new CashPaymentMethod();
+                });
+            }
         }
     }
 
@@ -68,10 +81,21 @@ public interface EmployeeMapper {
             pde.setBankName(ach.getBankName());
             pde.setAccountNumber(ach.getAccountNumber());
             pde.setBankAccountType(ach.getBankAccountType());
+            // Also populate legacy fields for backward compatibility
+            entity.setPaymentMethodType(pm.getType());
+            entity.setBankName(ach.getBankName());
+            entity.setAccountNumber(ach.getAccountNumber());
+            entity.setBankAccountType(ach.getBankAccountType());
         } else if (pm instanceof YappyPaymentMethod yappy) {
             pde.setPhoneNumber(yappy.getPhoneNumber());
+            // Also populate legacy fields for backward compatibility
+            entity.setPaymentMethodType(pm.getType());
+            entity.setPhoneNumber(yappy.getPhoneNumber());
+        } else if (pm instanceof CashPaymentMethod) {
+            // Also populate legacy fields for backward compatibility
+            entity.setPaymentMethodType(pm.getType());
         }
-        // For CASH, no extra fields are needed
+        // For CASH, no extra fields are needed in PaymentDetailEntity
 
         entity.setPaymentDetails(new ArrayList<>(List.of(pde)));
     }

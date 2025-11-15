@@ -22,10 +22,9 @@ public class EmployeeSpecification {
 
     public static Specification<EmployeeEntity> fetchPaymentDetails() {
         return (root, query, criteriaBuilder) -> {
-            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
-                root.fetch("paymentDetails", JoinType.LEFT);
-            }
-            return query.distinct(true).getGroupRestriction();
+            root.fetch("paymentDetails", JoinType.LEFT);
+            return criteriaBuilder.conjunction(); // return always true condition
         };
     }
+
 }

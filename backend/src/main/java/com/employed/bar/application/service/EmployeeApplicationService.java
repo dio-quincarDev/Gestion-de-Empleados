@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import org.springframework.transaction.annotation.Transactional;
+
 public class EmployeeApplicationService implements EmployeeUseCase {
     private final EmployeeRepositoryPort employeeRepositoryPort;
     private final AttendanceUseCase attendanceUseCase;
@@ -28,6 +30,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
+    @Transactional
     public EmployeeClass createEmployee(EmployeeClass employee) {
         if (doesEmailExist(employee.getEmail())){
             throw new EmailAlreadyExistException("Este Email ya existe: " + employee.getEmail());
@@ -37,26 +40,31 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<EmployeeClass> getEmployeeById(Long id) {
         return employeeRepositoryPort.findById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EmployeeClass> getEmployees(Pageable pageable) {
         return employeeRepositoryPort.findAll(pageable);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status, Pageable pageable) {
         return employeeRepositoryPort.searchEmployees(name, role, status, pageable);
     }
 
     @Override
+    @Transactional
     public void deleteEmployee(Long id) {
         employeeRepositoryPort.findById(id).ifPresent(employeeRepositoryPort::delete);
     }
 
     @Override
+    @Transactional
     public EmployeeClass updateEmployee(Long id, EmployeeClass updatedEmployee) {
         return employeeRepositoryPort.findById(id)
                 .map(employee -> {
@@ -72,6 +80,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
+    @Transactional
     public EmployeeClass updateHourlyRate(Long employeeId, java.math.BigDecimal newRate) {
         return employeeRepositoryPort.findById(employeeId)
                 .map(employee -> {
@@ -82,6 +91,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<EmployeeClass> findByEmail(String email) {
         return employeeRepositoryPort.findByEmail(email);
     }
@@ -119,6 +129,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BigDecimal calculateEmployeePay(Long employeeId, BigDecimal regularHours, BigDecimal overtimeHours) {
       EmployeeClass employee = employeeRepositoryPort.findById(employeeId)
               .orElseThrow(()-> new EmployeeNotFoundException("Employee Not Found"));

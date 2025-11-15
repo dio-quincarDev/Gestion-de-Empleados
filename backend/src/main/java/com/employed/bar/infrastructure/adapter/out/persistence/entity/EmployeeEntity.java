@@ -68,23 +68,23 @@ public class EmployeeEntity {
     @JsonManagedReference
     private List<PaymentDetailEntity> paymentDetails;
 
-    // --- Transient fields for backward compatibility ---
-    // These fields are no longer persisted directly in this table
-    // but are kept for now to avoid breaking existing logic.
-    // The application should be migrated to use the paymentDetails list.
-
-    @Transient
+    // --- Fields for backward compatibility ---
+    // These fields exist in the database table and are used as fallback
+    // when paymentDetails collection is not populated
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method_type")
     private PaymentMethodType paymentMethodType;
 
-    @Transient
+    @Column(name = "phone_number")
     private String phoneNumber; // For Yappy
 
-    @Transient
+    @Column(name = "bank_name")
     private String bankName; // For ACH
 
-    @Transient
+    @Column(name = "account_number")
     private String accountNumber; // For ACH
 
-    @Transient
+    @Enumerated(EnumType.STRING)
+    @Column(name = "bank_account_type")
     private BankAccount bankAccountType; // For ACH
 }
