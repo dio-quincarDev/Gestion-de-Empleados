@@ -59,7 +59,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
 
     @Override
     public Page<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status, Pageable pageable) {
-        Specification<EmployeeEntity> spec = Specification.where(null);
+        Specification<EmployeeEntity> spec = Specification.where(EmployeeSpecification.fetchPaymentDetails());
         if (name != null) {
             spec = spec.and(EmployeeSpecification.nameContains(name));
         }

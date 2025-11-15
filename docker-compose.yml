@@ -1,35 +1,10 @@
 services:
-  mysql:
-    image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_ROOT_PASSWORD: docker-mysql
-      MYSQL_DATABASE: gestion
-      MYSQL_USER: gestion_user        # ← Usuario normal
-      MYSQL_PASSWORD: diogenes        # ← Contraseña del usuario normal
-    volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      mysql-network:
-        aliases:
-          - db-host
-    restart: always
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=${MYSQL_ROOT_PASSWORD}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-
   backend:
     build: ./backend
     ports:
       - "8080:8080"
     env_file:
       - ./backend/.env
-    depends_on:
-      mysql:
-        condition: service_healthy
     networks:
       - 1800-network
       - mysql-network
@@ -48,9 +23,6 @@ services:
     networks:
       - 1800-network
     restart: always
-
-volumes:
-  mysql-data:
 
 networks:
   1800-network:

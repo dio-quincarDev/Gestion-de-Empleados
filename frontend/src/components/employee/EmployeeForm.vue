@@ -31,18 +31,21 @@
             class="q-mb-xs"
             :rules="[(val) => !!val || 'Campo requerido']"
           />
-          <q-input
-            v-model="formData.contactPhone"
-            label="Teléfono de Contacto *"
-            dense
-            outlined
-            color="primary"
-            label-color="grey-5"
-            input-class="text-white"
-            class="q-mb-xs"
-            :rules="[(val) => !!val || 'Campo requerido']"
-          />
-          <div class="row q-col-gutter-md">
+                      <q-input
+                        v-model="formData.contactPhone"
+                        label="Teléfono de Contacto *"
+                        dense
+                        outlined
+                        color="primary"
+                        label-color="grey-5"
+                        input-class="text-white"
+                        class="q-mb-xs"
+                        mask="+### ########"
+                        :rules="[
+                          (val) => !!val || 'Campo requerido',
+                          (val) => /^\+[1-9]\d{0,3}[ ]?\d{6,14}$/.test(val.replace(/[\s-]/g, '')) || 'Formato internacional: +CódigoPaís Número. Ejemplo: +507 61234567',
+                        ]"
+                      />          <div class="row q-col-gutter-md">
             <q-select
               v-model="formData.role"
               :options="roleOptions"
@@ -136,6 +139,8 @@
                         v-model="formData.overtimeRateType"
                         :options="OVERTIME_RATE_TYPE_OPTIONS"
                         label="Tipo de Tarifa Extra *"
+                        emit-value
+                        map-options
                         dense
                         outlined
                         color="primary"
@@ -182,14 +187,16 @@
               class="col-xs-12 col-sm-6 q-mb-xs"
               :rules="[
                 (val) => !!val || 'Campo requerido',
-                (val) => /^\d+$/.test(val) || 'Solo números',
+                (val) => /^\d{1,12}$/.test(val) || 'Debe tener entre 1 y 12 números',
               ]"
-              mask="#########"
+              mask="############"
             />
             <q-select
               v-model="formData.paymentMethod.bankAccountType"
               :options="BANK_ACCOUNT_TYPE_OPTIONS"
               label="Tipo de Cuenta *"
+              emit-value
+              map-options
               dense
               outlined
               color="primary"
@@ -286,7 +293,7 @@ const step = ref(1)
 const initialFormData = () => ({
   name: '',
   email: '',
-  contactPhone: '',
+  contactPhone: '+507',
   role: 'WAITER',
   status: 'ACTIVE',
   paymentType: 'HOURLY',
