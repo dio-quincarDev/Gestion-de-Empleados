@@ -1,0 +1,33 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    networks:
+      - 1800-network
+      - mysql-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "9000:9000"
+    networks:
+      - 1800-network
+    restart: always
+
+networks:
+  1800-network:
+    name: 1800-network
+    external: true
+  mysql-network:
+    name: mysql-network
+    external: true
