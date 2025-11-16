@@ -185,6 +185,7 @@ public class EmployeeController {
     )
     @GetMapping("/search")
     @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    @Transactional(readOnly = true)
     public ResponseEntity<Page<EmployeeDto>> searchEmployees(
             @Parameter(description = "Estado del empleado (ej. 'ACTIVE', 'INACTIVE')") @RequestParam(required = false) EmployeeStatus status,
             @Parameter(description = "Nombre completo o parcial del empleado") @RequestParam(required = false) String name,

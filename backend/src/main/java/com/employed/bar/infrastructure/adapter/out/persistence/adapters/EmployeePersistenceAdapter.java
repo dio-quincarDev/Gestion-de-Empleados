@@ -10,6 +10,7 @@ import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.EmployeeSpecification;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringEmployeeJpaRepository;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -65,6 +66,14 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
         }
 
         // Crear y añadir el nuevo PaymentDetailEntity
+        PaymentDetailEntity pde = getPaymentDetail(employeeEntity, paymentMethod);
+        // Para Cash, no se requieren campos adicionales
+
+        employeeEntity.getPaymentDetails().add(pde);
+    }
+
+    @Transactional(readOnly = true)
+    private static @NotNull PaymentDetailEntity getPaymentDetail(EmployeeEntity employeeEntity, PaymentMethod paymentMethod) {
         PaymentDetailEntity pde = new PaymentDetailEntity();
         pde.setEmployee(employeeEntity);
         pde.setDefault(true);
@@ -77,9 +86,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
         } else if (paymentMethod instanceof YappyPaymentMethod yappy) {
             pde.setPhoneNumber(yappy.getPhoneNumber());
         }
-        // Para Cash, no se requieren campos adicionales
-
-        employeeEntity.getPaymentDetails().add(pde);
+        return pde;
     }
 
     @Override
