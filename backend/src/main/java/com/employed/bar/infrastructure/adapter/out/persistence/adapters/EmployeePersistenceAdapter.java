@@ -31,12 +31,14 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<EmployeeClass> findByEmail(String email) {
         return springEmployeeJpaRepository.findByEmail(email)
                 .map(employeeMapper::toDomain);
     }
 
     @Override
+    @Transactional
     public EmployeeClass save(EmployeeClass employee) {
         EmployeeEntity employeeEntity = employeeMapper.toEntity(employee);
         // Manejar la colección de paymentDetails fuera del mapper para evitar problemas con all-delete-orphan
@@ -81,24 +83,28 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<EmployeeClass> findById(Long id) {
         return springEmployeeJpaRepository.findById(id)
                 .map(employeeMapper::toDomain);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EmployeeClass> findAll(Pageable pageable) {
         return springEmployeeJpaRepository.findAll(pageable)
                 .map(employeeMapper::toDomain);
     }
 
     @Override
+    @Transactional
     public void delete(EmployeeClass employee) {
         EmployeeEntity employeeEntity = employeeMapper.toEntity(employee);
         springEmployeeJpaRepository.delete(employeeEntity);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status, Pageable pageable) {
         Specification<EmployeeEntity> spec = Specification.where(EmployeeSpecification.fetchPaymentDetails());
         if (name != null) {

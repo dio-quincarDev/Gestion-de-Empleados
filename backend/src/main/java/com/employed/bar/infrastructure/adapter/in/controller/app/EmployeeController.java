@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -86,6 +87,7 @@ public class EmployeeController {
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    @Transactional(readOnly = true)
     public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable Long id) {
         return employeeUseCase.getEmployeeById(id)
                 .map(employee -> ResponseEntity.ok(employeeApiMapper.toDto(employee)))
