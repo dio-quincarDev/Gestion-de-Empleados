@@ -22,44 +22,8 @@ public interface EmployeeMapper {
 
     @AfterMapping
     default void afterToDomain(@MappingTarget EmployeeClass domain, EmployeeEntity entity) {
-        // First, try to map payment method from the payment details collection
-        try {
-            // Check if the collection is initialized (not a lazy proxy)
-            if (entity.getPaymentDetails() != null) {
-                // Force initialization by accessing size (will trigger lazy loading if needed within transaction)
-                @SuppressWarnings("unused")
-                int size = entity.getPaymentDetails().size();
-
-                if (!entity.getPaymentDetails().isEmpty()) {
-                    Optional<PaymentDetailEntity> defaultPayment = entity.getPaymentDetails().stream()
-                            .filter(PaymentDetailEntity::isDefault)
-                            .findFirst();
-
-                    if (defaultPayment.isEmpty()) {
-                        // If no default, take the first one
-                        defaultPayment = entity.getPaymentDetails().stream().findFirst();
-                    }
-
-                    defaultPayment.ifPresent(pde -> {
-                        domain.setPaymentMethod(switch (pde.getPaymentMethodType()) {
-                            case ACH -> new AchPaymentMethod(
-                                    pde.getBankName(),
-                                    pde.getAccountNumber(),
-                                    pde.getBankAccountType()
-                            );
-                            case YAPPY -> new YappyPaymentMethod(pde.getPhoneNumber());
-                            case CASH -> new CashPaymentMethod();
-                        });
-                    });
-                    return; // Exit early if payment details were successfully processed
-                }
-            }
-        } catch (Exception e) {
-            // If there's an exception accessing the collection (e.g., lazy initialization),
-            // fall back to legacy fields
-        }
-
-        // Fallback: use the legacy fields from the employee table
+        // Use only the legacy fields from the employee entity to build paymentMethod
+        // This avoids any lazy initialization issues with paymentDetails collection
         if (entity.getPaymentMethodType() != null) {
             domain.setPaymentMethod(switch (entity.getPaymentMethodType()) {
                 case ACH -> new AchPaymentMethod(
