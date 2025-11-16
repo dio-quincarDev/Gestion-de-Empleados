@@ -66,37 +66,22 @@ public interface EmployeeMapper {
 
     @AfterMapping
     default void afterToEntity(@MappingTarget EmployeeEntity entity, EmployeeClass domain) {
+        // Dejamos la colección de paymentDetails para ser manejada aparte
+        // debido al problema con all-delete-orphan
         PaymentMethod pm = domain.getPaymentMethod();
-        if (pm == null) {
-            entity.setPaymentDetails(Collections.emptyList());
-            return;
+        if (pm != null) {
+            // Actualizar los campos legacy para compatibilidad
+            if (pm instanceof AchPaymentMethod ach) {
+                entity.setPaymentMethodType(pm.getType());
+                entity.setBankName(ach.getBankName());
+                entity.setAccountNumber(ach.getAccountNumber());
+                entity.setBankAccountType(ach.getBankAccountType());
+            } else if (pm instanceof YappyPaymentMethod yappy) {
+                entity.setPaymentMethodType(pm.getType());
+                entity.setPhoneNumber(yappy.getPhoneNumber());
+            } else if (pm instanceof CashPaymentMethod) {
+                entity.setPaymentMethodType(pm.getType());
+            }
         }
-
-        PaymentDetailEntity pde = new PaymentDetailEntity();
-        pde.setEmployee(entity);
-        pde.setDefault(true);
-        pde.setPaymentMethodType(pm.getType());
-
-        if (pm instanceof AchPaymentMethod ach) {
-            pde.setBankName(ach.getBankName());
-            pde.setAccountNumber(ach.getAccountNumber());
-            pde.setBankAccountType(ach.getBankAccountType());
-            // Also populate legacy fields for backward compatibility
-            entity.setPaymentMethodType(pm.getType());
-            entity.setBankName(ach.getBankName());
-            entity.setAccountNumber(ach.getAccountNumber());
-            entity.setBankAccountType(ach.getBankAccountType());
-        } else if (pm instanceof YappyPaymentMethod yappy) {
-            pde.setPhoneNumber(yappy.getPhoneNumber());
-            // Also populate legacy fields for backward compatibility
-            entity.setPaymentMethodType(pm.getType());
-            entity.setPhoneNumber(yappy.getPhoneNumber());
-        } else if (pm instanceof CashPaymentMethod) {
-            // Also populate legacy fields for backward compatibility
-            entity.setPaymentMethodType(pm.getType());
-        }
-        // For CASH, no extra fields are needed in PaymentDetailEntity
-
-        entity.setPaymentDetails(new ArrayList<>(List.of(pde)));
     }
 }

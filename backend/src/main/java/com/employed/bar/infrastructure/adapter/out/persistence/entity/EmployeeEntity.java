@@ -46,7 +46,7 @@ public class EmployeeEntity {
     @Column(name = "hourly_rate", nullable = false)
     private BigDecimal hourlyRate;
 
-    @Column(name = "base_salary", nullable = false)
+    @Column(name = "salary", nullable = false)
     private BigDecimal salary;
 
     @Enumerated(EnumType.STRING)

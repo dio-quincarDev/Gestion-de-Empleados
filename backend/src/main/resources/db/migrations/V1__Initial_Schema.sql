@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS employee (
 
     -- Tarifas y Pago
     payment_type VARCHAR(50) NOT NULL, -- HOURLY, SALARY
-    base_salary DECIMAL(19, 2) NOT NULL DEFAULT 0.00,
+    salary DECIMAL(19, 2) NOT NULL DEFAULT 0.00,
     hourly_rate DECIMAL(19, 2) NOT NULL DEFAULT 0.00,
 
     -- Horas Extra
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS employee (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_employee_user FOREIGN KEY (user_id) REFERENCES users(id),
-    CONSTRAINT chk_salary_positive CHECK (base_salary >= 0 AND hourly_rate >= 0)
+    CONSTRAINT chk_salary_positive CHECK (salary >= 0 AND hourly_rate >= 0)
 );
 
 -- Índices
