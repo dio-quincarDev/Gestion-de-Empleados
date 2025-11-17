@@ -100,7 +100,16 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     @Transactional(readOnly = true)
     public Page<EmployeeClass> findAll(Pageable pageable) {
         return springEmployeeJpaRepository.findAll(pageable)
-                .map(employeeMapper::toDomain);
+                .map(employee -> {
+                    // Cargar manualmente el empleado con paymentDetails para el mapeo
+                    Long employeeId = employee.getId();
+                    if (employeeId != null) {
+                        return springEmployeeJpaRepository.findById(employeeId)
+                                .map(employeeMapper::toDomain)
+                                .orElse(employeeMapper.toDomain(employee));
+                    }
+                    return employeeMapper.toDomain(employee);
+                });
     }
 
     @Override
@@ -113,7 +122,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     @Override
     @Transactional(readOnly = true)
     public Page<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status, Pageable pageable) {
-        Specification<EmployeeEntity> spec = Specification.where(EmployeeSpecification.fetchPaymentDetails());
+        Specification<EmployeeEntity> spec = Specification.where(null); // No initial spec que haga fetch
         if (name != null) {
             spec = spec.and(EmployeeSpecification.nameContains(name));
         }
@@ -124,6 +133,15 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
             spec = spec.and(EmployeeSpecification.hasStatus(status));
         }
         return springEmployeeJpaRepository.findAll(spec, pageable)
-                .map(employeeMapper::toDomain);
+                .map(employee -> {
+                    // Cargar manualmente el empleado con paymentDetails para el mapeo
+                    Long employeeId = employee.getId();
+                    if (employeeId != null) {
+                        return springEmployeeJpaRepository.findById(employeeId)
+                                .map(employeeMapper::toDomain)
+                                .orElse(employeeMapper.toDomain(employee));
+                    }
+                    return employeeMapper.toDomain(employee);
+                });
     }
 }
