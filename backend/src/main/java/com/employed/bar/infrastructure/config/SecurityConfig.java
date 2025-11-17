@@ -4,6 +4,7 @@ import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.security.filter.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -46,6 +47,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 ApiPathConstants.V1_ROUTE + ApiPathConstants.AUTH_ROUTE + "/**"
                         )
+                        .permitAll()
+                        .requestMatchers(EndpointRequest.to("health", "info"))
                         .permitAll()
                         // All other requests must be authenticated
                         .anyRequest().authenticated()
