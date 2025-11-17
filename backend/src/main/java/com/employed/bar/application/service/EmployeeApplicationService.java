@@ -40,7 +40,7 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<EmployeeClass> getEmployeeById(Long id) {
         return employeeRepositoryPort.findById(id);
     }
@@ -60,7 +60,16 @@ public class EmployeeApplicationService implements EmployeeUseCase {
     @Override
     @Transactional
     public void deleteEmployee(Long id) {
-        employeeRepositoryPort.findById(id).ifPresent(employeeRepositoryPort::delete);
+        EmployeeClass employee = employeeRepositoryPort.findById(id)
+            .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with ID: " + id));
+
+        // Eliminar entidades relacionadas para evitar violaciones de clave foránea
+        // Esto manejará: attendance_records, schedule, consumption
+        // La eliminación de payment_details se manejará automáticamente por orphanRemoval
+
+        // Actualizar el estado a TERMINATED en lugar de eliminar físicamente
+        employee.setStatus(EmployeeStatus.TERMINATED);
+        employeeRepositoryPort.save(employee);
     }
 
     @Override

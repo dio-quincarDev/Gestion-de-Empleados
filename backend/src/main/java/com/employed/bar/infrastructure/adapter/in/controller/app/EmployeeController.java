@@ -106,6 +106,7 @@ public class EmployeeController {
     )
     @GetMapping
     @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    @Transactional(readOnly = true)
     public ResponseEntity<Page<EmployeeDto>> getAllEmployees(@Parameter(hidden = true) Pageable pageable) {
         Page<EmployeeClass> employeePage = employeeUseCase.getEmployees(pageable);
         return ResponseEntity.ok(employeePage.map(employeeApiMapper::toDto));
@@ -133,6 +134,7 @@ public class EmployeeController {
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    @Transactional(readOnly = true)
     public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable Long id, @RequestBody @Valid EmployeeDto employeeDto) {
         EmployeeClass employeeToUpdate = employeeApiMapper.toDomain(employeeDto);
         EmployeeClass updatedEmployee = employeeUseCase.updateEmployee(id, employeeToUpdate);
@@ -150,6 +152,7 @@ public class EmployeeController {
             @ApiResponse(responseCode = "404", description = "Empleado no encontrado")
     })
     @PatchMapping("/{id}/hourly-rate")
+    @Transactional(readOnly = true)
     @PreAuthorize("hasAuthority('ROLE_MANAGER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<EmployeeDto> updateHourlyRate(@PathVariable Long id, @RequestBody @Valid UpdateHourlyRateRequest request) {
         EmployeeClass updatedEmployee = employeeUseCase.updateHourlyRate(id, request.getHourlyRate());
@@ -173,6 +176,7 @@ public class EmployeeController {
     })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_MANAGER')")
+    @Transactional(readOnly = true)
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
         employeeUseCase.deleteEmployee(id);
         return ResponseEntity.noContent().build();

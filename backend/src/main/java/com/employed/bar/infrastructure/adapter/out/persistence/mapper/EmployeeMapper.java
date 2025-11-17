@@ -22,9 +22,36 @@ public interface EmployeeMapper {
 
     @AfterMapping
     default void afterToDomain(@MappingTarget EmployeeClass domain, EmployeeEntity entity) {
-        // Use only the legacy fields from the employee entity to build paymentMethod
-        // This avoids any lazy initialization issues with paymentDetails collection
-        if (entity.getPaymentMethodType() != null) {
+        // Manejar la colección paymentDetails con protección contra lazy initialization
+        try {
+            // First, try to use paymentDetails collection (new approach)
+            if (entity.getPaymentDetails() != null) {
+                // Forzar la inicialización de la colección de forma segura
+                java.util.List<PaymentDetailEntity> details = entity.getPaymentDetails();
+                if (!details.isEmpty()) {
+                    for (PaymentDetailEntity detail : details) {
+                        if (detail.isDefault()) {
+                            domain.setPaymentMethod(switch (detail.getPaymentMethodType()) {
+                                case ACH -> new AchPaymentMethod(
+                                        detail.getBankName(),
+                                        detail.getAccountNumber(),
+                                        detail.getBankAccountType()
+                                );
+                                case YAPPY -> new YappyPaymentMethod(detail.getPhoneNumber());
+                                case CASH -> new CashPaymentMethod();
+                            });
+                            break; // Found the default payment method, exit loop
+                        }
+                    }
+                }
+            }
+        } catch (org.hibernate.LazyInitializationException e) {
+            // Si no se puede acceder a la colección lazy, usar campos legacy
+            System.out.println("Could not initialize paymentDetails collection, using legacy fields: " + e.getMessage());
+        }
+
+        // Fallback a los campos legacy si no se pudo obtener de paymentDetails
+        if (domain.getPaymentMethod() == null && entity.getPaymentMethodType() != null) {
             domain.setPaymentMethod(switch (entity.getPaymentMethodType()) {
                 case ACH -> new AchPaymentMethod(
                         entity.getBankName(),
