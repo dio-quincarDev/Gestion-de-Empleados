@@ -3,6 +3,7 @@ import axios from 'axios'
 
 const API_CONSTANTS = {
   // URL base del backend
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
   V1_ROUTE: '/v1',
   AUTH_ROUTE: '/auth',
   LOGIN_ROUTE: '/login',
@@ -18,7 +19,6 @@ const API_CONSTANTS = {
 let routerInstance
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

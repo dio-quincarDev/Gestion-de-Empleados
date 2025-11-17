@@ -72,19 +72,19 @@ public class EmployeeEntity {
     // These fields exist in the database table and are used as fallback
     // when paymentDetails collection is not populated
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method_type")
+    @Column(name = "payment_method_type", updatable = false, insertable = false)
     private PaymentMethodType paymentMethodType;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", updatable = false, insertable = false)
     private String phoneNumber; // For Yappy
 
-    @Column(name = "bank_name")
+    @Column(name = "bank_name", updatable = false, insertable = false)
     private String bankName; // For ACH
 
-    @Column(name = "account_number")
+    @Column(name = "account_number", updatable = false, insertable = false)
     private String accountNumber; // For ACH
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "bank_account_type")
+    @Column(name = "bank_account_type", updatable = false, insertable = false)
     private BankAccount bankAccountType; // For ACH
 }
