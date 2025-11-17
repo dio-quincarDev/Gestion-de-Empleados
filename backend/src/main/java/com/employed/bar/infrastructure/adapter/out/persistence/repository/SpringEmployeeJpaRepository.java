@@ -18,7 +18,7 @@ public interface SpringEmployeeJpaRepository extends JpaRepository<EmployeeEntit
     @Query("SELECT e FROM EmployeeEntity e LEFT JOIN FETCH e.paymentDetails WHERE e.id = :id")
     Optional<EmployeeEntity> findById(@Param("id") Long id);
 
-    // Eliminamos el LEFT JOIN FETCH en findAll que puede causar problemas con la paginación
+    // Eliminamos el JOIN FETCH en findAll que puede causar problemas con la paginación
     Page<EmployeeEntity> findAll(Pageable pageable);
 
     @Query("SELECT e FROM EmployeeEntity e LEFT JOIN FETCH e.paymentDetails WHERE e.email = :email")

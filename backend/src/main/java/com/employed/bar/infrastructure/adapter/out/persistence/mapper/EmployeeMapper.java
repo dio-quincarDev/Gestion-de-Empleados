@@ -22,11 +22,10 @@ public interface EmployeeMapper {
 
     @AfterMapping
     default void afterToDomain(@MappingTarget EmployeeClass domain, EmployeeEntity entity) {
-        // Manejar la colección paymentDetails con protección contra lazy initialization
-        try {
-            // First, try to use paymentDetails collection (new approach)
-            if (entity.getPaymentDetails() != null) {
-                // Forzar la inicialización de la colección de forma segura
+        // Manejar la colección paymentDetails que ahora es la fuente principal de información
+        if (entity.getPaymentDetails() != null) {
+            // Forzar la inicialización de la colección de forma segura
+            try {
                 java.util.List<PaymentDetailEntity> details = entity.getPaymentDetails();
                 if (!details.isEmpty()) {
                     for (PaymentDetailEntity detail : details) {
@@ -44,10 +43,11 @@ public interface EmployeeMapper {
                         }
                     }
                 }
+            } catch (org.hibernate.LazyInitializationException e) {
+                // Si no se puede acceder a la colección lazy, usar campos legacy
+                // Esto proporciona retrocompatibilidad con la estructura antigua
+                System.out.println("Could not initialize paymentDetails collection, using legacy fields: " + e.getMessage());
             }
-        } catch (org.hibernate.LazyInitializationException e) {
-            // Si no se puede acceder a la colección lazy, usar campos legacy
-            System.out.println("Could not initialize paymentDetails collection, using legacy fields: " + e.getMessage());
         }
 
         // Fallback a los campos legacy si no se pudo obtener de paymentDetails

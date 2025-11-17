@@ -1,9 +1,6 @@
 package com.employed.bar.controller.kpi;
 
-import com.employed.bar.domain.enums.AttendanceStatus;
-import com.employed.bar.domain.enums.EmployeeRole;
-import com.employed.bar.domain.enums.EmployeeStatus;
-import com.employed.bar.domain.enums.PaymentMethodType;
+import com.employed.bar.domain.enums.*;
 import com.employed.bar.domain.model.structure.AttendanceRecordClass;
 import com.employed.bar.domain.model.structure.ConsumptionClass;
 import com.employed.bar.domain.model.structure.EmployeeClass;
@@ -124,7 +121,8 @@ public class KpiControllerTest {
         employee.setHourlyRate(BigDecimal.valueOf(10.0)); // Default hourly rate
         employee.setEmail(name.toLowerCase().replace(" ", "") + "@example.com"); // Generate a unique email
         employee.setPaysOvertime(false);
-        employee.setPaymentMethodType(PaymentMethodType.CASH);
+        employee.setPaymentType(PaymentType.HOURLY);
+        employee.setPaymentMethodType(PaymentMethodType.YAPPY);// Usar PaymentType en lugar de PaymentMethodType
         return employeeRepository.save(employee);
     }
 

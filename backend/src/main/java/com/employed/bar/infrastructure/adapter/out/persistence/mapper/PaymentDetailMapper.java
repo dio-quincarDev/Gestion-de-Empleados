@@ -20,7 +20,7 @@ public interface PaymentDetailMapper {
     PaymentDetail toDomain(PaymentDetailEntity entity);
 
     @AfterMapping
-    default void setDomainIsDefault(@MappingTarget PaymentDetail.PaymentDetailBuilder builder, PaymentDetailEntity entity) {
+    default void toDomainSetIsDefault(@MappingTarget PaymentDetail.PaymentDetailBuilder builder, PaymentDetailEntity entity) {
         builder.isDefault(entity.isDefault());
     }
 
@@ -31,10 +31,11 @@ public interface PaymentDetailMapper {
     @Mapping(target = "phoneNumber", source = "phoneNumber")
     @Mapping(target = "bankAccountType", source = "bankAccountType")
     @Mapping(target = "percentageSplit", source = "percentageSplit")
+    @Mapping(target = "employee", ignore = true)
     PaymentDetailEntity toEntity(PaymentDetail domain);
 
     @AfterMapping
-    default void setEntityIsDefault(@MappingTarget PaymentDetailEntity entity, PaymentDetail domain) {
+    default void toEntitySetIsDefault(@MappingTarget PaymentDetailEntity entity, PaymentDetail domain) {
         entity.setDefault(domain.isDefault());
     }
 }
