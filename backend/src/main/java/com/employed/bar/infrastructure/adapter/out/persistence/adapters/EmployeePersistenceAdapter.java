@@ -34,8 +34,15 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<EmployeeClass> findByEmail(String email) {
-        return springEmployeeJpaRepository.findByEmail(email)
-                .map(employeeMapper::toDomain);
+        // Primero buscamos el empleado sin paymentDetails
+        Optional<EmployeeEntity> employeeOpt = springEmployeeJpaRepository.findByEmail(email);
+        if (employeeOpt.isPresent()) {
+            // Luego obtenemos el empleado completo con paymentDetails usando findById
+            Long id = employeeOpt.get().getId();
+            return springEmployeeJpaRepository.findById(id)
+                    .map(employeeMapper::toDomain);
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -92,6 +99,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<EmployeeClass> findById(Long id) {
+        // Usamos una consulta personalizada que sí incluye paymentDetails
         return springEmployeeJpaRepository.findById(id)
                 .map(employeeMapper::toDomain);
     }
