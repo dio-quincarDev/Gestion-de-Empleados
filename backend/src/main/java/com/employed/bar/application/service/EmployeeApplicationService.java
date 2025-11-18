@@ -53,7 +53,12 @@ public class EmployeeApplicationService implements EmployeeUseCase {
 
     @Override
     public void deleteEmployee(Long id) {
-        employeeRepositoryPort.findById(id).ifPresent(employeeRepositoryPort::delete);
+        employeeRepositoryPort.findById(id)
+            .ifPresent(employee -> {
+                // Cambiar el estado del empleado a TERMINATED en lugar de eliminarlo físicamente
+                employee.setStatus(EmployeeStatus.TERMINATED);
+                employeeRepositoryPort.save(employee);
+            });
     }
 
     @Override

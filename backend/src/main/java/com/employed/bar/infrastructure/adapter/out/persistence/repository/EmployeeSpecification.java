@@ -18,4 +18,9 @@ public class EmployeeSpecification {
     public static Specification<EmployeeEntity> hasStatus(EmployeeStatus status) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), status);
     }
+
+    public static Specification<EmployeeEntity> isActiveOrInactive() {
+        return (root, query, criteriaBuilder) ->
+            criteriaBuilder.notEqual(root.get("status"), EmployeeStatus.TERMINATED);
+    }
 }

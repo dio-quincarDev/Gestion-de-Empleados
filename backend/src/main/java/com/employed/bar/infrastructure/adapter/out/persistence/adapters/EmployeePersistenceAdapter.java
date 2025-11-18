@@ -47,7 +47,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
 
     @Override
     public Page<EmployeeClass> findAll(Pageable pageable) {
-        return springEmployeeJpaRepository.findAll(pageable)
+        return springEmployeeJpaRepository.findAll(EmployeeSpecification.isActiveOrInactive(), pageable)
                 .map(employeeMapper::toDomain);
     }
 
@@ -59,7 +59,7 @@ public class EmployeePersistenceAdapter implements EmployeeRepositoryPort {
 
     @Override
     public Page<EmployeeClass> searchEmployees(String name, EmployeeRole role, EmployeeStatus status, Pageable pageable) {
-        Specification<EmployeeEntity> spec = Specification.where(null);
+        Specification<EmployeeEntity> spec = EmployeeSpecification.isActiveOrInactive();
         if (name != null) {
             spec = spec.and(EmployeeSpecification.nameContains(name));
         }

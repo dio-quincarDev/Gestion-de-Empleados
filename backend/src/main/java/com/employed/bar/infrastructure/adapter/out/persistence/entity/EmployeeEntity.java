@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -23,6 +24,10 @@ public class EmployeeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
+
+    // Campo para almacenar el ID del usuario relacionado
+    @Column(name = "user_id")
+    private String userId; // Campo que almacena el UUID como string
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -58,7 +63,7 @@ public class EmployeeEntity {
     @Column(name = "payment_type")
     private PaymentType paymentType;
 
-    // Payment Method Fields (Flattened)
+    // CAMPOS DE PAGO - AÑADIDOS PARA ALINEAR CON LA BASE DE DATOS
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method_type")
     private PaymentMethodType paymentMethodType;
@@ -76,4 +81,10 @@ public class EmployeeEntity {
     @Column(name = "bank_account_type")
     private BankAccount bankAccountType; // For ACH
 
+    // Otros campos que podrían faltar
+    @Column(name = "base_salary", precision = 19, scale = 2)
+    private BigDecimal baseSalary = BigDecimal.ZERO;
+
+    @Column(name = "hire_date")
+    private Date hireDate;
 }
