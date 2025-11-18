@@ -69,7 +69,7 @@
 
               <q-tab-panel name="payment_method">
                 <q-list dense dark>
-                  <q-item>
+                  <q-item v-if="selectedEmployee.paymentMethod">
                     <q-item-section avatar>
                       <q-icon name="paid" color="primary" />
                     </q-item-section>
@@ -81,6 +81,14 @@
                       <q-item-label caption class="text-grey-5" v-if="selectedEmployee.paymentMethod.type === 'YAPPY'">
                         Tel: {{ selectedEmployee.paymentMethod.phoneNumber }}
                       </q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-item v-else>
+                    <q-item-section avatar>
+                      <q-icon name="paid" color="primary" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>Sin método de pago definido</q-item-label>
                     </q-item-section>
                   </q-item>
                 </q-list>

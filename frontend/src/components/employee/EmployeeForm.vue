@@ -31,18 +31,21 @@
             class="q-mb-xs"
             :rules="[(val) => !!val || 'Campo requerido']"
           />
-          <q-input
-            v-model="formData.contactPhone"
-            label="Teléfono de Contacto *"
-            dense
-            outlined
-            color="primary"
-            label-color="grey-5"
-            input-class="text-white"
-            class="q-mb-xs"
-            :rules="[(val) => !!val || 'Campo requerido']"
-          />
-          <div class="row q-col-gutter-md">
+                      <q-input
+                        v-model="formData.contactPhone"
+                        label="Teléfono de Contacto *"
+                        dense
+                        outlined
+                        color="primary"
+                        label-color="grey-5"
+                        input-class="text-white"
+                        class="q-mb-xs"
+                        mask="+### ########"
+                        :rules="[
+                          (val) => !!val || 'Campo requerido',
+                          (val) => /^\+[1-9]\d{0,3}[ ]?\d{6,14}$/.test(val.replace(/[\s-]/g, '')) || 'Formato internacional: +CódigoPaís Número. Ejemplo: +507 61234567',
+                        ]"
+                      />          <div class="row q-col-gutter-md">
             <q-select
               v-model="formData.role"
               :options="roleOptions"
@@ -136,6 +139,8 @@
                         v-model="formData.overtimeRateType"
                         :options="OVERTIME_RATE_TYPE_OPTIONS"
                         label="Tipo de Tarifa Extra *"
+                        emit-value
+                        map-options
                         dense
                         outlined
                         color="primary"
@@ -182,14 +187,16 @@
               class="col-xs-12 col-sm-6 q-mb-xs"
               :rules="[
                 (val) => !!val || 'Campo requerido',
-                (val) => /^\d+$/.test(val) || 'Solo números',
+                (val) => /^\d{1,12}$/.test(val) || 'Debe tener entre 1 y 12 números',
               ]"
-              mask="#########"
+              mask="############"
             />
             <q-select
               v-model="formData.paymentMethod.bankAccountType"
               :options="BANK_ACCOUNT_TYPE_OPTIONS"
               label="Tipo de Cuenta *"
+              emit-value
+              map-options
               dense
               outlined
               color="primary"
@@ -286,7 +293,7 @@ const step = ref(1)
 const initialFormData = () => ({
   name: '',
   email: '',
-  contactPhone: '',
+  contactPhone: '+507',
   role: 'WAITER',
   status: 'ACTIVE',
   paymentType: 'HOURLY',
@@ -312,21 +319,34 @@ watch(
       const employeeData = JSON.parse(JSON.stringify(newVal))
       const defaults = initialFormData()
 
-      // Manually map flattened backend fields to nested frontend structure
-      const mappedPaymentMethod = {
-        type: employeeData.paymentMethodType || defaults.paymentMethod.type,
-        bankName: employeeData.bankName || defaults.paymentMethod.bankName,
-        accountNumber: employeeData.accountNumber || defaults.paymentMethod.accountNumber,
-        bankAccountType: employeeData.bankAccountType || defaults.paymentMethod.bankAccountType,
-        phoneNumber: employeeData.phoneNumber || defaults.paymentMethod.phoneNumber,
-      }
+      // Check if paymentMethod exists as a nested object (new backend structure)
+      let mappedPaymentMethod;
+      if (employeeData.paymentMethod && typeof employeeData.paymentMethod === 'object') {
+        // Handle the nested paymentMethod structure from backend
+        mappedPaymentMethod = {
+          type: employeeData.paymentMethod.type || defaults.paymentMethod.type,
+          bankName: employeeData.paymentMethod.bankName || defaults.paymentMethod.bankName,
+          accountNumber: employeeData.paymentMethod.accountNumber || defaults.paymentMethod.accountNumber,
+          bankAccountType: employeeData.paymentMethod.bankAccountType || defaults.paymentMethod.bankAccountType,
+          phoneNumber: employeeData.paymentMethod.phoneNumber || defaults.paymentMethod.phoneNumber,
+        }
+      } else {
+        // Fallback to old flattened backend fields for backward compatibility
+        mappedPaymentMethod = {
+          type: employeeData.paymentMethodType || defaults.paymentMethod.type,
+          bankName: employeeData.bankName || defaults.paymentMethod.bankName,
+          accountNumber: employeeData.accountNumber || defaults.paymentMethod.accountNumber,
+          bankAccountType: employeeData.bankAccountType || defaults.paymentMethod.bankAccountType,
+          phoneNumber: employeeData.phoneNumber || defaults.paymentMethod.phoneNumber,
+        }
 
-      // Remove the flattened fields from employeeData to avoid conflicts
-      delete employeeData.paymentMethodType
-      delete employeeData.phoneNumber
-      delete employeeData.bankName
-      delete employeeData.accountNumber
-      delete employeeData.bankAccountType
+        // Remove the flattened fields from employeeData to avoid conflicts
+        delete employeeData.paymentMethodType
+        delete employeeData.phoneNumber
+        delete employeeData.bankName
+        delete employeeData.accountNumber
+        delete employeeData.bankAccountType
+      }
 
       formData.value = {
         ...defaults,
@@ -401,14 +421,15 @@ const onSave = () => {
       type: 'YAPPY',
       phoneNumber: cleanData.paymentMethod.phoneNumber,
     }
-  } else if (cleanData.paymentMethod.type === 'ACH') {
-    cleanData.paymentMethod = {
-      type: 'ACH',
-      bankName: cleanData.paymentMethod.bankName,
-      accountNumber: cleanData.paymentMethod.accountNumber,
-      bankAccountType: cleanData.paymentMethod.bankAccountType,
-    }
-  }
+      } else if (cleanData.paymentMethod.type === 'ACH') {
+        console.log('bankAccountType before emit:', cleanData.paymentMethod.bankAccountType);
+        console.log('Type of bankAccountType before emit:', typeof cleanData.paymentMethod.bankAccountType);
+        cleanData.paymentMethod = {
+          type: 'ACH',
+          bankName: cleanData.paymentMethod.bankName,
+          accountNumber: cleanData.paymentMethod.accountNumber,
+          bankAccountType: cleanData.paymentMethod.bankAccountType,
+        }  }
 
   emit('save', cleanData)
 }

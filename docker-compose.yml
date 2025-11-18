@@ -1,0 +1,38 @@
+services:
+  backend:
+    build: ./backend
+    container_name: gestion-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=stg
+    env_file:
+      - ./backend/.env
+    networks:
+      - global-db-network
+      - 1800-network
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build: ./frontend
+    container_name: gestion-frontend
+    depends_on:
+      - backend
+    env_file:
+      - ./frontend/.env
+    networks:
+      - 1800-network
+    restart: on-failure
+
+volumes:
+  mysql_data:
+
+networks:
+  global-db-network:
+    external: true
+  1800-network:
+    external: true
