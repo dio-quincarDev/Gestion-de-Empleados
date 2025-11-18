@@ -1,7 +1,7 @@
--- V2__Add_Payment_Fields_Safe.sql
--- Añadir campos de pago a la tabla employee de forma segura para alinear con EmployeeEntity
+-- V2__Add_Missing_Payment_Fields_Safe.sql
+-- Añadir solo campos de pago que no existen en la tabla employee para alinear con EmployeeEntity
 
--- Añadir campos de pago solo si no existen (MySQL 8.0+)
+-- Añadir campos de pago solo si no existen
 SET @col_exists = 0;
 SELECT COUNT(*) INTO @col_exists 
 FROM information_schema.COLUMNS 
@@ -67,21 +67,6 @@ AND COLUMN_NAME = 'bank_account_type';
 
 SET @sql = IF(@col_exists = 0, 
     'ALTER TABLE employee ADD COLUMN bank_account_type VARCHAR(50)', 
-    'SELECT 1');
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
--- Asegurar que base_salary exista también
-SET @col_exists = 0;
-SELECT COUNT(*) INTO @col_exists 
-FROM information_schema.COLUMNS 
-WHERE TABLE_SCHEMA = DATABASE() 
-AND TABLE_NAME = 'employee' 
-AND COLUMN_NAME = 'base_salary';
-
-SET @sql = IF(@col_exists = 0, 
-    'ALTER TABLE employee ADD COLUMN base_salary DECIMAL(19, 2) DEFAULT 0.00', 
     'SELECT 1');
 PREPARE stmt FROM @sql;
 EXECUTE stmt;

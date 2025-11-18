@@ -45,7 +45,7 @@ public class EmployeeEntity {
     @Column(name = "hourly_rate", nullable = false)
     private BigDecimal hourlyRate;
 
-    @Column(name = "salary", nullable = false)
+    @Column(name = "base_salary", nullable = false)  // Cambiado de "salary" a "base_salary"
     private BigDecimal salary;
 
     @Enumerated(EnumType.STRING)
@@ -80,10 +80,6 @@ public class EmployeeEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "bank_account_type")
     private BankAccount bankAccountType; // For ACH
-
-    // Otros campos que podrían faltar
-    @Column(name = "base_salary", precision = 19, scale = 2)
-    private BigDecimal baseSalary = BigDecimal.ZERO;
 
     @Column(name = "hire_date")
     private Date hireDate;
