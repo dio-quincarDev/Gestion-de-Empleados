@@ -35,8 +35,7 @@ public class UserDetailsServiceImplTest {
                 .id(UUID.randomUUID())
                 .email(email)
                 .password("password")
-                .firstname("Test")
-                .lastname("User")
+                .name("Test User")
                 .role(EmployeeRole.CASHIER)
                 .build();
         when(userEntityRepository.findByEmail(email)).thenReturn(Optional.of(userEntity));

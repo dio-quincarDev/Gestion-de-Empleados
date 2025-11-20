@@ -1,10 +1,11 @@
 package com.employed.bar.infrastructure.adapter.in.mapper;
 
-import com.employed.bar.domain.model.structure.EmployeeClass;
+
 import com.employed.bar.domain.model.payment.AchPaymentMethod;
 import com.employed.bar.domain.model.payment.CashPaymentMethod;
 import com.employed.bar.domain.model.payment.PaymentMethod;
 import com.employed.bar.domain.model.payment.YappyPaymentMethod;
+import com.employed.bar.domain.model.structure.EmployeeClass;
 import com.employed.bar.infrastructure.dto.payment.AchPaymentMethodDto;
 import com.employed.bar.infrastructure.dto.payment.CashPaymentMethodDto;
 import com.employed.bar.infrastructure.dto.domain.EmployeeDto;
@@ -19,8 +20,10 @@ public interface EmployeeApiMapper {
     @Mapping(target = "schedules", ignore = true)
     @Mapping(target = "attendanceRecordClasses", ignore = true)
     @Mapping(target = "consumptionClasses", ignore = true)
+    @Mapping(target = "id", ignore = true)  // userId no se mapea desde DTO
     EmployeeClass toDomain(EmployeeDto dto);
 
+    @Mapping(target = "id", ignore = true)  // userId no se expone en el DTO
     EmployeeDto toDto(EmployeeClass domain);
 
     default PaymentMethod toDomain(PaymentMethodDto dto) {

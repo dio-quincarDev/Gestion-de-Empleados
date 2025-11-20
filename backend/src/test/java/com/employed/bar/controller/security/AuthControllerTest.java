@@ -59,8 +59,7 @@ public class AuthControllerTest {
         UserEntity user = UserEntity.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .firstname("Test")
-                .lastname("User")
+                .name("Test User")
                 .role(role)
                 .build();
         userEntityRepository.save(user);
@@ -138,8 +137,7 @@ public class AuthControllerTest {
         CreateUserRequest registerRequest = CreateUserRequest.builder()
                 .email("manager@example.com")
                 .password("managerpass123")
-                .firstname("System")
-                .lastname("Manager")
+                .name("System Manager")
                 .role(EmployeeRole.MANAGER)
                 .build();
 
@@ -161,8 +159,7 @@ public class AuthControllerTest {
         CreateUserRequest registerRequest = CreateUserRequest.builder()
                 .email("newmanager@example.com")
                 .password("newmanager123")
-                .firstname("New")
-                .lastname("Manager")
+                .name("New Manager")
                 .role(EmployeeRole.MANAGER)
                 .build();
 

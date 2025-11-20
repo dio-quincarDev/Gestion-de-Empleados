@@ -14,6 +14,10 @@ import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.NotificationPort;
 import com.employed.bar.domain.port.out.PdfGeneratorPort;
 import com.employed.bar.domain.service.ManagerReportCalculator;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -191,7 +195,7 @@ public class ManagerReportApplicationServiceTest {
         LocalDate endDate = LocalDate.of(2024, 1, 7);
 
         AchPaymentMethod achPaymentMethod = new AchPaymentMethod("Bank of America", "123456789", BankAccount.SAVINGS);
-        EmployeeClass employee = new EmployeeClass(1L, "John Doe", "john.doe@example.com", "123-456-7890",
+        EmployeeClass employee = new EmployeeClass(1L, UUID.randomUUID(), "John Doe", "john.doe@example.com", "123-456-7890",
                 EmployeeRole.BARTENDER, BigDecimal.valueOf(20), BigDecimal.valueOf(0), achPaymentMethod, true,
                 OvertimeRateType.FIFTY_PERCENT, EmployeeStatus.ACTIVE, PaymentType.HOURLY,
                 new ArrayList<>(), new ArrayList<>(), new ArrayList<>());

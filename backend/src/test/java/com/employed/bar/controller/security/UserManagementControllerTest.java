@@ -84,8 +84,7 @@ public class UserManagementControllerTest {
         UserEntity user = UserEntity.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .firstname("Test")
-                .lastname("User")
+                .name("Test User")
                 .role(role)
                 .build();
         return userEntityRepository.save(user);
@@ -104,8 +103,7 @@ public class UserManagementControllerTest {
         CreateUserRequest request = CreateUserRequest.builder()
                 .email("newuser@example.com")
                 .password("newpass")
-                .firstname("New")
-                .lastname("User")
+                .name("New User")
                 .role(EmployeeRole.WAITER)
                 .build();
 
@@ -121,8 +119,7 @@ public class UserManagementControllerTest {
         CreateUserRequest request = CreateUserRequest.builder()
                 .email("admincreatesuser@example.com")
                 .password("newpass")
-                .firstname("New")
-                .lastname("User")
+                .name("New User")
                 .role(EmployeeRole.WAITER)
                 .build();
 
@@ -138,8 +135,7 @@ public class UserManagementControllerTest {
         CreateUserRequest request = CreateUserRequest.builder()
                 .email("waitercreatesuser@example.com")
                 .password("newpass")
-                .firstname("New")
-                .lastname("User")
+                .name("New User")
                 .role(EmployeeRole.WAITER)
                 .build();
 
@@ -155,8 +151,7 @@ public class UserManagementControllerTest {
         CreateUserRequest request = CreateUserRequest.builder()
                 .email("unauthcreatesuser@example.com")
                 .password("newpass")
-                .firstname("New")
-                .lastname("User")
+                .name("New User")
                 .role(EmployeeRole.WAITER)
                 .build();
 
@@ -171,8 +166,7 @@ public class UserManagementControllerTest {
         CreateUserRequest request = CreateUserRequest.builder()
                 .email("managermanager@example.com")
                 .password("newpass")
-                .firstname("New")
-                .lastname("Manager")
+                .name("New Manager")
                 .role(EmployeeRole.MANAGER)
                 .build();
 
@@ -188,8 +182,7 @@ public class UserManagementControllerTest {
         CreateUserRequest request = CreateUserRequest.builder()
                 .email("invalid") // Invalid email format
                 .password("newpass")
-                .firstname("New")
-                .lastname("User")
+                .name("New User")
                 .role(EmployeeRole.WAITER)
                 .build();
 
@@ -208,8 +201,7 @@ public class UserManagementControllerTest {
         CreateUserRequest request = CreateUserRequest.builder()
                 .email("existing@example.com")
                 .password("newpass")
-                .firstname("New")
-                .lastname("User")
+                .name("New User")
                 .role(EmployeeRole.WAITER)
                 .build();
 
@@ -236,8 +228,7 @@ public class UserManagementControllerTest {
         CreateUserRequest secondManagerRequest = CreateUserRequest.builder()
                 .email("secondmanager@example.com")
                 .password("password123")
-                .firstname("Second")
-                .lastname("Manager")
+                .name("Second Manager")
                 .role(EmployeeRole.MANAGER)
                 .build();
 

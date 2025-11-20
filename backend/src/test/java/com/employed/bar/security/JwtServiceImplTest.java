@@ -33,7 +33,7 @@ class JwtServiceImplTest {
 
         Claims claims = jwtService.getClaims(tokenResponse.getAccessToken());
         assertEquals(email, claims.getSubject());
-        assertEquals(role, claims.get("role", String.class));
+        assertEquals(role, ((java.util.List<?>) claims.get("roles")).get(0));
     }
 
     @Test
@@ -46,7 +46,7 @@ class JwtServiceImplTest {
 
         assertNotNull(claims);
         assertEquals(email, claims.getSubject());
-        assertEquals(role, claims.get("role"));
+        assertEquals(role, ((java.util.List<?>) claims.get("roles")).get(0));
     }
 
     @Test

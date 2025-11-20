@@ -38,13 +38,13 @@ public class AuthServiceImplTest {
     void login_Successful() {
         // Arrange
         LoginRequest loginRequest = new LoginRequest("user@test.com", "password");
-        UserEntity userEntity = new UserEntity(UUID.randomUUID(), "user@test.com", "encodedPassword",
-                "Test", "User", EmployeeRole.ADMIN);
+        UserEntity userEntity = new UserEntity(UUID.randomUUID(), "Test User", "user@test.com", "encodedPassword",
+                EmployeeRole.ADMIN);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userEntity, null, userEntity.getAuthorities());
         TokenResponse expectedTokenResponse = TokenResponse.builder().accessToken("test-token").build();
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
-        when(jwtService.generateToken(userEntity.getEmail(), userEntity.getRole().name())).thenReturn(expectedTokenResponse);
+        when(jwtService.generateToken(userEntity.getEmail(), "ROLE_" + userEntity.getRole().name())).thenReturn(expectedTokenResponse);
 
         // Act
         TokenResponse actualTokenResponse = authService.login(loginRequest);
@@ -53,7 +53,7 @@ public class AuthServiceImplTest {
         assertNotNull(actualTokenResponse);
         assertEquals(expectedTokenResponse.getAccessToken(), actualTokenResponse.getAccessToken());
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(jwtService).generateToken(userEntity.getEmail(), userEntity.getRole().name());
+        verify(jwtService).generateToken(userEntity.getEmail(), "ROLE_" + userEntity.getRole().name());
     }
 
     @Test

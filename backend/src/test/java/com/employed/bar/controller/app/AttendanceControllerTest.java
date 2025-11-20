@@ -91,8 +91,7 @@ public class AttendanceControllerTest {
         UserEntity user = UserEntity.builder()
                 .email(uniqueEmail)
                 .password(passwordEncoder.encode("password"))
-                .firstname("Test")
-                .lastname("User")
+                .name("Test User")
                 .role(role)
                 .build();
         return userEntityRepository.save(user);

@@ -3,9 +3,11 @@ package com.employed.bar.security;
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
+import com.employed.bar.infrastructure.mail.TestMailConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
@@ -14,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestMailConfig.class)
 class AdminInitializerTest {
 
     @Autowired

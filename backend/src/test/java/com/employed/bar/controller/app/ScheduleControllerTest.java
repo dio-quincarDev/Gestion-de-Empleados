@@ -96,8 +96,7 @@ public class ScheduleControllerTest {
 
     private UserEntity createTestUser(String email, String password, EmployeeRole role) {
         UserEntity user = UserEntity.builder()
-                .firstname("Test")
-                .lastname("User")
+                .name("Test User")
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .role(role)

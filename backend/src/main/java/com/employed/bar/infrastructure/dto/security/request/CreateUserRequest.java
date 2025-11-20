@@ -17,11 +17,8 @@ import lombok.Setter;
 @Schema(description = "Request for creating a new user by a manager")
 public class CreateUserRequest {
 
-    @NotBlank(message = "First name is mandatory")
-    private String firstname;
-
-    @NotBlank(message = "Last name is mandatory")
-    private String lastname;
+    @NotBlank(message = "Name is mandatory")
+    private String name;
 
     @Email(message = "Email should be valid")
     @NotBlank(message = "Email is mandatory")

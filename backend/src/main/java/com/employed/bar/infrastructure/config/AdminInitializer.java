@@ -21,8 +21,7 @@ public class AdminInitializer implements CommandLineRunner {
             UserEntity managerUser = UserEntity.builder()
                     .email("manager@system.com")
                     .password(passwordEncoder.encode("manager123"))
-                    .firstname("System")
-                    .lastname("Manager")
+                    .name("System Manager")
                     .role(EmployeeRole.MANAGER) // ← CAMBIAR A MANAGER
                     .build();
             userEntityRepository.save(managerUser);
@@ -34,8 +33,7 @@ public class AdminInitializer implements CommandLineRunner {
             UserEntity adminUser = UserEntity.builder()
                     .email("admin@system.com")
                     .password(passwordEncoder.encode("admin123"))
-                    .firstname("System")
-                    .lastname("Admin")
+                    .name("System Admin")
                     .role(EmployeeRole.ADMIN)
                     .build();
             userEntityRepository.save(adminUser);
