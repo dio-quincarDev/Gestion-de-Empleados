@@ -9,41 +9,52 @@
         <q-form @submit.prevent="handleLogin">
           <q-input
             dark
-            dense
+            outlined
             v-model="form.email"
             label="Email"
             type="email"
             lazy-rules
             :rules="[ val => val && val.length > 0 || 'El email es requerido']"
-            class="q-mb-sm"
-          />
+            class="q-mb-md"
+            input-class="text-white"
+          >
+            <template v-slot:prepend>
+              <q-icon name="email" color="amber-5" />
+            </template>
+          </q-input>
 
           <q-input
             dark
-            dense
+            outlined
             v-model="form.password"
             label="Contraseña"
             :type="isPwd ? 'password' : 'text'"
             lazy-rules
             :rules="[ val => val && val.length > 0 || 'La contraseña es requerida']"
             class="q-mb-md"
+            input-class="text-white"
           >
+            <template v-slot:prepend>
+              <q-icon name="lock" color="amber-5" />
+            </template>
             <template v-slot:append>
               <q-icon
-                :icon="isPwd ? 'visibility_off' : 'visibility'"
+                :name="isPwd ? 'visibility_off' : 'visibility'"
                 @click="isPwd = !isPwd"
-                class="cursor-pointer"
-                color="white"
+                class="cursor-pointer password-toggle-icon"
               />
             </template>
           </q-input>
 
-          <q-btn
-            type="submit"
-            label="Ingresar"
-            class="full-width gradient-button josefin-sans"
-            :loading="loading"
-          />
+          <div class="row q-mt-md">
+            <q-btn
+              type="submit"
+              label="Ingresar"
+              class="col full-width gradient-button josefin-sans text-bold"
+              :loading="loading"
+              padding="md"
+            />
+          </div>
         </q-form>
       </q-card-section>
 
@@ -164,5 +175,16 @@ const handleLogin = async () => {
 
 :deep(.q-field--dark .q-field__control:before) {
   border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.password-toggle-icon {
+  color: #FF8C00 !important;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.password-toggle-icon:hover {
+  opacity: 1;
+  cursor: pointer;
 }
 </style>
