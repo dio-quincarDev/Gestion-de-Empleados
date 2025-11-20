@@ -436,6 +436,113 @@ public class ScheduleControllerTest {
     }
 
     @Test
+    void createSchedule_WithNightShift_ShouldReturnCreatedSchedule() throws Exception {
+        // Given - Crear un horario nocturno (22:00 hoy a 06:00 mañana)
+        ScheduleDto nightShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 22, 0, 0)) // 10:00 PM
+                .endTime(LocalDateTime.of(2025, 10, 1, 6, 0, 0))    // 6:00 AM siguiente día
+                .build();
+
+        // When
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(nightShiftDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.startTime", is("2025-09-30T22:00:00")))
+                .andExpect(jsonPath("$.endTime", is("2025-10-01T06:00:00")))
+                .andExpect(jsonPath("$.id", notNullValue()));
+    }
+
+    @Test
+    void createSchedule_WithSameDayNightShift_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un horario con hora de fin antes de hora de inicio en el mismo día
+        ScheduleDto invalidNightShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 22, 0, 0)) // 10:00 PM
+                .endTime(LocalDateTime.of(2025, 9, 30, 6, 0, 0))    // 6:00 AM mismo día (inválido)
+                .build();
+
+        // When
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidNightShiftDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSchedule_WithOverlappingNightShift_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un horario de día primero (9:00 AM a 5:00 PM)
+        ScheduleDto dayShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0))
+                .build();
+
+        mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dayShiftDto)))
+                .andExpect(status().isCreated());
+
+        // When - Intentar crear un horario nocturno que se superpone
+        ScheduleDto overlappingNightShift = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 23, 0, 0)) // 11:00 PM
+                .endTime(LocalDateTime.of(2025, 10, 1, 7, 0, 0))    // 7:00 AM siguiente día (se superpone)
+                .build();
+
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(overlappingNightShift)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateSchedule_WithNightShift_ShouldReturnUpdatedSchedule() throws Exception {
+        // Given - Crear un horario primero
+        ScheduleDto originalSchedule = createValidScheduleDto();
+        String responseJson = mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+                        .header("Authorization", managerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(originalSchedule)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        Long createdScheduleId = objectMapper.readTree(responseJson).get("id").asLong();
+
+        // When - Actualizarlo a un horario nocturno
+        ScheduleDto updatedScheduleDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 22, 0, 0)) // 10:00 PM
+                .endTime(LocalDateTime.of(2025, 10, 1, 6, 0, 0))    // 6:00 AM siguiente día
+                .build();
+
+        ResultActions response = mockMvc.perform(put(BASE_URL + "/" + createdScheduleId)
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updatedScheduleDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.startTime", is("2025-09-30T22:00:00")))
+                .andExpect(jsonPath("$.endTime", is("2025-10-01T06:00:00")));
+    }
+
+    @Test
     void deleteSchedule_WithNonExistentId_ShouldReturnNotFound() throws Exception {
         // When
         ResultActions response = mockMvc.perform(delete(BASE_URL + "/{id}", 999L)
