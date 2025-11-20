@@ -2,6 +2,7 @@ package com.employed.bar.controller.app;
 
 import com.employed.bar.domain.enums.EmployeeRole;
 import com.employed.bar.domain.enums.EmployeeStatus;
+import com.employed.bar.domain.enums.PaymentType;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.EmployeeEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.entity.UserEntity;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringEmployeeJpaRepository;
@@ -9,7 +10,9 @@ import com.employed.bar.infrastructure.adapter.out.persistence.repository.Spring
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.dto.domain.ScheduleDto;
+import com.employed.bar.infrastructure.mail.TestMailConfig;
 import com.employed.bar.infrastructure.security.jwt.JwtService;
+import com.employed.bar.application.notification.NotificationApplicationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -36,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestMailConfig.class)
 public class ScheduleControllerTest {
 
     public static final String BASE_URL = ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE;
@@ -45,6 +51,9 @@ public class ScheduleControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private NotificationApplicationService notificationApplicationService;
 
     @Autowired
     private UserEntityRepository userEntityRepository;
@@ -90,6 +99,7 @@ public class ScheduleControllerTest {
                 .salary(new java.math.BigDecimal("1800.00"))
                 .hourlyRate(new java.math.BigDecimal("10.00")) // Added hourlyRate
                 .status(status)
+                .paymentType(PaymentType.HOURLY) // Added missing paymentType
                 .build();
         return employeeRepository.save(employee);
     }
@@ -169,11 +179,11 @@ public class ScheduleControllerTest {
 
     @Test
     void createSchedule_WithOverlappingSchedule_ShouldReturnBadRequest() throws Exception {
-        // Given - Crear un horario existente
+        // Given - Crear un horario existente que se extiende hasta la noche (16:00 a 23:00)
         ScheduleDto existingScheduleDto = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .startTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0))
-                .endTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0))
+                .startTime(LocalDateTime.of(2025, 9, 30, 16, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 23, 0, 0))
                 .build();
 
         mockMvc.perform(post(BASE_URL + "/")
@@ -182,17 +192,17 @@ public class ScheduleControllerTest {
                 .content(objectMapper.writeValueAsString(existingScheduleDto)))
                 .andExpect(status().isCreated());
 
-        // When - Intentar crear un horario que se superpone
-        ScheduleDto overlappingScheduleDto = ScheduleDto.builder()
+        // When - Intentar crear un horario nocturno que se superpone (22:00 hoy a 05:00 mañana)
+        ScheduleDto overlappingNightShift = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .startTime(LocalDateTime.of(2025, 9, 30, 16, 0, 0)) // Se superpone con el existente
-                .endTime(LocalDateTime.of(2025, 9, 30, 18, 0, 0))
+                .startTime(LocalDateTime.of(2025, 9, 30, 22, 0, 0)) // Se superpone con el existente
+                .endTime(LocalDateTime.of(2025, 10, 1, 5, 0, 0))    // Termina el día siguiente
                 .build();
 
         ResultActions response = mockMvc.perform(post(BASE_URL + "/")
                 .header("Authorization", managerToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(overlappingScheduleDto)));
+                .content(objectMapper.writeValueAsString(overlappingNightShift)));
 
         // Then
         response.andDo(print())
@@ -445,7 +455,7 @@ public class ScheduleControllerTest {
                 .build();
 
         // When
-        ResultActions response = mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/")
                 .header("Authorization", managerToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(nightShiftDto)));
@@ -468,7 +478,7 @@ public class ScheduleControllerTest {
                 .build();
 
         // When
-        ResultActions response = mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/")
                 .header("Authorization", managerToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidNightShiftDto)));
@@ -479,28 +489,124 @@ public class ScheduleControllerTest {
     }
 
     @Test
-    void createSchedule_WithOverlappingNightShift_ShouldReturnBadRequest() throws Exception {
-        // Given - Crear un horario de día primero (9:00 AM a 5:00 PM)
-        ScheduleDto dayShiftDto = ScheduleDto.builder()
+    void createSchedule_WithNightShiftOverlappingNightShift_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un horario nocturno existente (22:00 Sept 30 a 06:00 Oct 1)
+        ScheduleDto existingNightShiftDto = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .startTime(LocalDateTime.of(2025, 9, 30, 9, 0, 0))
-                .endTime(LocalDateTime.of(2025, 9, 30, 17, 0, 0))
+                .startTime(LocalDateTime.of(2025, 9, 30, 22, 0, 0))
+                .endTime(LocalDateTime.of(2025, 10, 1, 6, 0, 0))
                 .build();
 
-        mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+        mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(existingNightShiftDto)))
+                .andExpect(status().isCreated());
+
+        // When - Intentar crear un nuevo horario nocturno que se superpone (23:00 Sept 30 a 07:00 Oct 1)
+        ScheduleDto overlappingNightShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 23, 0, 0))
+                .endTime(LocalDateTime.of(2025, 10, 1, 7, 0, 0))
+                .build();
+
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(overlappingNightShiftDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSchedule_WithRegularShiftOverlappingEndOfNightShift_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un horario nocturno existente (22:00 Sept 30 a 06:00 Oct 1)
+        ScheduleDto existingNightShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 22, 0, 0))
+                .endTime(LocalDateTime.of(2025, 10, 1, 6, 0, 0))
+                .build();
+
+        mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(existingNightShiftDto)))
+                .andExpect(status().isCreated());
+
+        // When - Intentar crear un horario regular que se superpone con el final del nocturno (05:00 Oct 1 a 10:00 Oct 1)
+        ScheduleDto overlappingRegularShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 10, 1, 5, 0, 0))
+                .endTime(LocalDateTime.of(2025, 10, 1, 10, 0, 0))
+                .build();
+
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(overlappingRegularShiftDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSchedule_WithRegularShiftOverlappingStartOfNightShift_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un horario nocturno existente (22:00 Sept 30 a 06:00 Oct 1)
+        ScheduleDto existingNightShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 22, 0, 0))
+                .endTime(LocalDateTime.of(2025, 10, 1, 6, 0, 0))
+                .build();
+
+        mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(existingNightShiftDto)))
+                .andExpect(status().isCreated());
+
+        // When - Intentar crear un horario regular que se superpone con el inicio del nocturno (20:00 Sept 30 a 23:00 Sept 30)
+        ScheduleDto overlappingRegularShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 20, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 23, 0, 0))
+                .build();
+
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/")
+                .header("Authorization", managerToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(overlappingRegularShiftDto)));
+
+        // Then
+        response.andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createSchedule_WithOverlappingNightShift_ShouldReturnBadRequest() throws Exception {
+        // Given - Crear un horario de día que se extiende hasta la noche (16:00 a 23:00)
+        ScheduleDto dayShiftDto = ScheduleDto.builder()
+                .employeeId(testEmployee.getId())
+                .startTime(LocalDateTime.of(2025, 9, 30, 16, 0, 0))
+                .endTime(LocalDateTime.of(2025, 9, 30, 23, 0, 0))
+                .build();
+
+        mockMvc.perform(post(BASE_URL + "/")
                 .header("Authorization", managerToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dayShiftDto)))
                 .andExpect(status().isCreated());
 
-        // When - Intentar crear un horario nocturno que se superpone
+        // When - Intentar crear un horario nocturno que se superpone (e.g., empieza a las 22:00)
         ScheduleDto overlappingNightShift = ScheduleDto.builder()
                 .employeeId(testEmployee.getId())
-                .startTime(LocalDateTime.of(2025, 9, 30, 23, 0, 0)) // 11:00 PM
-                .endTime(LocalDateTime.of(2025, 10, 1, 7, 0, 0))    // 7:00 AM siguiente día (se superpone)
+                .startTime(LocalDateTime.of(2025, 9, 30, 22, 0, 0)) // Overlaps with the 16:00-23:00 shift
+                .endTime(LocalDateTime.of(2025, 10, 1, 5, 0, 0))
                 .build();
 
-        ResultActions response = mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+        ResultActions response = mockMvc.perform(post(BASE_URL + "/")
                 .header("Authorization", managerToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(overlappingNightShift)));
@@ -514,7 +620,7 @@ public class ScheduleControllerTest {
     void updateSchedule_WithNightShift_ShouldReturnUpdatedSchedule() throws Exception {
         // Given - Crear un horario primero
         ScheduleDto originalSchedule = createValidScheduleDto();
-        String responseJson = mockMvc.perform(post(BASE_URL + "/employee/" + testEmployee.getId())
+        String responseJson = mockMvc.perform(post(BASE_URL + "/")
                         .header("Authorization", managerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(originalSchedule)))

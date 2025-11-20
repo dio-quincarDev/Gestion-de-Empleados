@@ -140,10 +140,12 @@ public class ScheduleApplicationServiceTest {
 
     @Test
     void deleteSchedule_Success() {
+        when(scheduleRepositoryPort.findById(10L)).thenReturn(Optional.of(schedule));
         doNothing().when(scheduleRepositoryPort).deleteById(10L);
 
         scheduleApplicationService.deleteSchedule(10L);
 
+        verify(scheduleRepositoryPort, times(1)).findById(10L);
         verify(scheduleRepositoryPort, times(1)).deleteById(10L);
     }
 
@@ -271,18 +273,18 @@ public class ScheduleApplicationServiceTest {
 
     @Test
     void createSchedule_WithOverlappingNightShift_ThrowsException() {
-        // Create an existing day shift: 9:00 AM to 5:00 PM
+        // Existing day shift that runs late: 16:00 to 23:00
         ScheduleClass dayShift = new ScheduleClass();
         dayShift.setId(20L);
         dayShift.setEmployee(employee);
-        dayShift.setStartTime(LocalDateTime.of(2023, 1, 1, 9, 0));
-        dayShift.setEndTime(LocalDateTime.of(2023, 1, 1, 17, 0));
+        dayShift.setStartTime(LocalDateTime.of(2023, 1, 1, 16, 0));
+        dayShift.setEndTime(LocalDateTime.of(2023, 1, 1, 23, 0));
 
-        // Try to create a night shift that overlaps: 11:00 PM to 7:00 AM next day
+        // Try to create a night shift that overlaps at the start: 22:00 to 05:00 next day
         ScheduleClass nightShift = new ScheduleClass();
         nightShift.setEmployee(employee);
-        nightShift.setStartTime(LocalDateTime.of(2023, 1, 1, 23, 0));  // 11:00 PM
-        nightShift.setEndTime(LocalDateTime.of(2023, 1, 2, 7, 0));     // 7:00 AM next day
+        nightShift.setStartTime(LocalDateTime.of(2023, 1, 1, 22, 0));  // 10:00 PM
+        nightShift.setEndTime(LocalDateTime.of(2023, 1, 2, 5, 0));     // 5:00 AM next day
 
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         when(scheduleRepositoryPort.findByEmployee(employee)).thenReturn(List.of(dayShift));
@@ -314,10 +316,174 @@ public class ScheduleApplicationServiceTest {
         when(scheduleRepositoryPort.findByEmployee(employee)).thenReturn(List.of(dayShift));
         when(scheduleRepositoryPort.save(any(ScheduleClass.class))).thenReturn(nightShift);
 
-        ScheduleClass result = scheduleApplicationService.createSchedule(nightShift);
+                ScheduleClass result = scheduleApplicationService.createSchedule(nightShift);
 
-        assertNotNull(result);
-        assertEquals(nightShift.getStartTime(), result.getStartTime());
-        assertEquals(nightShift.getEndTime(), result.getEndTime());
-    }
-}
+        
+
+                assertNotNull(result);
+
+                assertEquals(nightShift.getStartTime(), result.getStartTime());
+
+                assertEquals(nightShift.getEndTime(), result.getEndTime());
+
+            }
+
+        
+
+            @Test
+
+            void createSchedule_NightShiftVsOverlappingNightShift_ThrowsException() {
+
+                // Existing night shift: 22:00 Jan 1 to 06:00 Jan 2
+
+                ScheduleClass existingNightShift = new ScheduleClass();
+
+                existingNightShift.setId(30L);
+
+                existingNightShift.setEmployee(employee);
+
+                existingNightShift.setStartTime(LocalDateTime.of(2023, 1, 1, 22, 0));
+
+                existingNightShift.setEndTime(LocalDateTime.of(2023, 1, 2, 6, 0));
+
+        
+
+                // New night shift that overlaps: 23:00 Jan 1 to 07:00 Jan 2
+
+                ScheduleClass newOverlappingNightShift = new ScheduleClass();
+
+                newOverlappingNightShift.setEmployee(employee);
+
+                newOverlappingNightShift.setStartTime(LocalDateTime.of(2023, 1, 1, 23, 0));
+
+                newOverlappingNightShift.setEndTime(LocalDateTime.of(2023, 1, 2, 7, 0));
+
+        
+
+                when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+
+                when(scheduleRepositoryPort.findByEmployee(employee)).thenReturn(List.of(existingNightShift));
+
+        
+
+                com.employed.bar.domain.exceptions.InvalidScheduleException exception =
+
+                        assertThrows(com.employed.bar.domain.exceptions.InvalidScheduleException.class, () -> {
+
+                            scheduleApplicationService.createSchedule(newOverlappingNightShift);
+
+                        });
+
+        
+
+                assertEquals("Schedule overlaps with an existing schedule for this employee.", exception.getMessage());
+
+            }
+
+        
+
+            @Test
+
+            void createSchedule_NightShiftVsOverlappingRegularShiftAtEnd_ThrowsException() {
+
+                // Existing night shift: 22:00 Jan 1 to 06:00 Jan 2
+
+                ScheduleClass existingNightShift = new ScheduleClass();
+
+                existingNightShift.setId(30L);
+
+                existingNightShift.setEmployee(employee);
+
+                existingNightShift.setStartTime(LocalDateTime.of(2023, 1, 1, 22, 0));
+
+                existingNightShift.setEndTime(LocalDateTime.of(2023, 1, 2, 6, 0));
+
+        
+
+                // New regular shift that overlaps at the end: 05:00 Jan 2 to 10:00 Jan 2
+
+                ScheduleClass newOverlappingRegularShift = new ScheduleClass();
+
+                newOverlappingRegularShift.setEmployee(employee);
+
+                newOverlappingRegularShift.setStartTime(LocalDateTime.of(2023, 1, 2, 5, 0));
+
+                newOverlappingRegularShift.setEndTime(LocalDateTime.of(2023, 1, 2, 10, 0));
+
+        
+
+                when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+
+                when(scheduleRepositoryPort.findByEmployee(employee)).thenReturn(List.of(existingNightShift));
+
+        
+
+                com.employed.bar.domain.exceptions.InvalidScheduleException exception =
+
+                        assertThrows(com.employed.bar.domain.exceptions.InvalidScheduleException.class, () -> {
+
+                            scheduleApplicationService.createSchedule(newOverlappingRegularShift);
+
+                        });
+
+        
+
+                assertEquals("Schedule overlaps with an existing schedule for this employee.", exception.getMessage());
+
+            }
+
+        
+
+            @Test
+
+            void createSchedule_NightShiftVsOverlappingRegularShiftAtStart_ThrowsException() {
+
+                // Existing night shift: 22:00 Jan 1 to 06:00 Jan 2
+
+                ScheduleClass existingNightShift = new ScheduleClass();
+
+                existingNightShift.setId(30L);
+
+                existingNightShift.setEmployee(employee);
+
+                existingNightShift.setStartTime(LocalDateTime.of(2023, 1, 1, 22, 0));
+
+                existingNightShift.setEndTime(LocalDateTime.of(2023, 1, 2, 6, 0));
+
+        
+
+                // New regular shift that overlaps at the start: 20:00 Jan 1 to 23:00 Jan 1
+
+                ScheduleClass newOverlappingRegularShift = new ScheduleClass();
+
+                newOverlappingRegularShift.setEmployee(employee);
+
+                newOverlappingRegularShift.setStartTime(LocalDateTime.of(2023, 1, 1, 20, 0));
+
+                newOverlappingRegularShift.setEndTime(LocalDateTime.of(2023, 1, 1, 23, 0));
+
+        
+
+                when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+
+                when(scheduleRepositoryPort.findByEmployee(employee)).thenReturn(List.of(existingNightShift));
+
+        
+
+                com.employed.bar.domain.exceptions.InvalidScheduleException exception =
+
+                        assertThrows(com.employed.bar.domain.exceptions.InvalidScheduleException.class, () -> {
+
+                            scheduleApplicationService.createSchedule(newOverlappingRegularShift);
+
+                        });
+
+        
+
+                assertEquals("Schedule overlaps with an existing schedule for this employee.", exception.getMessage());
+
+            }
+
+        }
+
+        

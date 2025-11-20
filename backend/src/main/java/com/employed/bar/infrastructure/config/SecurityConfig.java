@@ -50,6 +50,12 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(EndpointRequest.to("health", "info"))
                         .permitAll()
+
+                        // Schedule management endpoints
+                        .requestMatchers(HttpMethod.POST, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("MANAGER", "ADMIN")
+
                         // All other requests must be authenticated
                         .anyRequest().authenticated()
                 )
