@@ -4,31 +4,37 @@
       <div class="text-h4 text-white page-title">Gestión de Asistencias</div>
     </div>
 
-    <div class="row q-mb-md">
-      <q-select
-        outlined
-        v-model="selectedEmployee"
-        use-input
-        hide-selected
-        fill-input
-        input-debounce="500"
-        label="Buscar Empleado"
-        :options="employeeOptions"
-        option-label="label"
-        @filter="filterEmployees"
-        class="col-12 col-sm-8 col-md-6"
-        dark
-        color="primary"
-        label-color="grey-5"
-        input-class="text-white"
-      >
-        <template v-slot:no-option>
-          <q-item>
-            <q-item-section class="text-grey"> No se encontraron empleados </q-item-section>
-          </q-item>
-        </template>
-      </q-select>
-    </div>
+    <q-card class="q-mb-md bg-dark" dark>
+      <q-card-section>
+        <q-select
+          v-model="selectedEmployee"
+          :options="employeeOptions"
+          label="Busque y seleccione un empleado para ver sus asistencias"
+          dark
+          outlined
+          color="primary"
+          label-color="grey-5"
+          input-class="text-white"
+          @filter="filterEmployees"
+          use-input
+          hide-selected
+          fill-input
+          option-label="label"
+          clearable
+        >
+          <template v-slot:prepend>
+            <q-icon name="search" />
+          </template>
+          <template v-slot:no-option>
+            <q-item>
+              <q-item-section class="text-grey">
+                {{ globalLoading ? 'Buscando...' : 'Escriba al menos 2 caracteres' }}
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
+      </q-card-section>
+    </q-card>
 
     <!-- Mensaje cuando no hay empleado seleccionado -->
     <div v-if="!selectedEmployee" class="text-center q-pa-xl">

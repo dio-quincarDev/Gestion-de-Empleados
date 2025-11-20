@@ -23,11 +23,20 @@
             dense
             v-model="form.password"
             label="Contraseña"
-            type="password"
+            :type="isPwd ? 'password' : 'text'"
             lazy-rules
             :rules="[ val => val && val.length > 0 || 'La contraseña es requerida']"
             class="q-mb-md"
-          />
+          >
+            <template v-slot:append>
+              <q-icon
+                :icon="isPwd ? 'visibility_off' : 'visibility'"
+                @click="isPwd = !isPwd"
+                class="cursor-pointer"
+                color="white"
+              />
+            </template>
+          </q-input>
 
           <q-btn
             type="submit"
@@ -65,6 +74,8 @@ const form = ref({
   email: '',
   password: ''
 });
+
+const isPwd = ref(true);
 
 const loading = ref(false);
 
