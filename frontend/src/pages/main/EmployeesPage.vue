@@ -77,6 +77,7 @@
       :employees="employees"
       @edit="handleEdit"
       @delete="handleDelete"
+      @promote="handlePromote"
     />
 
     <q-dialog
@@ -86,6 +87,32 @@
       :full-width="$q.screen.lt.sm"
     >
       <employee-form :employee="editingEmployee" @save="handleSaveEmployee" @cancel="cancelForm" />
+    </q-dialog>
+
+    <!-- Password Dialog for Employee Promotion -->
+    <q-dialog v-model="showPasswordDialog" persistent>
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">Confirmar Promoción a Administrador</div>
+          <div class="q-mt-md">Ingrese su contraseña para confirmar la promoción de <strong>{{ promotionEmployee?.name }}</strong> a administrador.</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input
+            v-model="promotionPassword"
+            filled
+            type="password"
+            label="Contraseña"
+            :rules="[val => val && val.length > 0 || 'La contraseña es requerida']"
+            @keyup.enter="confirmPromotion"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Cancelar" color="primary" v-close-popup />
+          <q-btn unelevated label="Promover" color="positive" @click="confirmPromotion" :disable="!promotionPassword" />
+        </q-card-actions>
+      </q-card>
     </q-dialog>
   </q-page>
 </template>
@@ -119,6 +146,11 @@ const statusOptions = ['ACTIVE', 'INACTIVE']
 // Dialog State
 const showFormDialog = ref(false)
 const editingEmployee = ref(null)
+
+// Promotion Dialog State
+const showPasswordDialog = ref(false)
+const promotionEmployee = ref(null)
+const promotionPassword = ref('')
 
 // Main data fetching function
 async function onRequest() {
@@ -207,6 +239,43 @@ function handleDelete(employee) {
       })
     }
   })
+}
+
+function handlePromote(employee) {
+  promotionEmployee.value = employee
+  promotionPassword.value = ''
+  showPasswordDialog.value = true
+}
+
+async function confirmPromotion() {
+  try {
+    await userService.promoteEmployeeToAdmin(promotionEmployee.value.id, promotionPassword.value)
+    $q.notify({
+      type: 'positive',
+      message: `Empleado ${promotionEmployee.value.name} promovido a administrador exitosamente.`
+    })
+    showPasswordDialog.value = false
+    promotionEmployee.value = null
+    promotionPassword.value = ''
+    // Refresh the employee list to reflect the role change
+    await onRequest()
+  } catch (error) {
+    console.error('Error promoting employee:', error)
+    let message = 'Error al promover el empleado.'
+    if (error.response?.status === 400) {
+      message = 'Contraseña inválida.'
+    } else if (error.response?.status === 403) {
+      message = 'No tiene permisos suficientes para realizar esta acción.'
+    } else if (error.response?.status === 404) {
+      message = 'Empleado no encontrado.'
+    } else if (error.message) {
+      message = error.message
+    }
+    $q.notify({
+      type: 'negative',
+      message: message
+    })
+  }
 }
 </script>
 

@@ -5,9 +5,11 @@ import com.employed.bar.infrastructure.constants.ApiPathConstants;
 import com.employed.bar.infrastructure.security.user.EmployeeRoleChangeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +31,7 @@ public class EmployeePromotionController {
     @PostMapping("/employee/{employeeId}/to-admin")
     @PreAuthorize("hasAuthority('ROLE_MANAGER')")
     @Operation(summary = "Promote employee to admin", description = "Creates a user account with ADMIN role for an existing employee. Only accessible by users with the MANAGER role.")
-    public ResponseEntity<Void> promoteEmployeeToAdmin(@PathVariable Long employeeId, @RequestBody PasswordRequest passwordRequest) {
+    public ResponseEntity<Void> promoteEmployeeToAdmin(@PathVariable Long employeeId, @Valid @RequestBody PasswordRequest passwordRequest) {
         employeeRoleChangeService.handleRoleChange(employeeId, EmployeeRole.ADMIN, passwordRequest.getPassword());
         return ResponseEntity.ok().build();
     }
@@ -37,6 +39,7 @@ public class EmployeePromotionController {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class PasswordRequest {
         @NotBlank(message = "Password is mandatory")
         private String password;

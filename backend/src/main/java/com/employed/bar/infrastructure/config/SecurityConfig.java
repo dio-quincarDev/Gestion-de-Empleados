@@ -56,6 +56,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("MANAGER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("MANAGER", "ADMIN")
 
+                        // Employee promotion endpoint
+                        .requestMatchers(HttpMethod.POST, ApiPathConstants.V1_ROUTE + ApiPathConstants.USERS_ROUTE + "/promotion/employee/**").hasAuthority("ROLE_MANAGER")
+
                         // All other requests must be authenticated
                         .anyRequest().authenticated()
                 )

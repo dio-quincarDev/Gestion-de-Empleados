@@ -48,6 +48,16 @@
                 @click="onDelete(props.row)"
                 color="negative"
               ></q-btn>
+              <q-btn
+                v-if="canPromote(props.row)"
+                unelevated
+                rounded
+                dense
+                icon="admin_panel_settings"
+                @click="onPromote(props.row)"
+                color="accent"
+                title="Promote to Admin"
+              ></q-btn>
             </div>
           </q-card-section>
         </q-card>
@@ -74,6 +84,16 @@
           @click="onDelete(props.row)"
           color="negative"
         ></q-btn>
+        <q-btn
+          v-if="canPromote(props.row)"
+          unelevated
+          rounded
+          dense
+          icon="admin_panel_settings"
+          @click="onPromote(props.row)"
+          color="accent"
+          title="Promote to Admin"
+        ></q-btn>
       </q-td>
     </template>
   </q-table>
@@ -83,6 +103,7 @@
 import { defineProps, defineEmits } from 'vue'
 import { useQuasar } from 'quasar'
 import authService from 'src/service/auth.service'
+import userService from 'src/service/user.service'
 import { EmployeeRole } from 'src/constants/roles'
 
 defineOptions({
@@ -96,7 +117,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['edit', 'delete'])
+const emit = defineEmits(['edit', 'delete', 'promote'])
 const $q = useQuasar()
 
 const columns = [
@@ -144,12 +165,33 @@ const canDelete = (employee) => {
   return false
 }
 
+const canPromote = (employee) => {
+  if (!currentUser) return false
+
+  const userRoles = currentUser.roles
+  const targetRole = employee.role
+
+  // Only managers can promote employees to admin
+  if (userRoles.includes('MANAGER')) {
+    // Managers can promote non-admin employees to admin
+    return targetRole !== 'ADMIN'
+  }
+
+  return false
+}
+
 const onEdit = (employee) => {
   emit('edit', employee)
 }
 
 const onDelete = (employee) => {
   emit('delete', employee)
+}
+
+const onPromote = (employee) => {
+  // Emit an event to the parent component to handle the promotion
+  // This will trigger the password dialog in the parent component
+  emit('promote', employee)
 }
 </script>
 
