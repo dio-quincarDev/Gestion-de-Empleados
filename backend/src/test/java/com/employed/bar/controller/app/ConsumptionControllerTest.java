@@ -89,6 +89,8 @@ public class ConsumptionControllerTest {
 
     // Métodos helper para crear entidades de prueba
     private EmployeeEntity createTestEmployee(String name, String email, EmployeeRole role, EmployeeStatus status) {
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+
         EmployeeEntity employee = EmployeeEntity.builder()
                 .name(name)
                 .email(email)
@@ -97,6 +99,7 @@ public class ConsumptionControllerTest {
                 .salary(new BigDecimal("1500.00"))
                 .status(status)
                 .paymentType(PaymentType.HOURLY)
+                .contactPhone("5076" + uniqueId.replaceAll("-", ""))
                 .build();
         return employeeRepository.save(employee);
     }

@@ -17,13 +17,14 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface EmployeeApiMapper {
 
+    @Mapping(target = "id", ignore = true)  // id se genera en la base de datos
     @Mapping(target = "schedules", ignore = true)
     @Mapping(target = "attendanceRecordClasses", ignore = true)
     @Mapping(target = "consumptionClasses", ignore = true)
-    @Mapping(target = "id", ignore = true)  // userId no se mapea desde DTO
+    @Mapping(target = "userId", ignore = true)  // userId no se mapea desde DTO
     EmployeeClass toDomain(EmployeeDto dto);
 
-    @Mapping(target = "id", ignore = true)  // userId no se expone en el DTO
+    // userId no se expone en el DTO
     EmployeeDto toDto(EmployeeClass domain);
 
     default PaymentMethod toDomain(PaymentMethodDto dto) {
