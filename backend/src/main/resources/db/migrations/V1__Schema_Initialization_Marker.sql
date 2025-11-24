@@ -1,0 +1,4 @@
+-- This is an empty script.
+-- Its purpose is to create a baseline in the flyway_schema_history table.
+-- Hibernate's ddl-auto=update will run after this, creating the actual tables.
+-- The subsequent V2 script will then be able to modify the tables created by Hibernate.
