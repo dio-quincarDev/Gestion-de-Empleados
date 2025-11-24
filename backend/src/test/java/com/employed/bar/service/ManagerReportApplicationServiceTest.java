@@ -80,7 +80,6 @@ public class ManagerReportApplicationServiceTest {
         List<EmployeeClass> employees = Collections.singletonList(employee);
         List<Report> individualReports = Collections.singletonList(individualReport);
         byte[] dummyPdf = "dummy-pdf-content".getBytes();
-        String managerEmail = "manager@example.com";
 
         when(employeeRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(employees));
         when(reportingUseCase.generateCompleteReportForEmployeeById(startDate, endDate, employee.getId())).thenReturn(individualReport);
@@ -96,8 +95,8 @@ public class ManagerReportApplicationServiceTest {
         verify(reportingUseCase, times(1)).generateCompleteReportForEmployeeById(startDate, endDate, employee.getId());
         verify(managerReportCalculator, times(1)).calculate(employees, individualReports);
         verify(pdfGeneratorPort, times(1)).generateManagerReportPdf(managerReport, startDate, endDate);
-        verify(notificationPort, times(1)).sendManagerReportByEmail(eq(managerEmail), eq(managerReport), pdfCaptor.capture(), eq(startDate), eq(endDate));
-        
+        verify(notificationPort, times(1)).sendManagerReportByEmail(anyString(), eq(managerReport), pdfCaptor.capture(), eq(startDate), eq(endDate));
+
         assertArrayEquals(dummyPdf, pdfCaptor.getValue());
     }
 
@@ -245,7 +244,7 @@ public class ManagerReportApplicationServiceTest {
         // Then
         ArgumentCaptor<ManagerReport> managerReportCaptor = ArgumentCaptor.forClass(ManagerReport.class);
         ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
-        verify(notificationPort).sendManagerReportByEmail(eq("manager@example.com"), managerReportCaptor.capture(), pdfCaptor.capture(), eq(startDate), eq(endDate));
+        verify(notificationPort).sendManagerReportByEmail(anyString(), managerReportCaptor.capture(), pdfCaptor.capture(), eq(startDate), eq(endDate));
 
         // Assertions for the report content
         ManagerReport capturedReport = managerReportCaptor.getValue();

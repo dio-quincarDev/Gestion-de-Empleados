@@ -58,7 +58,7 @@ public class ManagerReportControllerTest {
     void setUp() {
         userEntityRepository.deleteAll();
         UserEntity managerUser = createTestUser("manager@example.com", "password123", EmployeeRole.MANAGER);
-        jwtToken = generateToken(managerUser.getEmail(), managerUser.getRole().name());
+        jwtToken = generateToken(managerUser.getEmail(), "ROLE_" + managerUser.getRole().name());
     }
 
     @Test
@@ -136,7 +136,7 @@ public class ManagerReportControllerTest {
     @Test
     void whenGenerateManagerWeeklyReport_withNonManagerUser_shouldReturnForbidden() throws Exception {
         UserEntity adminUser = createTestUser("admin@example.com", "password123", EmployeeRole.ADMIN);
-        String adminJwtToken = generateToken(adminUser.getEmail(), adminUser.getRole().name());
+        String adminJwtToken = generateToken(adminUser.getEmail(), "ROLE_" + adminUser.getRole().name());
 
         LocalDate startDate = LocalDate.of(2024, 1, 1);
         LocalDate endDate = LocalDate.of(2024, 1, 7);

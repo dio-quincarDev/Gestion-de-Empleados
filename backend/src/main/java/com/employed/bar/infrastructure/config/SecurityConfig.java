@@ -52,9 +52,9 @@ public class SecurityConfig {
                         .permitAll()
 
                         // Schedule management endpoints
-                        .requestMatchers(HttpMethod.POST, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("MANAGER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("MANAGER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("MANAGER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
 
                         // Employee promotion endpoint
                         .requestMatchers(HttpMethod.POST, ApiPathConstants.V1_ROUTE + ApiPathConstants.USERS_ROUTE + "/promotion/employee/**").hasAuthority("ROLE_MANAGER")

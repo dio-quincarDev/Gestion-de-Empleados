@@ -156,13 +156,12 @@ public class ConsumptionApplicationServiceTest {
     void testGetConsumptionByEmployee_StartDateAfterEndDate() {
         LocalDateTime startDate = LocalDateTime.now();
         LocalDateTime endDate = LocalDateTime.now().minusDays(7);
-        when(consumptionRepository.findByEmployeeAndDateTimeBetween(employee, startDate, endDate, null)).thenReturn(java.util.Collections.emptyList());
 
-        java.util.List<ConsumptionClass> result = consumptionApplicationService.getConsumptionByEmployee(employee, startDate, endDate, null);
+        assertThrows(com.employed.bar.domain.exceptions.InvalidDateRangeException.class, () -> {
+            consumptionApplicationService.getConsumptionByEmployee(employee, startDate, endDate, null);
+        });
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-        verify(consumptionRepository, times(1)).findByEmployeeAndDateTimeBetween(employee, startDate, endDate, null);
+        verify(consumptionRepository, never()).findByEmployeeAndDateTimeBetween(any(), any(), any(), any());
     }
 
     @Test

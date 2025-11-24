@@ -19,6 +19,7 @@ import com.employed.bar.infrastructure.adapter.out.persistence.repository.Spring
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.SpringEmployeeJpaRepository;
 import com.employed.bar.infrastructure.adapter.out.persistence.repository.UserEntityRepository;
 import com.employed.bar.infrastructure.constants.ApiPathConstants;
+import com.employed.bar.infrastructure.mail.TestMailConfig;
 import com.employed.bar.infrastructure.security.jwt.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestMailConfig.class)
 public class KpiControllerTest {
 
     @Autowired
@@ -92,13 +95,13 @@ public class KpiControllerTest {
 
         // Create users
         managerUser = createTestUser("manager@example.com", "password123", EmployeeRole.MANAGER);
-        managerToken = generateToken(managerUser.getEmail(), managerUser.getRole().name());
+        managerToken = generateToken(managerUser.getEmail(), "ROLE_" + managerUser.getRole().name());
 
         adminUser = createTestUser("admin@example.com", "password123", EmployeeRole.ADMIN);
-        adminToken = generateToken(adminUser.getEmail(), adminUser.getRole().name());
+        adminToken = generateToken(adminUser.getEmail(), "ROLE_" + adminUser.getRole().name());
 
         waiterUser = createTestUser("waiter@example.com", "password123", EmployeeRole.WAITER);
-        waiterToken = generateToken(waiterUser.getEmail(), waiterUser.getRole().name());
+        waiterToken = generateToken(waiterUser.getEmail(), "ROLE_" + waiterUser.getRole().name());
     }
 
     private UserEntity createTestUser(String email, String password, EmployeeRole role) {
@@ -116,12 +119,15 @@ public class KpiControllerTest {
     }
 
     private EmployeeEntity createEmployee(String name, EmployeeRole role, EmployeeStatus status) {
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+
         EmployeeEntity employee = new EmployeeEntity();
         employee.setName(name);
         employee.setRole(role);
         employee.setStatus(status);
         employee.setHourlyRate(BigDecimal.valueOf(10.0)); // Default hourly rate
         employee.setEmail(name.toLowerCase().replace(" ", "") + "@example.com"); // Generate a unique email
+        employee.setContactPhone("5076" + uniqueId.replaceAll("-", ""));
         employee.setPaysOvertime(false);
         employee.setPaymentMethodType(PaymentMethodType.CASH);
         return employeeRepository.save(employee);

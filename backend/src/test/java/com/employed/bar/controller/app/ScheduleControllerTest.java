@@ -87,11 +87,13 @@ public class ScheduleControllerTest {
         // Crear empleado y usuario de prueba usando métodos helper
         testEmployee = createTestEmployee("María García", "maria.garcia@test.com", EmployeeRole.WAITER, EmployeeStatus.ACTIVE);
         managerUser = createTestUser("manager-schedule@test.com", "password", EmployeeRole.MANAGER);
-        managerToken = "Bearer " + jwtService.generateToken(managerUser.getEmail(), managerUser.getRole().name()).getAccessToken();
+        managerToken = "Bearer " + jwtService.generateToken(managerUser.getEmail(), "ROLE_" + managerUser.getRole().name()).getAccessToken();
     }
 
     // Métodos helper para crear entidades de prueba
     private EmployeeEntity createTestEmployee(String name, String email, EmployeeRole role, EmployeeStatus status) {
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+
         EmployeeEntity employee = EmployeeEntity.builder()
                 .name(name)
                 .email(email)
@@ -100,6 +102,7 @@ public class ScheduleControllerTest {
                 .hourlyRate(new java.math.BigDecimal("10.00")) // Added hourlyRate
                 .status(status)
                 .paymentType(PaymentType.HOURLY) // Added missing paymentType
+                .contactPhone("5076" + uniqueId.replaceAll("-", ""))
                 .build();
         return employeeRepository.save(employee);
     }
@@ -697,7 +700,7 @@ public class ScheduleControllerTest {
     void createSchedule_WithUserRoleAdmin_ShouldReturnSuccess() throws Exception {
         // Given - Crear usuario con rol ADMIN (debe tener acceso)
         UserEntity adminUser = createTestUser("admin-schedule@test.com", "password", EmployeeRole.ADMIN);
-        String adminToken = "Bearer " + jwtService.generateToken(adminUser.getEmail(), adminUser.getRole().name()).getAccessToken();
+        String adminToken = "Bearer " + jwtService.generateToken(adminUser.getEmail(), "ROLE_" + adminUser.getRole().name()).getAccessToken();
 
         ScheduleDto scheduleDto = createValidScheduleDto();
 
