@@ -1,8 +1,6 @@
 <template>
   <q-page class="flex column flex-center q-pa-md">
     <div class="dashboard-container">
-
-
       <div class="text-h4 text-white q-mb-lg text-center">Colaboradores 1800</div>
 
       <!-- Métricas Clave -->
@@ -155,7 +153,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useKpiStore } from 'src/stores/kpi-module'
 import { date } from 'quasar'
 
@@ -172,26 +170,40 @@ const report = computed(() => kpiStore.reportData)
 
 // Cálculo de máximos para barras
 const maxHours = computed(() => {
-  const values = report.value?.topEmployeesByHoursWorked?.map((e) => e.totalHoursWorked) || [1]
+  if (
+    !report.value?.topEmployeesByHoursWorked ||
+    report.value.topEmployeesByHoursWorked.length === 0
+  ) {
+    return 1
+  }
+  const values = report.value.topEmployeesByHoursWorked.map((e) => e.totalHoursWorked)
   return Math.max(...values, 1)
 })
 
 const maxConsumption = computed(() => {
-  const values = report.value?.topEmployeesByConsumptions?.map((e) => e.totalConsumptions) || [1]
+  if (
+    !report.value?.topEmployeesByConsumptions ||
+    report.value.topEmployeesByConsumptions.length === 0
+  ) {
+    return 1
+  }
+  const values = report.value.topEmployeesByConsumptions.map((e) => e.totalConsumptions)
   return Math.max(...values, 1)
 })
 
 const topHours = computed(() => {
-  return (report.value?.topEmployeesByHoursWorked || []).map((emp) => ({
+  if (!report.value?.topEmployeesByHoursWorked) return []
+  return report.value.topEmployeesByHoursWorked.map((emp) => ({
     ...emp,
-    percentage: emp.totalHoursWorked / maxHours.value,
+    percentage: maxHours.value > 0 ? emp.totalHoursWorked / maxHours.value : 0,
   }))
 })
 
 const topConsumptions = computed(() => {
-  return (report.value?.topEmployeesByConsumptions || []).map((emp) => ({
+  if (!report.value?.topEmployeesByConsumptions) return []
+  return report.value.topEmployeesByConsumptions.map((emp) => ({
     ...emp,
-    percentage: emp.totalConsumptions / maxConsumption.value,
+    percentage: maxConsumption.value > 0 ? emp.totalConsumptions / maxConsumption.value : 0,
   }))
 })
 
@@ -221,8 +233,6 @@ const loadReport = () => {
 onMounted(() => {
   loadReport()
 })
-
-
 </script>
 
 <style lang="scss" scoped>
@@ -255,8 +265,6 @@ onMounted(() => {
   grid-template-columns: 1fr;
   gap: 15px;
 }
-
-
 
 /* Animaciones */
 .animated.fadeInUp {

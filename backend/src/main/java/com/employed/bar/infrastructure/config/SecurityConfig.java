@@ -50,6 +50,15 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(EndpointRequest.to("health", "info"))
                         .permitAll()
+
+                        // Schedule management endpoints
+                        .requestMatchers(HttpMethod.POST, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, ApiPathConstants.V1_ROUTE + ApiPathConstants.SCHEDULE_ROUTE + "/**").hasAnyAuthority("ROLE_MANAGER", "ROLE_ADMIN")
+
+                        // Employee promotion endpoint
+                        .requestMatchers(HttpMethod.POST, ApiPathConstants.V1_ROUTE + ApiPathConstants.USERS_ROUTE + "/promotion/employee/**").hasAuthority("ROLE_MANAGER")
+
                         // All other requests must be authenticated
                         .anyRequest().authenticated()
                 )

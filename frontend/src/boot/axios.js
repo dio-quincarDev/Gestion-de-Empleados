@@ -13,7 +13,7 @@ const API_CONSTANTS = {
   ATTENDANCE_ROUTE: '/attendances',
   SCHEDULE_ROUTE: '/schedules',
   REPORT_ROUTE: '/reports',
-  KPI_ROUTE: '/kpis',
+  KPI_ROUTE: '/kpi',
 }
 
 let routerInstance

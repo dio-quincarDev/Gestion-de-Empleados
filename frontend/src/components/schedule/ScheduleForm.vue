@@ -225,8 +225,8 @@ const onSave = () => {
 
   const scheduleData = {
     employeeId: formData.value.employeeId,
-    startTime: new Date(formData.value.entryDateTime).toISOString().slice(0, 19),
-    endTime: new Date(formData.value.exitDateTime).toISOString().slice(0, 19),
+    startTime: formData.value.entryDateTime + ":00",  // Agregar segundos para cumplir con formato ISO
+    endTime: formData.value.exitDateTime + ":00",    // Agregar segundos para cumplir con formato ISO
   }
 
   if (props.schedule?.id) {

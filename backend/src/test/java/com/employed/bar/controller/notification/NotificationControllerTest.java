@@ -96,8 +96,8 @@ public class NotificationControllerTest {
                 "password123",
                 EmployeeRole.WAITER
         );
-        managerJwtToken = generateToken(managerUser.getEmail(), managerUser.getRole().name());
-        userJwtToken = generateToken(regularUser.getEmail(), regularUser.getRole().name());
+        managerJwtToken = generateToken(managerUser.getEmail(), "ROLE_" + managerUser.getRole().name());
+        userJwtToken = generateToken(regularUser.getEmail(), "ROLE_" + regularUser.getRole().name());
 
         System.out.println("✅ Setup completado para prueba #" + testNumber);
     }
@@ -195,9 +195,12 @@ public class NotificationControllerTest {
 
         // Assertions for content - now aggregated over the week
         assertTrue(emailContent.contains("Test Employee 1"), "Should contain employee name");
-        assertTrue(emailContent.contains("Asistencia") || emailContent.contains("Attendance"), "Should contain attendance section");
-        assertTrue(emailContent.contains("Consumo") || emailContent.contains("Consumption"), "Should contain consumption section");
-        assertTrue(emailContent.contains("Horas") || emailContent.contains("Hours"), "Should contain hours information");
+        assertTrue(emailContent.contains("Asistencia") || emailContent.contains("Attendance"),
+                "Should contain attendance section");
+        assertTrue(emailContent.contains("Consumo") || emailContent.contains("Consumption"),
+                "Should contain consumption section");
+        assertTrue(emailContent.contains("Horas") || emailContent.contains("Hours"),
+                "Should contain hours information");
 
         // Total hours: 8 (22/10) + 9 (25/10) + 9 (28/10) = 26 hours
         assertTrue(emailContent.contains("26.0"), "Should contain total hours for the week");
@@ -218,10 +221,33 @@ public class NotificationControllerTest {
                 MimeBodyPart bodyPart = (MimeBodyPart) mimeMultipart.getBodyPart(i);
                 if (bodyPart.isMimeType("text/html")) {
                     return (String) bodyPart.getContent();
+                } else if (bodyPart.isMimeType("text/plain")) {
+                    return (String) bodyPart.getContent();
+                }
+                // Si la parte es un multipart, buscar dentro de ella
+                else if (bodyPart.getContent() instanceof MimeMultipart) {
+                    String result = extractContentFromMultipart((MimeMultipart) bodyPart.getContent());
+                    if (!result.isEmpty()) {
+                        return result;
+                    }
                 }
             }
         } else if (content instanceof String) {
             return (String) content;
+        }
+        return "";
+    }
+
+    private String extractContentFromMultipart(MimeMultipart multipart) throws Exception {
+        for (int i = 0; i < multipart.getCount(); i++) {
+            MimeBodyPart bodyPart = (MimeBodyPart) multipart.getBodyPart(i);
+            if (bodyPart.isMimeType("text/html")) {
+                return (String) bodyPart.getContent();
+            } else if (bodyPart.isMimeType("text/plain")) {
+                return (String) bodyPart.getContent();
+            } else if (bodyPart.getContent() instanceof MimeMultipart) {
+                return extractContentFromMultipart((MimeMultipart) bodyPart.getContent());
+            }
         }
         return "";
     }
@@ -285,8 +311,7 @@ public class NotificationControllerTest {
         UserEntity user = UserEntity.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .firstname("Test")
-                .lastname("User")
+                .name("Test User")
                 .role(role)
                 .build();
         return userEntityRepository.save(user);
@@ -297,6 +322,8 @@ public class NotificationControllerTest {
     }
 
     private EmployeeEntity createTestEmployee(String name, String email, EmployeeRole role) {
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+
         EmployeeEntity employee = new EmployeeEntity();
         employee.setName(name);
         employee.setEmail(email);
@@ -305,6 +332,7 @@ public class NotificationControllerTest {
         employee.setSalary(new java.math.BigDecimal("2000.00"));
         employee.setStatus(EmployeeStatus.ACTIVE);
         employee.setPaymentType(PaymentType.HOURLY);
+        employee.setContactPhone("5076" + uniqueId.replaceAll("-", ""));
         employee.setPaysOvertime(true);
         employee.setOvertimeRateType(OvertimeRateType.FIFTY_PERCENT);
         employee.setPaymentMethodType(PaymentMethodType.CASH);

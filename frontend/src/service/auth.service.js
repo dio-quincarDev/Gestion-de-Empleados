@@ -22,16 +22,16 @@ export default {
     }
   },
 
-  // Registro de usuario
-  async register(userData) {
+  // Registro de Manager
+  async registerManager(userData) {
     try {
       const response = await api.post(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.USERS_ROUTE}/register-manager`,
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.AUTH_ROUTE}/register-manager`,
         userData,
       )
       return response.data
     } catch (error) {
-      console.error('Error en el registro:', error)
+      console.error('Error en el registro del manager:', error)
       throw error
     }
   },
@@ -122,20 +122,6 @@ export default {
       console.log('Sesión cerrada correctamente')
     } catch (error) {
       console.error('Error al cerrar sesión:', error)
-    }
-  },
-
-  // Registro de Manager
-  async registerManager(userData) {
-    try {
-      const response = await api.post(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.AUTH_ROUTE}/register-manager`,
-        userData,
-      )
-      return response.data
-    } catch (error) {
-      console.error('Error en el registro del manager:', error)
-      throw error
     }
   },
 }

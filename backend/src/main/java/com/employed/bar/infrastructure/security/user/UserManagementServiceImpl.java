@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +23,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public UserEntity createUser(CreateUserRequest request) {
         // The controller's @PreAuthorize("hasRole('MANAGER')") ensures only a MANAGER can execute this.
 
@@ -37,8 +39,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         UserEntity userToSave = UserEntity.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
+                .name(request.getName())
                 .role(request.getRole())
                 .build();
 

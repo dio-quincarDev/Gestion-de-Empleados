@@ -2,7 +2,7 @@
   <q-page class="flex flex-center animated-gradient">
     <q-card class="q-pa-md shadow-2 glass-card" style="width: 400px">
       <q-card-section class="text-center">
-        <div class="text-h4 text-white q-mb-md josefin-sans">Registro de Manager</div>
+        <div class="text-h4 text-white q-mb-md josefin-sans">Registro de Usuario</div>
       </q-card-section>
 
       <q-card-section>
@@ -10,20 +10,10 @@
           <q-input
             dark
             dense
-            v-model="form.firstname"
-            label="Nombre"
+            v-model="form.name"
+            label="Nombre completo"
             lazy-rules
             :rules="[ val => val && val.length > 0 || 'El nombre es requerido']"
-            class="q-mb-sm"
-          />
-
-          <q-input
-            dark
-            dense
-            v-model="form.lastname"
-            label="Apellido"
-            lazy-rules
-            :rules="[ val => val && val.length > 0 || 'El apellido es requerido']"
             class="q-mb-sm"
           />
 
@@ -36,6 +26,7 @@
             lazy-rules
             :rules="[ val => val && val.length > 0 || 'El email es requerido']"
             class="q-mb-sm"
+            input-class="text-white"
           />
 
           <q-input
@@ -47,6 +38,7 @@
             lazy-rules
             :rules="[ val => val && val.length > 0 || 'La contraseña es requerida']"
             class="q-mb-md"
+            input-class="text-white"
           />
 
           <q-btn
@@ -75,8 +67,7 @@ const $q = useQuasar();
 const router = useRouter();
 
 const form = ref({
-  firstname: '',
-  lastname: '',
+  name: '',
   email: '',
   password: '',
   role: 'MANAGER' // Rol asignado automáticamente
@@ -163,5 +154,16 @@ const handleRegister = async () => {
 
 :deep(.q-field--dark .q-field__control:before) {
   border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.password-toggle-icon {
+  color: #FF8C00 !important;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.password-toggle-icon:hover {
+  opacity: 1;
+  cursor: pointer;
 }
 </style>

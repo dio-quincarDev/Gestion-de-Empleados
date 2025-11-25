@@ -5,12 +5,8 @@ export const scheduleService = {
   // Crear un nuevo schedule
   createSchedule: async (scheduleData) => {
     try {
-      const employeeId = scheduleData.employeeId; // Corregido para buscar el ID en la propiedad correcta
-      if (!employeeId) {
-        throw new Error('El ID del empleado es requerido para crear el horario.');
-      }
       const response = await api.post(
-        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.SCHEDULE_ROUTE}/employee/${employeeId}`,
+        `${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.SCHEDULE_ROUTE}/`,
         scheduleData,
       );
       return response.data;

@@ -12,6 +12,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 @Getter
@@ -19,6 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 public class EmployeeClass {
     private Long id;
+    private UUID userId;
     private String name;
     private String email;
     private String contactPhone;
@@ -34,7 +36,7 @@ public class EmployeeClass {
     private List<AttendanceRecordClass> attendanceRecordClasses = new ArrayList<>();
     private List<ConsumptionClass> consumptionClasses = new ArrayList<>();
 
-    public EmployeeClass(Long id, String name, String email, String contactPhone, EmployeeRole role, BigDecimal hourlyRate,
+    public EmployeeClass(Long id, UUID userId, String name, String email, String contactPhone, EmployeeRole role, BigDecimal hourlyRate,
                          BigDecimal salary, PaymentMethod paymentMethod, boolean paysOvertime,
                          OvertimeRateType overtimeRateType, EmployeeStatus status, PaymentType paymentType,
                          List<ScheduleClass> schedules, List<AttendanceRecordClass> attendanceRecordClasses,
@@ -43,6 +45,7 @@ public class EmployeeClass {
             throw new IllegalArgumentException("Payment method cannot be null");
         }
         this.id = id;
+        this.userId = userId;
         this.name = name;
         this.email = email;
         this.contactPhone = contactPhone;

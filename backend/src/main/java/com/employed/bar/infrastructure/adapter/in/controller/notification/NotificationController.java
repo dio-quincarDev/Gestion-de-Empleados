@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -37,6 +38,7 @@ public class NotificationController {
                     content = @Content(mediaType = "text/plain")),
             @ApiResponse(responseCode = "404", description = "Empleado no encontrado.")
     })
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
     @GetMapping("/send-test")
     public ResponseEntity<String> sendTestEmail(
             @Parameter(description = "ID único del empleado al que se enviará el correo de prueba.", required = true, example = "1")

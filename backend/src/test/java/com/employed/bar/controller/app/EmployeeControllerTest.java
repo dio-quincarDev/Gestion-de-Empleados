@@ -94,20 +94,22 @@ public class EmployeeControllerTest {
         UserEntity user = UserEntity.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .firstname("Test")
-                .lastname("User")
+                .name("Test User")
                 .role(role)
                 .build();
         return userEntityRepository.save(user);
     }
 
     private EmployeeEntity createTestEmployee(String name, String email, EmployeeRole role, EmployeeStatus status, PaymentType paymentType) {
+        String uniqueId = java.util.UUID.randomUUID().toString().substring(0, 8);
+
         EmployeeEntity employee = new EmployeeEntity();
         employee.setName(name);
         employee.setEmail(email);
         employee.setRole(role);
         employee.setStatus(status);
         employee.setPaymentType(paymentType);
+        employee.setContactPhone("5076" + uniqueId.replaceAll("-", ""));
         if (paymentType == PaymentType.HOURLY) {
             employee.setHourlyRate(new BigDecimal("10.00"));
             employee.setSalary(BigDecimal.ZERO);
@@ -171,7 +173,7 @@ public class EmployeeControllerTest {
         mockMvc.perform(get(BASE_URL)
                         .header("Authorization", managerToken)) // ← Usando managerToken
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.content", hasSize(2)));
     }
 
     @Test
@@ -205,7 +207,7 @@ public class EmployeeControllerTest {
         mockMvc.perform(get(BASE_URL)
                         .header("Authorization", adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.content", hasSize(2)));
     }
 
     @Test

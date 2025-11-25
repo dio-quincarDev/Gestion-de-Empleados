@@ -8,6 +8,9 @@ import com.employed.bar.domain.enums.PaymentMethodType;
 import com.employed.bar.domain.enums.PaymentType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import java.util.UUID;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -26,8 +29,9 @@ public class EmployeeEntity {
     private Long id;
 
     // Campo para almacenar el ID del usuario relacionado
-    @Column(name = "user_id")
-    private String userId; // Campo que almacena el UUID como string
+    @Column(name = "user_id", columnDefinition = "CHAR(36)")
+    @JdbcTypeCode(SqlTypes.CHAR)
+    private UUID userId;
 
     @Column(name = "name", nullable = false)
     private String name;

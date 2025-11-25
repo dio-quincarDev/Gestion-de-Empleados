@@ -9,6 +9,7 @@ import com.employed.bar.domain.port.in.app.ScheduleUseCase;
 import com.employed.bar.domain.port.out.EmployeeRepositoryPort;
 import com.employed.bar.domain.port.out.ScheduleRepositoryPort;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -34,15 +35,24 @@ public class ScheduleApplicationService implements ScheduleUseCase {
 
         schedule.setEmployee(employee);
 
-        if (schedule.getStartTime().isAfter(schedule.getEndTime())) {
-            throw new InvalidScheduleException("Start time cannot be after end time.");
+        // Para turnos nocturnos, se permite que el endTime sea menor que startTime si ocurre en el día siguiente
+        // Por lo tanto, se elimina esta validación estricta
+        // Se puede agregar verificación adicional si se desea limitar la duración del turno
+        if (schedule.getStartTime().isAfter(schedule.getEndTime()) &&
+            schedule.getStartTime().toLocalDate().isEqual(schedule.getEndTime().toLocalDate())) {
+            throw new InvalidScheduleException("Start time cannot be after end time for the same day.");
         }
 
-        // Check for overlapping schedules
+        // Validación opcional: limitar la duración máxima del turno (por ejemplo, no más de 24 horas)
+        long hoursBetween = java.time.temporal.ChronoUnit.HOURS.between(schedule.getStartTime(), schedule.getEndTime());
+        if (hoursBetween > 24 || (schedule.getStartTime().isAfter(schedule.getEndTime()) && hoursBetween < -24)) {
+            throw new InvalidScheduleException("Schedule duration cannot exceed 24 hours.");
+        }
+
+        // Check for overlapping schedules - consider night shifts that cross midnight
         List<ScheduleClass> existingSchedules = scheduleRepositoryPort.findByEmployee(employee);
         for (ScheduleClass existingSchedule : existingSchedules) {
-            if (schedule.getStartTime().isBefore(existingSchedule.getEndTime()) &&
-                    schedule.getEndTime().isAfter(existingSchedule.getStartTime())) {
+            if (schedulesOverlap(schedule, existingSchedule)) {
                 throw new InvalidScheduleException("Schedule overlaps with an existing schedule for this employee.");
             }
         }
@@ -75,8 +85,16 @@ public class ScheduleApplicationService implements ScheduleUseCase {
         ScheduleClass existingSchedule = scheduleRepositoryPort.findById(id)
                 .orElseThrow(() -> new ScheduleNotFoundException("Schedule not found with ID: " + id));
 
-        if (updatedSchedule.getStartTime().isAfter(updatedSchedule.getEndTime())) {
-            throw new InvalidScheduleException("Start time cannot be after end time.");
+        // Validación para turnos nocturnos
+        if (updatedSchedule.getStartTime().isAfter(updatedSchedule.getEndTime()) &&
+            updatedSchedule.getStartTime().toLocalDate().isEqual(updatedSchedule.getEndTime().toLocalDate())) {
+            throw new InvalidScheduleException("Start time cannot be after end time for the same day.");
+        }
+
+        // Validación opcional: limitar la duración máxima del turno (por ejemplo, no más de 24 horas)
+        long hoursBetween = java.time.temporal.ChronoUnit.HOURS.between(updatedSchedule.getStartTime(), updatedSchedule.getEndTime());
+        if (hoursBetween > 24 || (updatedSchedule.getStartTime().isAfter(updatedSchedule.getEndTime()) && hoursBetween < -24)) {
+            throw new InvalidScheduleException("Schedule duration cannot exceed 24 hours.");
         }
 
         // Check for overlapping schedules, excluding the schedule being updated
@@ -84,8 +102,7 @@ public class ScheduleApplicationService implements ScheduleUseCase {
         List<ScheduleClass> existingSchedules = scheduleRepositoryPort.findByEmployee(ownerEmployee);
         for (ScheduleClass otherSchedule : existingSchedules) {
             if (!otherSchedule.getId().equals(id)) { // Exclude the schedule being updated
-                if (updatedSchedule.getStartTime().isBefore(otherSchedule.getEndTime()) &&
-                        updatedSchedule.getEndTime().isAfter(otherSchedule.getStartTime())) {
+                if (schedulesOverlap(updatedSchedule, otherSchedule)) {
                     throw new InvalidScheduleException("Updated schedule overlaps with an existing schedule for this employee.");
                 }
             }
@@ -101,5 +118,21 @@ public class ScheduleApplicationService implements ScheduleUseCase {
         }
 
         return scheduleRepositoryPort.save(existingSchedule);
+    }
+
+    /**
+     * Checks if two schedules overlap. This works for any schedule, including those that cross midnight,
+     * as long as LocalDateTime is used consistently.
+     * The logic is that two intervals [start1, end1] and [start2, end2] overlap if, and only if,
+     * start1 is before end2 AND start2 is before end1.
+     */
+    private boolean schedulesOverlap(ScheduleClass schedule1, ScheduleClass schedule2) {
+        LocalDateTime start1 = schedule1.getStartTime();
+        LocalDateTime end1 = schedule1.getEndTime();
+        LocalDateTime start2 = schedule2.getStartTime();
+        LocalDateTime end2 = schedule2.getEndTime();
+
+        // This simple check correctly handles all cases, including day, night, and multi-day shifts.
+        return start1.isBefore(end2) && start2.isBefore(end1);
     }
 }

@@ -38,15 +38,12 @@ public class UserEntity implements UserDetails{
     @JdbcTypeCode(SqlTypes.CHAR)
 	private UUID id;
 
-    @Column(nullable = false)
-	private String firstname;
+	@Column(nullable = false)
+	private String name;
 
-    @Column(nullable = false)
-	private String lastname;
-	
 	@Column(nullable = false, unique = true)
 	private String email;
-	
+
 	@Column(nullable = false)
 	private String password;
 

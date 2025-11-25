@@ -17,6 +17,7 @@ public interface EmployeeMapper {
         EmployeeEntity entity = new EmployeeEntity();
         // Mapeo manual de todos los campos básicos
         entity.setId(domain.getId());
+        entity.setUserId(domain.getUserId());  // Mapeo del userId UUID
         entity.setName(domain.getName());
         entity.setEmail(domain.getEmail());
         entity.setRole(domain.getRole());
@@ -38,6 +39,7 @@ public interface EmployeeMapper {
     @Mapping(target = "schedules", ignore = true)
     @Mapping(target = "attendanceRecordClasses", ignore = true)
     @Mapping(target = "consumptionClasses", ignore = true)
+    @Mapping(target = "userId", source = "userId")
     EmployeeClass toDomain(EmployeeEntity entity);
 
     @AfterMapping

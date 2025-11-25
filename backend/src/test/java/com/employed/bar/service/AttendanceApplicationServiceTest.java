@@ -519,17 +519,23 @@ public class AttendanceApplicationServiceTest {
     void testUpdateAttendance_Success() {
         attendanceRecord.setId(1L);
         when(attendanceRepositoryPort.findById(1L)).thenReturn(Optional.of(attendanceRecord));
-        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenReturn(attendanceRecord);
+        when(attendanceRepositoryPort.save(any(AttendanceRecordClass.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AttendanceRecordClass updatedRecord = new AttendanceRecordClass();
         updatedRecord.setId(1L);
-        updatedRecord.setEntryDateTime(LocalDateTime.now());
+        LocalDateTime entryTime = LocalDateTime.now();
+        LocalDateTime exitTime = entryTime.plusHours(8); // Aseguramos que la salida sea después de la entrada
+        updatedRecord.setEntryDateTime(entryTime);
+        updatedRecord.setExitDateTime(exitTime);
 
         AttendanceRecordClass result = attendanceApplicationService.updateAttendance(updatedRecord);
 
         assertNotNull(result);
+        assertEquals(updatedRecord.getId(), result.getId());
+        assertEquals(updatedRecord.getEntryDateTime(), result.getEntryDateTime());
+        assertEquals(updatedRecord.getExitDateTime(), result.getExitDateTime());
         verify(attendanceRepositoryPort, times(1)).findById(1L);
-        verify(attendanceRepositoryPort, times(1)).save(attendanceRecord);
+        verify(attendanceRepositoryPort, times(1)).save(any(AttendanceRecordClass.class));
     }
 
     @Test

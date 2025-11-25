@@ -30,8 +30,7 @@
         <template #body="props">
           <q-tr :props="props">
             <q-td key="date">
-              <div>{{ formatDate(props.row.date) }}</div>
-              <div class="text-caption text-grey-5">{{ formatTime(props.row.date) }}</div>
+              {{ formatDate(props.row.date) }}
             </q-td>
             <q-td key="description">
               {{ props.row.description || '—' }}

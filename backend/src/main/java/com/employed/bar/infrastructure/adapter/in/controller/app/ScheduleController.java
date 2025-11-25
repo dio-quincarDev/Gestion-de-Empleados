@@ -58,10 +58,8 @@ public class ScheduleController {
                     content = @Content(schema = @Schema(example = "{\"message\": \"Employee not found\"}"))
             )
     })
-    @PostMapping("/employee/{employeeId}")
+    @PostMapping("/")
     public ResponseEntity<ScheduleDto> createSchedule(
-            @Parameter(description = "ID del empleado para asociar el horario", required = true)
-            @PathVariable Long employeeId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Datos del horario a registrar",
                     required = true,

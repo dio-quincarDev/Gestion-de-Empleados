@@ -27,6 +27,13 @@ class UserService {
   createUser(userData) {
     return api.post(`${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.USERS_ROUTE}`, userData)
   }
+
+  // Método para promocionar empleado a administrador
+  promoteEmployeeToAdmin(employeeId, password) {
+    return api.post(`${API_CONSTANTS.V1_ROUTE}${API_CONSTANTS.USERS_ROUTE}/promotion/employee/${employeeId}/to-admin`, {
+      password: password
+    })
+  }
 }
 
 export default new UserService()

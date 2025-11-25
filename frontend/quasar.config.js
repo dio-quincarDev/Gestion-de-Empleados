@@ -64,7 +64,16 @@ export default defineConfig(() => {
         productName: '1800',
       },
 
-      // extendViteConf (viteConf) {},
+      extendViteConf (viteConf) {
+        viteConf.server = viteConf.server || {}
+        viteConf.server.proxy = {
+          '/v1': {
+            target: 'http://localhost:8080',
+            changeOrigin: true,
+            secure: false
+          }
+        }
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [],

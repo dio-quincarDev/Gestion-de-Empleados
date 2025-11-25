@@ -19,21 +19,18 @@ import lombok.Setter;
 
 public class UserEntityRequest {
 	
-	@NotBlank(message = "First name is mandatory")
-	private String firstname;
-	
-	@NotBlank(message = "Last name is mandatory")
-	private String lastname;
+	@NotBlank(message = "Name is mandatory")
+	private String name;
 	
 	@Email(message = "Email should be valid")
     @NotBlank(message = "Email is mandatory")
 	private String email;
-	
+
 	@NotBlank(message = "Password is mandatory")
 	private String password;
 
 	@NotNull(message = "Role is mandatory")
 	private EmployeeRole role;
-	
+
 
 }

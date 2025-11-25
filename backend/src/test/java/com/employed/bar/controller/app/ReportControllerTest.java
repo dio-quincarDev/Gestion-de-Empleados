@@ -71,8 +71,8 @@ public class ReportControllerTest {
         UserEntity managerUser = createTestUser("manager@example.com", "password123", EmployeeRole.MANAGER);
         UserEntity adminUser = createTestUser("admin@example.com", "password123", EmployeeRole.ADMIN);
 
-        managerToken = "Bearer " + jwtService.generateToken(managerUser.getEmail(), managerUser.getRole().name()).getAccessToken();
-        adminToken = "Bearer " + jwtService.generateToken(adminUser.getEmail(), adminUser.getRole().name()).getAccessToken();
+        managerToken = "Bearer " + jwtService.generateToken(managerUser.getEmail(), "ROLE_" + managerUser.getRole().name()).getAccessToken();
+        adminToken = "Bearer " + jwtService.generateToken(adminUser.getEmail(), "ROLE_" + adminUser.getRole().name()).getAccessToken();
     }
 
     @Test
@@ -306,8 +306,7 @@ public class ReportControllerTest {
         UserEntity user = UserEntity.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .firstname("Test")
-                .lastname("User")
+                .name("Test User")
                 .role(role)
                 .build();
         return userEntityRepository.save(user);
