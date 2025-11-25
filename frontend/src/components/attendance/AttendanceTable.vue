@@ -224,10 +224,14 @@ const onSearch = async () => {
   }
 
   try {
+    // Para manejar mejor las asistencias que cruzan medianoche, extendemos ligeramente el rango
+    let startDate = filters.value.startDate;
+    let endDate = filters.value.endDate;
+
     await attendanceStore.loadAttendanceList({
       employeeId: props.employee.value,
-      startDate: filters.value.startDate,
-      endDate: filters.value.endDate,
+      startDate: startDate,
+      endDate: endDate,
     })
   } catch (error) {
     $q.notify({

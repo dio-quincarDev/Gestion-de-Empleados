@@ -31,9 +31,12 @@
         </div>
       </div>
 
-      <div v-if="consumption.id" class="row items-start">
-        <div class="col-5 text-grey-6">ID:</div>
-        <div class="col-7 text-caption text-grey-5">#{{ consumption.id }}</div>
+      <div class="row items-center">
+        <div class="col-5 text-grey-6">Creado:</div>
+        <div class="col-7">
+          <div class="text-weight-medium">{{ formattedDate }}</div>
+          <div class="text-caption text-grey-5">{{ formattedTime }}</div>
+        </div>
       </div>
     </q-card-section>
 

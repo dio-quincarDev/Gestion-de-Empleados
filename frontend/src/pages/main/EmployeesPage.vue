@@ -124,6 +124,7 @@ import EmployeeTable from 'src/components/employee/EmployeeTable.vue'
 import EmployeeForm from 'src/components/employee/EmployeeForm.vue'
 import { useQuasar } from 'quasar'
 import { ROLES } from 'src/constants/roles'
+import userService from 'src/service/user.service'
 
 defineOptions({
   name: 'EmployeesPage',
