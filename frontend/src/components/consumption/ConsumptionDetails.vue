@@ -32,11 +32,8 @@
       </div>
 
       <div class="row items-center">
-        <div class="col-5 text-grey-6">Creado:</div>
-        <div class="col-7">
-          <div class="text-weight-medium">{{ formattedDate }}</div>
-          <div class="text-caption text-grey-5">{{ formattedTime }}</div>
-        </div>
+        <div class="col-5 text-grey-6">Fecha:</div>
+        <div class="col-7 text-weight-medium">{{ formattedDate }}</div>
       </div>
     </q-card-section>
 
